@@ -21,5 +21,7 @@ android {
 
 dependencies {
     compile 'com.google.android.gms:play-services:4.4.+'
+    compile 'com.loopj.android:android-async-http:1.4.+'
+    compile 'com.mcxiaoke.volley:library:1.0.7'
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }

@@ -23,8 +23,6 @@ public class SplashScreenActivity extends Activity {
 
 	private static final int SPLASH_SHOW_TIME = 5000;
     public static String TAG = SplashScreenActivity.class.getName();
-    public static final String PROPERTY_REG_ID = "registration_id";
-    private static final String PROPERTY_APP_VERSION = "appVersion";
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private Context context;
     private GoogleCloudMessaging gcm;
@@ -38,32 +36,11 @@ public class SplashScreenActivity extends Activity {
         context = getApplicationContext();
         if (checkPlayServices()) {
             gcm = GoogleCloudMessaging.getInstance(this);
-            regid = getRegistrationId(context);
+            regid = Globals.getRegistrationId(context);
         }
         Globals.setAccessToken(this, null);
 		new BackgroundSplashTask().execute();
 	}
-
-    private SharedPreferences getGCMPreferences(Context context) {
-        return getSharedPreferences("SPLASH", Context.MODE_PRIVATE);
-    }
-
-    private String getRegistrationId(Context context) {
-        final SharedPreferences prefs = getGCMPreferences(context);
-        String registrationId = prefs.getString(PROPERTY_REG_ID, "");
-        if (registrationId.isEmpty()) {
-            Log.i(TAG, "Registration not found.");
-            return "";
-        }
-
-        int registeredVersion = prefs.getInt(PROPERTY_APP_VERSION, Integer.MIN_VALUE);
-        int currentVersion = getAppVersion(context);
-        if (registeredVersion != currentVersion) {
-            Log.i(TAG, "App version changed.");
-            return "";
-        }
-        return registrationId;
-    }
 
     private boolean checkPlayServices() {
         int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
@@ -78,27 +55,6 @@ public class SplashScreenActivity extends Activity {
             return false;
         }
         return true;
-    }
-
-    private void storeRegistrationId(Context context, String regId) {
-        final SharedPreferences prefs = getGCMPreferences(context);
-        int appVersion = getAppVersion(context);
-        Log.i(TAG, "Saving regId on app version " + appVersion);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(PROPERTY_REG_ID, regId);
-        editor.putInt(PROPERTY_APP_VERSION, appVersion);
-        editor.commit();
-    }
-
-    private static int getAppVersion(Context context) {
-        try {
-            PackageInfo packageInfo = context.getPackageManager()
-                    .getPackageInfo(context.getPackageName(), 0);
-            return packageInfo.versionCode;
-        } catch (PackageManager.NameNotFoundException e) {
-            // should never happen
-            throw new RuntimeException("Could not get package name: " + e);
-        }
     }
 
 	/**
@@ -119,10 +75,10 @@ public class SplashScreenActivity extends Activity {
                 if (gcm == null) {
                     gcm = GoogleCloudMessaging.getInstance(context);
                 }
-                regid = gcm.register(Globals.SENDER_ID);
-                msg = "Device registered, registration ID=" + regid;
                 if (regid.isEmpty()) {
-                    storeRegistrationId(context, regid);
+                    regid = gcm.register(Globals.SENDER_ID);
+                    msg = "Device registered, registration ID=" + regid;
+                    Globals.storeRegistrationId(context, regid);
                 }
             } catch (IOException ex) {
                 msg = "Error :" + ex.getMessage();

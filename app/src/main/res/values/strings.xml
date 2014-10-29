@@ -9,5 +9,7 @@
     <string name="title_activity_login">LoginActivity</string>
     <string name="login_hint">Username</string>
     <string name="password_hint">Password</string>
+    <string name="unauthorized_login">Login or Password invalid</string>
+    <string name="no_server_login">Unable to contact the server</string>
 
 </resources>
