@@ -10,8 +10,8 @@ import android.util.Log;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
-import com.igarape.copcast.R;
 
+import org.igarape.copcast.R;
 import org.igarape.copcast.utils.Globals;
 
 import java.io.IOException;

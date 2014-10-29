@@ -14,11 +14,11 @@ import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
-import com.igarape.copcast.R;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
 import org.apache.http.Header;
+import org.igarape.copcast.R;
 import org.igarape.copcast.utils.ApiClient;
 import org.igarape.copcast.utils.Globals;
 import org.json.JSONException;

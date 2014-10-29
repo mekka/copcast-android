@@ -11,5 +11,9 @@
     <string name="password_hint">Password</string>
     <string name="unauthorized_login">Login or Password invalid</string>
     <string name="no_server_login">Unable to contact the server</string>
+    <string name="network">Network</string>
+    <string name="server_url">Server URL</string>
+    <string name="server_url_description">Set the server\'s URL for the communication to work</string>
+    <string name="settings">Settings</string>
 
 </resources>
