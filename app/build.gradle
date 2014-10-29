@@ -5,7 +5,7 @@ android {
     buildToolsVersion "20.0.0"
 
     defaultConfig {
-        applicationId "igarape.com.copcast"
+        applicationId "org.igarape.copcast"
         minSdkVersion 16
         targetSdkVersion 20
         versionCode 1
