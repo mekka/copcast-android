@@ -11,5 +11,7 @@
     <string name="password_hint">Password</string>
     <string name="unauthorized_login">Login or Password invalid</string>
     <string name="no_server_login">Unable to contact the server</string>
+    <string name="login_required">Login required</string>
+    <string name="password_required">Password required</string>
 
 </resources>

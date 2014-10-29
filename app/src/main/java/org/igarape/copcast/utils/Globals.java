@@ -19,7 +19,7 @@ public class Globals {
     private static final String PREF_USER_LOGIN = "PREF_USER_LOGIN";
     public static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
-    public static final String SERVER_URL = "http://192.168.0.109:3000";
+    public static final String SERVER_URL = "http://mogi-api.igarape.org";
     private static String accessToken = null;
     private static String userLogin = null;
     private static String serverIpAddress = "";

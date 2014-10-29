@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,13 +15,14 @@ import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
-import com.igarape.copcast.R;
+import org.igarape.copcast.R;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
 import org.apache.http.Header;
 import org.igarape.copcast.utils.ApiClient;
 import org.igarape.copcast.utils.Globals;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -68,17 +70,36 @@ public class LoginActivity extends Activity {
     }
 
     private void makeLoginRequest() {
+        final String login = txtId.getText().toString();
+        final String password = txtPwd.getText().toString();
+        if(null == login || login.isEmpty()){
+            Log.d(TAG, "login required");
+            Toast toast = Toast.makeText(getApplicationContext(), R.string.login_required, Toast.LENGTH_LONG);
+            toast.setGravity(Gravity.TOP, 0, 100);
+            toast.show();
+            return;
+        }
+        if(null == password || password.isEmpty()){
+            Log.d(TAG,"password required");
+            Toast toast = Toast.makeText(getApplicationContext(), R.string.password_required, Toast.LENGTH_LONG);
+            toast.setGravity(Gravity.TOP, 0, 100);
+            toast.show();
+            return;
+        }
+        final String regId = Globals.getRegistrationId(getApplicationContext());
         RequestParams params = new RequestParams();
         params.put("username", txtId.getText().toString());
         params.put("password", txtPwd.getText().toString());
         params.put("scope", "client");
-        params.put("gcm_registration", Globals.getRegistrationId(getApplicationContext()));
+        params.put("gcm_registration", regId);
+        Log.d(TAG,"@@@@@REGID=["+regId+"]");
 
         pDialog = ProgressDialog.show(this, "Fazendo login", "Por favor aguarde...", true);
 
         ApiClient.post("/token", params, new JsonHttpResponseHandler() {
-            @Override
-            public void onFailure(int statusCode, Header[] headers, String responseBody, Throwable e) {
+
+            private void onError(int statusCode, Throwable e) {
+                Log.e(TAG, "onFailure: statusCode=[" + statusCode + "]");
                 if (pDialog != null) {
                     pDialog.dismiss();
                     pDialog = null;
@@ -86,12 +107,13 @@ public class LoginActivity extends Activity {
                 if (statusCode == 401) {
                     Toast.makeText(LoginActivity.this, LoginActivity.this.getString(R.string.unauthorized_login), Toast.LENGTH_LONG).show();
                 } else {
-                    Log.e(TAG, "Error: " + responseBody, e);
+                    Log.e(TAG, "Error: ",e);
                     Toast.makeText(LoginActivity.this, LoginActivity.this.getString(R.string.no_server_login), Toast.LENGTH_LONG).show();
                 }
             }
 
-            private void successResponse(JSONObject response) {
+            private void onSuccess(JSONObject response) {
+                Log.d(TAG, "@JSONRESPONSE=[" + response + "]");
                 String token = null;
                 try {
                     token = (String) response.get("token");
@@ -124,6 +146,31 @@ public class LoginActivity extends Activity {
             }
 
             @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                onError(statusCode, throwable);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONArray errorResponse) {
+                onError(statusCode, throwable);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseBody, Throwable e) {
+                onError(statusCode, e);
+            }
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                super.onSuccess(statusCode, headers, response);
+            }
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                super.onSuccess(statusCode, headers, response);
+            }
+
+            @Override
             public void onSuccess(int statusCode, Header[] headers, String responseBody) {
                 try {
                     successResponse(new JSONObject(responseBody));
@@ -131,6 +178,10 @@ public class LoginActivity extends Activity {
                     Log.e(TAG, "error on login", e);
                 }
 
+            }
+
+            private void successResponse(JSONObject response) {
+                onSuccess(response);
             }
         });
     }
