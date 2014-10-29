@@ -1,4 +1,4 @@
-package igarape.com.copcast;
+package org.igarape.copcast;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
