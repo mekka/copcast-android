@@ -81,18 +81,4 @@ public class ApiClient {
     public static void setAppContext(Context context) {
         appContext = context;
     }
-
-    public static void post(String url, RequestParams params) {
-        client.post(getServerUrl(url), params, new AsyncHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-
-            }
-        });
-    }
 }
