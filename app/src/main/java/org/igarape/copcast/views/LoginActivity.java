@@ -2,6 +2,7 @@ package org.igarape.copcast.views;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,7 +10,11 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.loopj.android.http.JsonHttpResponseHandler;
@@ -37,14 +42,34 @@ public class LoginActivity extends Activity {
 
         txtId = (EditText) findViewById(R.id.txtLoginUser);
         txtId.setText(Globals.getUserLogin(this));
-
         txtPwd = (EditText) findViewById(R.id.txtLoginPassword);
 
-
-        findViewById(R.id.btn_login_ok).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        final Button button = (Button) findViewById(R.id.btn_login_ok);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
                 makeLoginRequest();
+            }
+        });
+
+        /**
+         * Appears a hack
+         * On login_activity I added
+         * android:focusable="true"
+         * android:focusableInTouchMode="true"
+         */
+        txtId.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    txtId.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            InputMethodManager keyboard = (InputMethodManager)
+                                    getSystemService(Context.INPUT_METHOD_SERVICE);
+                            keyboard.showSoftInput(txtId, 0);
+                        }
+                    },200);
+                }
             }
         });
     }
