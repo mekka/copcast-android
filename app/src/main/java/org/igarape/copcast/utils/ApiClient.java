@@ -8,7 +8,6 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
-import org.apache.http.Header;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.json.JSONArray;
@@ -27,10 +26,9 @@ public class ApiClient {
 
     static {
         client = new AsyncHttpClient();
-        client.setURLEncodingEnabled(true);
-        client.setTimeout(DEFAULT_TIMEOUT);
-        client.setMaxConnections(5);
-        client.addHeader("Content-Type", "multipart/form-data");
+//        client.setURLEncodingEnabled(true);
+//        client.setTimeout(DEFAULT_TIMEOUT);
+//        client.setMaxConnections(5);
     }
 
     private static String globalToken;

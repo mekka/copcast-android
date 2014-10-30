@@ -9,13 +9,9 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.Volley;
-import org.igarape.copcast.R;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
@@ -30,7 +26,6 @@ import org.json.JSONObject;
 public class LoginActivity extends Activity {
 
     public static String TAG = LoginActivity.class.getName();
-    RequestQueue queue;
     EditText txtId;
     EditText txtPwd;
     ProgressDialog pDialog;
@@ -45,8 +40,8 @@ public class LoginActivity extends Activity {
 
         txtPwd = (EditText) findViewById(R.id.txtLoginPassword);
 
-        queue = Volley.newRequestQueue(this);
-        ((Button) findViewById(R.id.btn_login_ok)).setOnClickListener(new View.OnClickListener() {
+
+        findViewById(R.id.btn_login_ok).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 makeLoginRequest();
@@ -63,11 +58,7 @@ public class LoginActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+        return item.getItemId() == R.id.action_settings || super.onOptionsItemSelected(item);
     }
 
     private void makeLoginRequest() {
@@ -93,11 +84,25 @@ public class LoginActivity extends Activity {
         params.put("password", txtPwd.getText().toString());
         params.put("scope", "client");
         params.put("gcm_registration", regId);
-        Log.d(TAG,"@@@@@REGID=["+regId+"]");
 
         pDialog = ProgressDialog.show(this, "Fazendo login", "Por favor aguarde...", true);
 
         ApiClient.post("/token", params, new JsonHttpResponseHandler() {
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONArray errorResponse) {
+                onError(statusCode, throwable);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                onError(statusCode, throwable);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                onError(statusCode, throwable);
+            }
 
             private void onError(int statusCode, Throwable e) {
                 Log.e(TAG, "onFailure: statusCode=[" + statusCode + "]");
@@ -113,7 +118,8 @@ public class LoginActivity extends Activity {
                 }
             }
 
-            private void onSuccess(JSONObject response) {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 Log.d(TAG, "@JSONRESPONSE=[" + response + "]");
                 String token = null;
                 try {
@@ -144,45 +150,6 @@ public class LoginActivity extends Activity {
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
                 LoginActivity.this.finish();
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                onError(statusCode, throwable);
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONArray errorResponse) {
-                onError(statusCode, throwable);
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, String responseBody, Throwable e) {
-                onError(statusCode, e);
-            }
-
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                super.onSuccess(statusCode, headers, response);
-            }
-
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
-                super.onSuccess(statusCode, headers, response);
-            }
-
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, String responseBody) {
-                try {
-                    successResponse(new JSONObject(responseBody));
-                } catch (JSONException e) {
-                    Log.e(TAG, "error on login", e);
-                }
-
-            }
-
-            private void successResponse(JSONObject response) {
-                onSuccess(response);
             }
         });
     }

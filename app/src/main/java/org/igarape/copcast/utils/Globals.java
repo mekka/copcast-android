@@ -7,6 +7,8 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import org.igarape.copcast.BuildConfig;
+
 /**
  * Created by fcavalcanti on 28/10/2014.
  */
@@ -19,7 +21,7 @@ public class Globals {
     private static final String PREF_USER_LOGIN = "PREF_USER_LOGIN";
     public static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
-    public static final String SERVER_URL = "http://mogi-api.igarape.org";
+    public static final String SERVER_URL = BuildConfig.serverUrl;
     private static String accessToken = null;
     private static String userLogin = null;
     private static String serverIpAddress = "";

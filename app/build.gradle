@@ -17,11 +17,22 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    productFlavors {
+        local {
+            buildConfigField "String", "serverUrl", "\"http://192.168.1.117:3000\""
+        }
+        general {
+            buildConfigField "String", "serverUrl", "\"http://mogi-api.igarape.org\""
+        }
+        capeTown {
+            buildConfigField "String", "serverUrl", "\"http://api.mogidocs.co.za\""
+        }
+    }
 }
 
 dependencies {
     compile 'com.google.android.gms:play-services:4.4.+'
-    compile 'com.loopj.android:android-async-http:1.4.+'
-    compile 'com.mcxiaoke.volley:library:1.0.7'
+    compile 'com.loopj.android:android-async-http:1.4.6'
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
