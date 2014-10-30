@@ -47,7 +47,7 @@ public class Globals {
         editor.putLong(PREF_TIME_LOGIN, java.lang.System.currentTimeMillis());
         editor.commit();
         accessToken = token;
-        if (accessToken == null){
+        if (accessToken == null) {
             setUserImage(null);
         }
     }
@@ -138,5 +138,21 @@ public class Globals {
 
     public static void setAccessToken(String accessToken) {
         Globals.accessToken = accessToken;
+    }
+
+    public static void clear(Context context) {
+        SharedPreferences sharedPrefs = context.getSharedPreferences("AUTH", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.clear().commit();
+
+        accessToken = null;
+        userLogin = null;
+        serverIpAddress = "";
+        streamingPort = 1935;
+        streamingUser = "";
+        streamingPassword = "";
+        streamingPath = "";
+        userName = null;
+        userImage = null;
     }
 }

@@ -1,11 +1,15 @@
 package org.igarape.copcast.views;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import org.igarape.copcast.R;
+import org.igarape.copcast.utils.ApiClient;
+import org.igarape.copcast.utils.Globals;
 
 public class MainActivity extends Activity {
 
@@ -13,6 +17,16 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        findViewById(R.id.loggoutButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Globals.clear(MainActivity.this);
+                ApiClient.setToken(null);
+                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(intent);
+                MainActivity.this.finish();
+            }
+        });
     }
 
 
