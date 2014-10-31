@@ -63,7 +63,10 @@
             android:text="@android:string/ok"
             android:layout_alignParentBottom="false"
             style="@style/MainContent"
-            android:layout_below="@+id/txtLoginPassword" />
+            android:layout_below="@+id/txtLoginPassword"
+            android:layout_alignParentEnd="false"
+            android:layout_alignParentRight="false"
+            android:onClick="makeLoginRequest" />
 
     </RelativeLayout>
 

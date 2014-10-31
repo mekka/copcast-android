@@ -17,6 +17,7 @@
     <string name="settings">Settings</string>
     <string name="login_required">Login required</string>
     <string name="password_required">Password required</string>
+    <string name="network_required">Password required</string>
     <string name="copcast_main_title">CopCast</string>
     <string name="videos_label">Videos Recorded:</string>
     <string name="current_state">Current State:</string>
