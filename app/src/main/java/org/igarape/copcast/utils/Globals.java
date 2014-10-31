@@ -136,6 +136,10 @@ public class Globals {
         Globals.userName = userName;
     }
 
+    public static String getUserName() {
+        return Globals.userName;
+    }
+
     public static void setAccessToken(String accessToken) {
         Globals.accessToken = accessToken;
     }
