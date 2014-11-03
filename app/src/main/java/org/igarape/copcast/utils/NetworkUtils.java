@@ -2,17 +2,25 @@ package org.igarape.copcast.utils;
 
 import android.os.Build;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -45,7 +53,7 @@ public class NetworkUtils {
     }
 
 
-    public static JSONObject postRequest() {
+    public static JSONObject postRequest(String userName, String password, String regId) {
         disableConnectionReuseIfNecessary();
 
         HttpURLConnection urlConnection = null;
@@ -60,7 +68,24 @@ public class NetworkUtils {
             urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
             urlConnection.setReadTimeout(DATARETRIEVAL_TIMEOUT);
 
+
+            List<NameValuePair> params = new ArrayList<NameValuePair>();
+
+            params.add(new BasicNameValuePair("username", userName));
+            params.add(new BasicNameValuePair("password", password));
+            params.add(new BasicNameValuePair("scope", "client"));
+            params.add(new BasicNameValuePair("gcm_registration", regId));
+
+            OutputStream os = urlConnection.getOutputStream();
+            BufferedWriter writer = new BufferedWriter(
+                    new OutputStreamWriter(os, "UTF-8"));
+            writer.write(getQuery(params));
+            writer.flush();
+            writer.close();
+            os.close();
+
             // handle issues
+            urlConnection.connect();
             int statusCode = urlConnection.getResponseCode();
             if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
                 // handle unauthorized (if service requires user login)
@@ -89,6 +114,26 @@ public class NetworkUtils {
         }
 
         return null;
+    }
+
+    private static String getQuery(List<NameValuePair> params) throws UnsupportedEncodingException
+    {
+        StringBuilder result = new StringBuilder();
+        boolean first = true;
+
+        for (NameValuePair pair : params)
+        {
+            if (first)
+                first = false;
+            else
+                result.append("&");
+
+            result.append(URLEncoder.encode(pair.getName(), "UTF-8"));
+            result.append("=");
+            result.append(URLEncoder.encode(pair.getValue(), "UTF-8"));
+        }
+
+        return result.toString();
     }
 
     /**

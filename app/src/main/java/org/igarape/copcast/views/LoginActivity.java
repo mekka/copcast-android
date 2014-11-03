@@ -13,11 +13,8 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.loopj.android.http.JsonHttpResponseHandler;
@@ -31,11 +28,6 @@ import org.igarape.copcast.utils.NetworkUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 public class LoginActivity extends Activity {
 
@@ -89,7 +81,7 @@ public class LoginActivity extends Activity {
 
     public void makeLoginRequest(View view) {
         if (hasErrors() || !hasConnection()) return;
-
+        pDialog = ProgressDialog.show(this, "Fazendo login", "Por favor aguarde...", true);
         new LoginTask().execute();
     }
 
@@ -99,18 +91,45 @@ public class LoginActivity extends Activity {
 
         @Override
         protected Void doInBackground(Void... unused) {
-            response = NetworkUtils.postRequest();
+            final String regId = Globals.getRegistrationId(getApplicationContext());
+
+            response = NetworkUtils.postRequest(txtId.getText().toString(), txtPwd.getText().toString(), regId);
             return null;
         }
 
         @Override
         protected void onPostExecute(Void unused) {
-            //textView.setText(result);
-            /**
-             * Toast toast = Toast.makeText(getApplicationContext(), R.string.password_required, Toast.LENGTH_LONG);
-             toast.setGravity(Gravity.TOP, 0, 100);
-             toast.show();
-             */
+            Log.d(TAG, "@JSONRESPONSE=[" + response + "]");
+            String token = null;
+            try {
+                token = (String) response.get("token");
+                String ipAddress = (String) response.get("ipAddress");
+                if (ipAddress != null) {
+                    Globals.setServerIpAddress(ipAddress);
+                }
+            } catch (JSONException e) {
+                Log.e(TAG, "error on login", e);
+            }
+
+            try {
+                Globals.setStreamingPort(Integer.parseInt((String) response.get("streamingPort")));
+                Globals.setStreamingUser((String) response.get("streamingUser"));
+                Globals.setStreamingPassword((String) response.get("streamingPassword"));
+                Globals.setStreamingPath((String) response.get("streamingPath"));
+                Globals.setUserName((String) response.get("userName"));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            if (pDialog != null) {
+                pDialog.dismiss();
+                pDialog = null;
+            }
+            Globals.setAccessToken(getBaseContext(), token);
+            Globals.setUserLogin(getBaseContext(), txtId.getText().toString());
+            ApiClient.setToken(token);
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            startActivity(intent);
+            LoginActivity.this.finish();
         }
     }
 
