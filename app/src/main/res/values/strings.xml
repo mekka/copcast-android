@@ -27,5 +27,6 @@
     <string name="recording_started">Started Registering...</string>
     <string name="start_uploading">Start Uploading</string>
     <string name="uploading_videos">Uploading Videos</string>
-
+    <string name="notification_record_title">CopCast Camera</string>
+    <string name="notification_record_description">Recording on SDCard</string>
 </resources>
