@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -17,17 +16,18 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.loopj.android.http.JsonHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
-
-import org.apache.http.Header;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.igarape.copcast.R;
-import org.igarape.copcast.utils.ApiClient;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.utils.NetworkUtils;
-import org.json.JSONArray;
+import org.igarape.copcast.utils.HttpResponseCallback;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.igarape.copcast.utils.NetworkUtils.post;
 
 public class LoginActivity extends Activity {
 
@@ -81,101 +81,18 @@ public class LoginActivity extends Activity {
 
     public void makeLoginRequest(View view) {
         if (hasErrors() || !hasConnection()) return;
-        pDialog = ProgressDialog.show(this, "Fazendo login", "Por favor aguarde...", true);
-        new LoginTask().execute();
-    }
+        pDialog = ProgressDialog.show(this, getString(R.string.login_in), getString(R.string.please_hold), true);
 
-    private class LoginTask extends AsyncTask<Void, Void, Void> {
-
-        private JSONObject response;
-
-        @Override
-        protected Void doInBackground(Void... unused) {
-            final String regId = Globals.getRegistrationId(getApplicationContext());
-
-            response = NetworkUtils.postRequest(txtId.getText().toString(), txtPwd.getText().toString(), regId);
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void unused) {
-            Log.d(TAG, "@JSONRESPONSE=[" + response + "]");
-            String token = null;
-            try {
-                token = (String) response.get("token");
-                String ipAddress = (String) response.get("ipAddress");
-                if (ipAddress != null) {
-                    Globals.setServerIpAddress(ipAddress);
-                }
-            } catch (JSONException e) {
-                Log.e(TAG, "error on login", e);
-            }
-
-            try {
-                Globals.setStreamingPort(Integer.parseInt((String) response.get("streamingPort")));
-                Globals.setStreamingUser((String) response.get("streamingUser"));
-                Globals.setStreamingPassword((String) response.get("streamingPassword"));
-                Globals.setStreamingPath((String) response.get("streamingPath"));
-                Globals.setUserName((String) response.get("userName"));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            if (pDialog != null) {
-                pDialog.dismiss();
-                pDialog = null;
-            }
-            Globals.setAccessToken(getBaseContext(), token);
-            Globals.setUserLogin(getBaseContext(), txtId.getText().toString());
-            ApiClient.setToken(token);
-            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-            startActivity(intent);
-            LoginActivity.this.finish();
-        }
-    }
-
-    private void old(){
         final String regId = Globals.getRegistrationId(getApplicationContext());
-        RequestParams params = new RequestParams();
-        params.put("username", txtId.getText().toString());
-        params.put("password", txtPwd.getText().toString());
-        params.put("scope", "client");
-        params.put("gcm_registration", regId);
+        List<NameValuePair> params = new ArrayList<NameValuePair>();
+        params.add(new BasicNameValuePair("username", txtId.getText().toString()));
+        params.add(new BasicNameValuePair("password", txtPwd.getText().toString()));
+        params.add(new BasicNameValuePair("scope", "client"));
+        params.add(new BasicNameValuePair("gcm_registration", regId));
 
-        pDialog = ProgressDialog.show(this, "Fazendo login", "Por favor aguarde...", true);
-
-        ApiClient.post("/token", params, new JsonHttpResponseHandler() {
-
+        post(this, "/token", params, new HttpResponseCallback() {
             @Override
-            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONArray errorResponse) {
-                onError(statusCode, throwable);
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                onError(statusCode, throwable);
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                onError(statusCode, throwable);
-            }
-
-            private void onError(int statusCode, Throwable e) {
-                Log.e(TAG, "onFailure: statusCode=[" + statusCode + "]");
-                if (pDialog != null) {
-                    pDialog.dismiss();
-                    pDialog = null;
-                }
-                if (statusCode == 401) {
-                    Toast.makeText(LoginActivity.this, LoginActivity.this.getString(R.string.unauthorized_login), Toast.LENGTH_LONG).show();
-                } else {
-                    Log.e(TAG, "Error: ",e);
-                    Toast.makeText(LoginActivity.this, LoginActivity.this.getString(R.string.no_server_login), Toast.LENGTH_LONG).show();
-                }
-            }
-
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+            public void success(JSONObject response) {
                 Log.d(TAG, "@JSONRESPONSE=[" + response + "]");
                 String token = null;
                 try {
@@ -187,10 +104,7 @@ public class LoginActivity extends Activity {
                 } catch (JSONException e) {
                     Log.e(TAG, "error on login", e);
                 }
-                if (pDialog != null) {
-                    pDialog.dismiss();
-                    pDialog = null;
-                }
+
                 try {
                     Globals.setStreamingPort(Integer.parseInt((String) response.get("streamingPort")));
                     Globals.setStreamingUser((String) response.get("streamingUser"));
@@ -200,9 +114,12 @@ public class LoginActivity extends Activity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+                if (pDialog != null) {
+                    pDialog.dismiss();
+                    pDialog = null;
+                }
                 Globals.setAccessToken(getBaseContext(), token);
                 Globals.setUserLogin(getBaseContext(), txtId.getText().toString());
-                ApiClient.setToken(token);
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
                 LoginActivity.this.finish();

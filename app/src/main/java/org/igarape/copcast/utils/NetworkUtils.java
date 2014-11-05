@@ -1,9 +1,11 @@
 package org.igarape.copcast.utils;
 
+import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Build;
+import android.util.Log;
 
 import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -19,7 +21,6 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -28,73 +29,12 @@ import java.util.Scanner;
  */
 public class NetworkUtils {
 
+    private static final String TAG = NetworkUtils.class.getName();
     private static int CONNECTION_TIMEOUT = 15000 ;
     private static int DATARETRIEVAL_TIMEOUT = 5000;
     private static final char PARAMETER_DELIMITER = '&';
     private static final char PARAMETER_EQUALS_CHAR = '=';
-
-    public static JSONObject postRequest(String userName, String password, String regId) {
-        disableConnectionReuseIfNecessary();
-
-        HttpURLConnection urlConnection = null;
-        try {
-            //TODO tirar esta URL daqui e fazer um map ou enum de ACAO - URL
-            URL urlToRequest = new URL(Globals.SERVER_URL+"/token");
-            urlConnection = (HttpURLConnection) urlToRequest.openConnection();
-            urlConnection.setDoOutput(true);
-            urlConnection.setRequestMethod("POST");
-            urlConnection.setRequestProperty("Content-Type",
-                    "application/x-www-form-urlencoded");
-            urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
-            urlConnection.setReadTimeout(DATARETRIEVAL_TIMEOUT);
-
-
-            List<NameValuePair> params = new ArrayList<NameValuePair>();
-
-            params.add(new BasicNameValuePair("username", userName));
-            params.add(new BasicNameValuePair("password", password));
-            params.add(new BasicNameValuePair("scope", "client"));
-            params.add(new BasicNameValuePair("gcm_registration", regId));
-
-            OutputStream os = urlConnection.getOutputStream();
-            BufferedWriter writer = new BufferedWriter(
-                    new OutputStreamWriter(os, "UTF-8"));
-            writer.write(getQuery(params));
-            writer.flush();
-            writer.close();
-            os.close();
-
-            // handle issues
-            urlConnection.connect();
-            int statusCode = urlConnection.getResponseCode();
-            if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                // handle unauthorized (if service requires user login)
-            } else if (statusCode != HttpURLConnection.HTTP_OK) {
-                // handle any other errors, like 404, 500,..
-            }
-
-            // create JSON object from content
-            InputStream in = new BufferedInputStream(
-                    urlConnection.getInputStream());
-            return new JSONObject(getResponseText(in));
-
-        } catch (MalformedURLException e) {
-            // URL is invalid
-        } catch (SocketTimeoutException e) {
-            // data retrieval or connection timed out
-        } catch (IOException e) {
-            // could not read response body
-            // (could not create input stream)
-        } catch (JSONException e) {
-            // response body is no valid JSON string
-        } finally {
-            if (urlConnection != null) {
-                urlConnection.disconnect();
-            }
-        }
-
-        return null;
-    }
+    private static Context appContext;
 
     private static String getQuery(List<NameValuePair> params) throws UnsupportedEncodingException
     {
@@ -130,5 +70,159 @@ public class NetworkUtils {
         // very nice trick from
         // http://weblogs.java.net/blog/pat/archive/2004/10/stupid_scanner_1.html
         return new Scanner(inStream).useDelimiter("\\A").next();
+    }
+
+    public static void post(final Context context, final String url, final List<NameValuePair> params, final HttpResponseCallback callback) {
+        AsyncTask task = new AsyncTask<Void, Void, Void>() {
+
+            private JSONObject response = null;
+
+            @Override
+            protected Void doInBackground(Void... unused) {
+                final String regId = Globals.getRegistrationId(context);
+
+                disableConnectionReuseIfNecessary();
+
+                HttpURLConnection urlConnection = null;
+                try {
+                    URL urlToRequest = new URL(Globals.SERVER_URL + url);
+                    urlConnection = (HttpURLConnection) urlToRequest.openConnection();
+                    urlConnection.setDoOutput(true);
+                    urlConnection.setRequestMethod("POST");
+                    urlConnection.setRequestProperty("Content-Type",
+                            "application/x-www-form-urlencoded");
+
+                    String token = Globals.getAccessToken(context);
+                    if (token != null){
+                        urlConnection.setRequestProperty("Authorization", "Bearer " + token);
+                    }
+                    urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
+                    urlConnection.setReadTimeout(DATARETRIEVAL_TIMEOUT);
+
+
+                    if (params != null) {
+                        OutputStream os = urlConnection.getOutputStream();
+                        BufferedWriter writer = new BufferedWriter(
+                                new OutputStreamWriter(os, "UTF-8"));
+                        writer.write(getQuery(params));
+                        writer.flush();
+                        writer.close();
+                        os.close();
+                    }
+
+                    // handle issues
+                    urlConnection.connect();
+                    int statusCode = urlConnection.getResponseCode();
+                    if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                        callback.unauthorized();
+                    } else if (statusCode != HttpURLConnection.HTTP_OK) {
+                        callback.failure(statusCode);
+                    }
+
+                    // create JSON object from content
+                    InputStream in = new BufferedInputStream(
+                            urlConnection.getInputStream());
+                    response = new JSONObject(getResponseText(in));
+
+                } catch (MalformedURLException e) {
+                    Log.e(TAG, "Url error ", e);
+                } catch (SocketTimeoutException e) {
+                    Log.e(TAG, "Timeout error ", e);
+                } catch (IOException e) {
+                    Log.e(TAG, "Could not read response body ", e);
+                } catch (JSONException e) {
+                    Log.e(TAG, "Invalid json ", e);
+                } finally {
+                    if (urlConnection != null) {
+                        urlConnection.disconnect();
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void unused) {
+                callback.success(response);
+            }
+        }.execute();
+    }
+
+    public static void post(final Context context, final String url, final JSONObject jsonObject, final HttpResponseCallback callback) {
+        AsyncTask task = new AsyncTask<Void, Void, Void>() {
+
+            private JSONObject response = null;
+
+            @Override
+            protected Void doInBackground(Void... unused) {
+                final String regId = Globals.getRegistrationId(context);
+
+                disableConnectionReuseIfNecessary();
+
+                HttpURLConnection urlConnection = null;
+                try {
+                    URL urlToRequest = new URL(Globals.SERVER_URL + url);
+                    urlConnection = (HttpURLConnection) urlToRequest.openConnection();
+                    urlConnection.setDoOutput(true);
+                    urlConnection.setRequestMethod("POST");
+                    urlConnection.setRequestProperty("Content-Type",
+                            "application/x-www-form-urlencoded");
+
+                    String token = Globals.getAccessToken(context);
+                    if (token != null){
+                        urlConnection.setRequestProperty("Authorization", "Bearer " + token);
+                    }
+                    urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
+                    urlConnection.setReadTimeout(DATARETRIEVAL_TIMEOUT);
+
+
+                    if (jsonObject != null) {
+                        OutputStream os = urlConnection.getOutputStream();
+                        BufferedWriter writer = new BufferedWriter(
+                                new OutputStreamWriter(os, "UTF-8"));
+                        writer.write(URLEncoder.encode(jsonObject.toString(), "UTF-8"));
+                        writer.flush();
+                        writer.close();
+                        os.close();
+                    }
+
+                    // handle issues
+                    urlConnection.connect();
+                    int statusCode = urlConnection.getResponseCode();
+                    if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                        callback.unauthorized();
+                    } else if (statusCode != HttpURLConnection.HTTP_OK) {
+                        callback.failure(statusCode);
+                    }
+
+                    // create JSON object from content
+                    InputStream in = new BufferedInputStream(
+                            urlConnection.getInputStream());
+                    response = new JSONObject(getResponseText(in));
+
+                } catch (MalformedURLException e) {
+                    Log.e(TAG, "Url error ", e);
+                } catch (SocketTimeoutException e) {
+                    Log.e(TAG, "Timeout error ", e);
+                } catch (IOException e) {
+                    Log.e(TAG, "Could not read response body ", e);
+                } catch (JSONException e) {
+                    Log.e(TAG, "Invalid json ", e);
+                } finally {
+                    if (urlConnection != null) {
+                        urlConnection.disconnect();
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void unused) {
+                callback.success(response);
+            }
+        }.execute();
+    }
+
+    public static void setAppContext(Context appContext) {
+        NetworkUtils.appContext = appContext;
     }
 }

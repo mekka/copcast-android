@@ -1,10 +1,15 @@
 package org.igarape.copcast.utils;
 
+import android.location.Location;
 import android.os.Environment;
 import android.util.Log;
 
+import org.json.JSONException;
+
 import java.io.File;
+import java.io.FileWriter;
 import java.io.FilenameFilter;
+import java.io.IOException;
 
 /**
  * Created by bruno on 11/3/14.
@@ -30,7 +35,25 @@ public class FileUtils {
         FileUtils.path = path;
     }
 
+    public static void logLocation(String userLogin, Location location) {
+        try {
+            LogToFile(userLogin, LOCATIONS_TXT, LocationUtils.buildJson(location).toString());
+        } catch (JSONException e) {
+            Log.e(TAG, "error recording location in file", e);
 
+        }
+    }
+
+    private static void LogToFile(String userLogin, String file, String data) {
+        String userPath = getUserPath(userLogin);
+        try {
+            FileWriter writer = new FileWriter(userPath + file, true);
+            writer.write(data + "\n");
+            writer.close();
+        } catch (IOException e) {
+            Log.e(TAG, e.getMessage());
+        }
+    }
 
     private static String getUserPath(String userLogin) {
         String userPath = path + userLogin + File.separator;

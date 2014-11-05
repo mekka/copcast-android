@@ -29,4 +29,8 @@
     <string name="uploading_videos">Uploading Videos</string>
     <string name="notification_record_title">CopCast Camera</string>
     <string name="notification_record_description">Recording on SDCard</string>
+    <string name="notification_location_title">Searching Location</string>
+    <string name="notification_location_description">Searching for your current location</string>
+    <string name="please_hold">Please hold...</string>
+    <string name="login_in">Loging in</string>
 </resources>
