@@ -4,8 +4,6 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -81,7 +79,6 @@ public class LoginActivity extends Activity {
     }
 
     public void makeLoginRequest(View view) {
-        if (hasErrors() || !hasConnection()) return;
         pDialog = ProgressDialog.show(this, getString(R.string.login_in), getString(R.string.please_hold), true);
 
         final String regId = Globals.getRegistrationId(getApplicationContext());
@@ -129,24 +126,42 @@ public class LoginActivity extends Activity {
 
             @Override
             public void unauthorized() {
+                showToast(R.string.unauthorized_login);
+            }
+
+            private void showToast(int message) {
                 if (pDialog != null) {
                     pDialog.dismiss();
                     pDialog = null;
                 }
-                Toast toast = Toast.makeText(getApplicationContext(), R.string.unauthorized_login, Toast.LENGTH_LONG);
+                Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
                 toast.setGravity(Gravity.TOP, 0, 100);
                 toast.show();
             }
 
             @Override
             public void failure(int statusCode) {
-                if (pDialog != null) {
-                    pDialog.dismiss();
-                    pDialog = null;
-                }
-                Toast toast = Toast.makeText(getApplicationContext(), R.string.server_error, Toast.LENGTH_LONG);
-                toast.setGravity(Gravity.TOP, 0, 100);
-                toast.show();
+                showToast(R.string.server_error);
+            }
+
+            @Override
+            public void noConnection() {
+                showToast(R.string.network_required);
+            }
+
+            @Override
+            public void badConnection() {
+                showToast(R.string.connection_error);
+            }
+
+            @Override
+            public void badRequest() {
+                showToast(R.string.bad_request_error);
+            }
+
+            @Override
+            public void badResponse() {
+                showToast(R.string.bad_request_error);
             }
         });
     }
@@ -171,17 +186,4 @@ public class LoginActivity extends Activity {
         return false;
     }
 
-    private boolean hasConnection(){
-        ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        if (networkInfo != null && networkInfo.isConnected()) {
-            return true;
-        } else {
-            Log.d(TAG, "network required");
-            Toast toast = Toast.makeText(getApplicationContext(), R.string.network_required, Toast.LENGTH_LONG);
-            toast.setGravity(Gravity.TOP, 0, 100);
-            toast.show();
-            return false;
-        }
-    }
 }

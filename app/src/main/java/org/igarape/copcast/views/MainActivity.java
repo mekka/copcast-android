@@ -21,6 +21,7 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.apache.http.Header;
 import org.igarape.copcast.R;
+import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.service.RecorderService;
 import org.igarape.copcast.utils.ApiClient;
 import org.igarape.copcast.utils.Globals;
@@ -72,6 +73,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 Intent intent = new Intent(MainActivity.this, RecorderService.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startService(intent);
+
+                intent = new Intent(MainActivity.this, LocationService.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startService(intent);
             }
         });
 
@@ -91,6 +96,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 Globals.clear(MainActivity.this);
                 ApiClient.setToken(null);
                 stopService(new Intent(MainActivity.this, RecorderService.class));
+                stopService(new Intent(MainActivity.this, LocationService.class));
                 Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                 startActivity(intent);
                 MainActivity.this.finish();

@@ -1,25 +1,30 @@
 package org.igarape.copcast.service;
 
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.media.MediaRecorder;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.widget.Toast;
 
+import org.igarape.copcast.R;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.views.MainActivity;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
 
 public class RecorderService extends Service {
     private static final String TAG = "RecorderService";
@@ -31,10 +36,34 @@ public class RecorderService extends Service {
     private String mLastFileRecorded;
     public static final int MAX_DURATION_MS = 600000;
     public static final long MAX_SIZE_BYTES = 15000000;
-	
-	@Override
+    private int mId = 1;
+
+    @Override
 	public void onCreate() {
-		mRecordingStatus = false;
+        final Intent resultIntent = new Intent(this, MainActivity.class);
+        final Context context = getApplicationContext();
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
+                .setContentTitle(getString(R.string.notification_record_title))
+                .setContentText(getString(R.string.notification_record_description))
+                .setSmallIcon(R.drawable.ic_launcher);
+
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+        stackBuilder.addParentStack(MainActivity.class);
+        stackBuilder.addNextIntent(resultIntent);
+
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(
+                        0,
+                        PendingIntent.FLAG_NO_CREATE
+                );
+        mBuilder.setContentIntent(resultPendingIntent);
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        // mId allows you to update the notification later on.
+        mNotificationManager.notify(mId, mBuilder.build());
+
+
+        mRecordingStatus = false;
 		mServiceCamera = MainActivity.mCamera;
 		mSurfaceView = MainActivity.mSurfaceView;
 		mSurfaceHolder = MainActivity.mSurfaceHolder;
@@ -58,6 +87,11 @@ public class RecorderService extends Service {
 
 	@Override
 	public void onDestroy() {
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        mNotificationManager.cancel(mId);
+
 		stopRecording();
 		mRecordingStatus = false;
 		

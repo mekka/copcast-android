@@ -47,13 +47,31 @@ public class LocationUtils {
         HttpResponseCallback callback = new HttpResponseCallback(){
             @Override
             public void failure(int statusCode) {
-                Log.e(TAG, "location not sent successfully");
                 FileUtils.logLocation(login, location);
             }
 
             @Override
             public void unauthorized() {
-                Log.e(TAG, "location not sent successfully");
+                FileUtils.logLocation(login, location);
+            }
+
+            @Override
+            public void noConnection() {
+                FileUtils.logLocation(login, location);
+            }
+
+            @Override
+            public void badConnection() {
+                FileUtils.logLocation(login, location);
+            }
+
+            @Override
+            public void badRequest() {
+                FileUtils.logLocation(login, location);
+            }
+
+            @Override
+            public void badResponse() {
                 FileUtils.logLocation(login, location);
             }
 

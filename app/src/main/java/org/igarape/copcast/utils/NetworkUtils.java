@@ -1,6 +1,8 @@
 package org.igarape.copcast.utils;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
@@ -73,6 +75,11 @@ public class NetworkUtils {
     }
 
     public static void post(final Context context, final String url, final List<NameValuePair> params, final HttpResponseCallback callback) {
+        if (!hasConnection(context)){
+            if (callback != null){
+                callback.noConnection();
+            }
+        }
         AsyncTask task = new AsyncTask<Void, Void, Void>() {
 
             private JSONObject response = null;
@@ -89,16 +96,19 @@ public class NetworkUtils {
                     URL urlToRequest = new URL(Globals.SERVER_URL + url);
                     urlConnection = (HttpURLConnection) urlToRequest.openConnection();
                     urlConnection.setDoOutput(true);
-                    urlConnection.setRequestMethod("POST");
-                    urlConnection.setRequestProperty("Content-Type",
-                            "application/x-www-form-urlencoded");
 
+
+                    String charset = "UTF-8";
                     String token = Globals.getAccessToken(context);
                     if (token != null){
                         urlConnection.setRequestProperty("Authorization", token);
                     }
+                    urlConnection.setRequestProperty("Accept-Charset", charset);
+                    urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=" + charset);
+
                     urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
                     urlConnection.setReadTimeout(DATARETRIEVAL_TIMEOUT);
+
 
 
                     if (params != null) {
@@ -151,10 +161,15 @@ public class NetworkUtils {
     }
 
     public static void post(final Context context, final String url, final JSONObject jsonObject, final HttpResponseCallback callback) {
-        AsyncTask task = new AsyncTask<Void, Void, JSONObject>() {
+        if (!hasConnection(context)){
+            if (callback != null){
+                callback.noConnection();
+            }
+        }
+        AsyncTask task = new AsyncTask<Void, Void, Void>() {
 
             @Override
-            protected JSONObject doInBackground(Void... unused) {
+            protected Void doInBackground(Void... unused) {
                 JSONObject response = null;
                 final String regId = Globals.getRegistrationId(context);
 
@@ -174,8 +189,6 @@ public class NetworkUtils {
                     }
                     urlConnection.setRequestProperty("Accept-Charset", charset);
                     urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=" + charset);
-//
-
 
                     urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
                     urlConnection.setReadTimeout(DATARETRIEVAL_TIMEOUT);
@@ -192,40 +205,55 @@ public class NetworkUtils {
                     int statusCode = urlConnection.getResponseCode();
                     if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
                         callback.unauthorized();
+                        return null;
                     } else if (statusCode != HttpURLConnection.HTTP_OK) {
                         callback.failure(statusCode);
+                        return null;
                     }
 
 
                     InputStream in = new BufferedInputStream(
                             urlConnection.getInputStream());
                     String responseText = getResponseText(in);
+
                     response = new JSONObject(responseText);
 
+
+                    callback.success(response);
                 } catch (MalformedURLException e) {
+                    callback.badRequest();
                     Log.e(TAG, "Url error ", e);
                 } catch (SocketTimeoutException e) {
+                    callback.badConnection();
                     Log.e(TAG, "Timeout error ", e);
                 } catch (IOException e) {
+                    callback.badResponse();
                     Log.e(TAG, "Could not read response body ", e);
                 } catch (JSONException e) {
+
                     return null;
                 } finally {
                     if (urlConnection != null) {
                         urlConnection.disconnect();
                     }
                 }
-                return response;
+                return null;
             }
 
             @Override
-            protected void onPostExecute(JSONObject response) {
-                callback.success(response);
+            protected void onPostExecute(Void unused) {
+
             }
         }.execute();
     }
 
     public static void setAppContext(Context appContext) {
         NetworkUtils.appContext = appContext;
+    }
+
+    public static boolean hasConnection(Context context) {
+        ConnectivityManager connMgr = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.isConnected();
     }
 }

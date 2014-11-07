@@ -9,7 +9,6 @@ import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 
@@ -63,7 +62,6 @@ public class LocationService extends Service implements
 
     @Override
     public void onCreate() {
-        Handler handler = new Handler(Looper.getMainLooper());
         super.onCreate();
         final Intent resultIntent = new Intent(this, MainActivity.class);
         final Context context = getApplicationContext();
@@ -128,7 +126,7 @@ public class LocationService extends Service implements
 
     @Override
     public void onLocationChanged(Location location) {
-        LocationUtils.sendLocation(this, Globals.getUserLogin(this), location);
+        LocationUtils.sendLocation(this, Globals.getUserLogin(getApplicationContext()), location);
     }
 
 }
