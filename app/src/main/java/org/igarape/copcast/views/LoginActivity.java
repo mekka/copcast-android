@@ -19,6 +19,7 @@ import android.widget.Toast;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.igarape.copcast.R;
+import org.igarape.copcast.utils.ApiClient;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.HttpResponseCallback;
 import org.json.JSONException;
@@ -120,9 +121,32 @@ public class LoginActivity extends Activity {
                 }
                 Globals.setAccessToken(getBaseContext(), token);
                 Globals.setUserLogin(getBaseContext(), txtId.getText().toString());
+                ApiClient.setToken(token);
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
                 LoginActivity.this.finish();
+            }
+
+            @Override
+            public void unauthorized() {
+                if (pDialog != null) {
+                    pDialog.dismiss();
+                    pDialog = null;
+                }
+                Toast toast = Toast.makeText(getApplicationContext(), R.string.unauthorized_login, Toast.LENGTH_LONG);
+                toast.setGravity(Gravity.TOP, 0, 100);
+                toast.show();
+            }
+
+            @Override
+            public void failure(int statusCode) {
+                if (pDialog != null) {
+                    pDialog.dismiss();
+                    pDialog = null;
+                }
+                Toast toast = Toast.makeText(getApplicationContext(), R.string.server_error, Toast.LENGTH_LONG);
+                toast.setGravity(Gravity.TOP, 0, 100);
+                toast.show();
             }
         });
     }

@@ -76,6 +76,7 @@ public class NetworkUtils {
         AsyncTask task = new AsyncTask<Void, Void, Void>() {
 
             private JSONObject response = null;
+            public int statusCode;
 
             @Override
             protected Void doInBackground(Void... unused) {
@@ -94,7 +95,7 @@ public class NetworkUtils {
 
                     String token = Globals.getAccessToken(context);
                     if (token != null){
-                        urlConnection.setRequestProperty("Authorization", "Bearer " + token);
+                        urlConnection.setRequestProperty("Authorization", token);
                     }
                     urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
                     urlConnection.setReadTimeout(DATARETRIEVAL_TIMEOUT);
@@ -112,17 +113,13 @@ public class NetworkUtils {
 
                     // handle issues
                     urlConnection.connect();
-                    int statusCode = urlConnection.getResponseCode();
-                    if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                        callback.unauthorized();
-                    } else if (statusCode != HttpURLConnection.HTTP_OK) {
-                        callback.failure(statusCode);
+                    statusCode = urlConnection.getResponseCode();
+                    if (statusCode == HttpURLConnection.HTTP_OK) {
+                        // create JSON object from content
+                        InputStream in = new BufferedInputStream(
+                                urlConnection.getInputStream());
+                        response = new JSONObject(getResponseText(in));
                     }
-
-                    // create JSON object from content
-                    InputStream in = new BufferedInputStream(
-                            urlConnection.getInputStream());
-                    response = new JSONObject(getResponseText(in));
 
                 } catch (MalformedURLException e) {
                     Log.e(TAG, "Url error ", e);
@@ -142,18 +139,23 @@ public class NetworkUtils {
 
             @Override
             protected void onPostExecute(Void unused) {
-                callback.success(response);
+                if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                    callback.unauthorized();
+                } else if (statusCode != HttpURLConnection.HTTP_OK) {
+                    callback.failure(statusCode);
+                } else {
+                    callback.success(response);
+                }
             }
         }.execute();
     }
 
     public static void post(final Context context, final String url, final JSONObject jsonObject, final HttpResponseCallback callback) {
-        AsyncTask task = new AsyncTask<Void, Void, Void>() {
-
-            private JSONObject response = null;
+        AsyncTask task = new AsyncTask<Void, Void, JSONObject>() {
 
             @Override
-            protected Void doInBackground(Void... unused) {
+            protected JSONObject doInBackground(Void... unused) {
+                JSONObject response = null;
                 final String regId = Globals.getRegistrationId(context);
 
                 disableConnectionReuseIfNecessary();
@@ -163,26 +165,26 @@ public class NetworkUtils {
                     URL urlToRequest = new URL(Globals.SERVER_URL + url);
                     urlConnection = (HttpURLConnection) urlToRequest.openConnection();
                     urlConnection.setDoOutput(true);
-                    urlConnection.setRequestMethod("POST");
-                    urlConnection.setRequestProperty("Content-Type",
-                            "application/x-www-form-urlencoded");
 
+
+                    String charset = "UTF-8";
                     String token = Globals.getAccessToken(context);
                     if (token != null){
-                        urlConnection.setRequestProperty("Authorization", "Bearer " + token);
+                        urlConnection.setRequestProperty("Authorization", token);
                     }
+                    urlConnection.setRequestProperty("Accept-Charset", charset);
+                    urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=" + charset);
+//
+
+
                     urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
                     urlConnection.setReadTimeout(DATARETRIEVAL_TIMEOUT);
 
 
                     if (jsonObject != null) {
+                        //urlConnection.setRequestProperty("Content-Length", String.valueOf(jsonObject.length()));
                         OutputStream os = urlConnection.getOutputStream();
-                        BufferedWriter writer = new BufferedWriter(
-                                new OutputStreamWriter(os, "UTF-8"));
-                        writer.write(URLEncoder.encode(jsonObject.toString(), "UTF-8"));
-                        writer.flush();
-                        writer.close();
-                        os.close();
+                        os.write(jsonObject.toString().getBytes(charset));
                     }
 
                     // handle issues
@@ -194,10 +196,11 @@ public class NetworkUtils {
                         callback.failure(statusCode);
                     }
 
-                    // create JSON object from content
+
                     InputStream in = new BufferedInputStream(
                             urlConnection.getInputStream());
-                    response = new JSONObject(getResponseText(in));
+                    String responseText = getResponseText(in);
+                    response = new JSONObject(responseText);
 
                 } catch (MalformedURLException e) {
                     Log.e(TAG, "Url error ", e);
@@ -206,17 +209,17 @@ public class NetworkUtils {
                 } catch (IOException e) {
                     Log.e(TAG, "Could not read response body ", e);
                 } catch (JSONException e) {
-                    Log.e(TAG, "Invalid json ", e);
+                    return null;
                 } finally {
                     if (urlConnection != null) {
                         urlConnection.disconnect();
                     }
                 }
-                return null;
+                return response;
             }
 
             @Override
-            protected void onPostExecute(Void unused) {
+            protected void onPostExecute(JSONObject response) {
                 callback.success(response);
             }
         }.execute();

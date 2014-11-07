@@ -33,4 +33,5 @@
     <string name="notification_location_description">Searching for your current location</string>
     <string name="please_hold">Please hold...</string>
     <string name="login_in">Loging in</string>
+    <string name="server_error">Unable do to contact server</string>
 </resources>

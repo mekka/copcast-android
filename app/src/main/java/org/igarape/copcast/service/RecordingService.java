@@ -40,11 +40,6 @@ public class RecordingService extends Service implements SurfaceHolder.Callback 
     protected SurfaceHolder mSurfaceHolder;
     private int mId = 1;
 
-//    public RecordingService(){
-//        super("RecordingService");
-//    }
-
-
     @Override
     public void onDestroy() {
 

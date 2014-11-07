@@ -18,7 +18,7 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.apache.http.Header;
 import org.igarape.copcast.R;
-import org.igarape.copcast.service.RecordingService;
+import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.utils.ApiClient;
 import org.igarape.copcast.utils.Globals;
 
@@ -57,7 +57,8 @@ public class MainActivity extends Activity {
 
                 findViewById(R.id.settingsLayout).setVisibility(View.VISIBLE);
 
-                startService(new Intent(MainActivity.this, RecordingService.class));
+//                startService(new Intent(MainActivity.this, RecordingService.class));
+                startService(new Intent(MainActivity.this, LocationService.class));
             }
         });
 
@@ -76,7 +77,8 @@ public class MainActivity extends Activity {
             public void onClick(View view) {
                 Globals.clear(MainActivity.this);
                 ApiClient.setToken(null);
-                stopService(new Intent(MainActivity.this, RecordingService.class));
+//                stopService(new Intent(MainActivity.this, RecordingService.class));
+                stopService(new Intent(MainActivity.this, LocationService.class));
                 Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                 startActivity(intent);
                 MainActivity.this.finish();
