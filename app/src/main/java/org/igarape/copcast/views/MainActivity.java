@@ -4,9 +4,12 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -18,17 +21,26 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.apache.http.Header;
 import org.igarape.copcast.R;
-import org.igarape.copcast.service.RecordingService;
+import org.igarape.copcast.service.RecorderService;
 import org.igarape.copcast.utils.ApiClient;
 import org.igarape.copcast.utils.Globals;
 
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements SurfaceHolder.Callback {
+
+    public static SurfaceView mSurfaceView;
+    public static SurfaceHolder mSurfaceHolder;
+    public static Camera mCamera;
+    public static boolean mPreviewRunning;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mSurfaceView = (SurfaceView) findViewById(R.id.surfaceView1);
+        mSurfaceHolder = mSurfaceView.getHolder();
+        mSurfaceHolder.addCallback(this);
 
         ((TextView)findViewById(R.id.userName)).setText(Globals.getUserName());
         ((TextView)findViewById(R.id.userLogin)).setText(Globals.getUserLogin(this));
@@ -57,7 +69,9 @@ public class MainActivity extends Activity {
 
                 findViewById(R.id.settingsLayout).setVisibility(View.VISIBLE);
 
-                startService(new Intent(MainActivity.this, RecordingService.class));
+                Intent intent = new Intent(MainActivity.this, RecorderService.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startService(intent);
             }
         });
 
@@ -76,7 +90,7 @@ public class MainActivity extends Activity {
             public void onClick(View view) {
                 Globals.clear(MainActivity.this);
                 ApiClient.setToken(null);
-                stopService(new Intent(MainActivity.this, RecordingService.class));
+                stopService(new Intent(MainActivity.this, RecorderService.class));
                 Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                 startActivity(intent);
                 MainActivity.this.finish();
@@ -108,5 +122,20 @@ public class MainActivity extends Activity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder surfaceHolder) {
+
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i2, int i3) {
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+
     }
 }

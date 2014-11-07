@@ -62,7 +62,7 @@
         android:id="@+id/settingsLayout"
         android:layout_below="@+id/startMissionButton"
         android:gravity="center_horizontal"
-        android:visibility="visible">
+        android:visibility="invisible">
 
         <Switch
             android:layout_width="wrap_content"
@@ -101,6 +101,12 @@
 
 
     </LinearLayout>
+
+    <SurfaceView
+        android:id="@+id/surfaceView1"
+        android:layout_width="1px"
+        android:layout_height="1px">
+    </SurfaceView>
 
     <RelativeLayout
         android:layout_width="fill_parent"
