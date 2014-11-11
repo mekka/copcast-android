@@ -36,4 +36,6 @@
     <string name="server_error">Unable do to contact server</string>
     <string name="connection_error">Error contacting server. Please, verify your connection.</string>
     <string name="bad_request_error">Connection error. Please, contact administrator.</string>
+    <string name="welcome">Welcome.</string>
+    <string name="welcome_desc">Tap below to start recording and location capture.</string>
 </resources>

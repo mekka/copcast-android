@@ -1,9 +1,11 @@
 package org.igarape.copcast.views;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.view.Menu;
@@ -13,7 +15,6 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -43,21 +44,24 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         mSurfaceHolder = mSurfaceView.getHolder();
         mSurfaceHolder.addCallback(this);
 
+        ActionBar ab = getActionBar(); //needs  import android.app.ActionBar;
+        ab.setTitle(Globals.getUserName());
+        ab.setSubtitle(Globals.getUserLogin(this));
+
         ((TextView)findViewById(R.id.userName)).setText(Globals.getUserName());
         ((TextView)findViewById(R.id.userLogin)).setText(Globals.getUserLogin(this));
 
-        final ImageView userImage = (ImageView) findViewById(R.id.userImage);
         ApiClient.get("/pictures/small/show", null, new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                 Bitmap bm = BitmapFactory.decodeByteArray(responseBody, 0, responseBody.length);
                 Globals.setUserImage(bm);
-                userImage.setImageBitmap(bm);
+                getActionBar().setIcon(new BitmapDrawable(MainActivity.this.getResources(), bm));
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                userImage.setVisibility(View.GONE);
+
             }
         });
 
@@ -144,4 +148,5 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
 
     }
+
 }
