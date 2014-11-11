@@ -14,8 +14,6 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.Switch;
 import android.widget.TextView;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -84,29 +82,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             }
         });
 
-        ((Switch)findViewById(R.id.StartUploadingSwitch)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
-                } else {
-                    findViewById(R.id.uploadLayout).setVisibility(View.INVISIBLE);
-                }
-            }
-        });
-        findViewById(R.id.loggoutButton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Globals.clear(MainActivity.this);
-                ApiClient.setToken(null);
-                stopService(new Intent(MainActivity.this, RecorderService.class));
-                stopService(new Intent(MainActivity.this, LocationService.class));
-                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                startActivity(intent);
-                MainActivity.this.finish();
-            }
-        });
     }
+
 
     @Override
     protected void onDestroy() {
@@ -130,8 +107,21 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             return true;
+        } else if (id == R.id.action_logout){
+            logout();
+            return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void logout() {
+        Globals.clear(MainActivity.this);
+        ApiClient.setToken(null);
+        stopService(new Intent(MainActivity.this, RecorderService.class));
+        stopService(new Intent(MainActivity.this, LocationService.class));
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        startActivity(intent);
+        MainActivity.this.finish();
     }
 
     @Override

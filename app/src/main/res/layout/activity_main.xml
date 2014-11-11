@@ -52,40 +52,20 @@
         android:gravity="center_horizontal"
         android:visibility="invisible">
 
-        <Switch
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/start_streaming"
-            android:id="@+id/StartStreamingSwitch" />
-
-        <Switch
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/start_uploading"
-            android:id="@+id/StartUploadingSwitch" />
-
-        <LinearLayout
-            android:orientation="horizontal"
+        <Button
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:id="@+id/uploadLayout"
-            android:gravity="center"
-            android:visibility="invisible">
+            android:layout_height="wrap_content"
+            android:text="@string/pause_recording"
+            style="@style/button_default"
+            android:id="@+id/pauseRecordingButton"/>
 
-            <ProgressBar
-                style="?android:attr/progressBarStyleLarge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/progressBar" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="@string/uploading_videos"
-                android:id="@+id/uploadStateText" />
-
-        </LinearLayout>
+        <Button
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/end_mission"
+            style="@style/button_default"
+            android:id="@+id/endMissionButton"/>
 
 
     </LinearLayout>
@@ -117,44 +97,20 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="@string/videos_label"
-                android:id="@+id/video_label"
+                android:text="@string/upload_data"
+                android:id="@+id/uploadData"
                 android:layout_marginRight="5dp" />
 
-            <TextView
+            <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="0"
-                android:id="@+id/video_number"
-                android:layout_toRightOf="@+id/video_label" />
+                android:id="@+id/uploadButton"
+                android:text="@string/upload"
+                style="@style/button_default"
+                android:layout_alignLeft="@+id/uploadData"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="@string/current_state"
-                android:id="@+id/current_label"
-                android:layout_below="@+id/video_label"
-                android:layout_marginRight="5dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="@string/logged"
-                android:id="@+id/current_state"
-                android:layout_toRightOf="@+id/current_label"
-                android:layout_below="@+id/video_number" />
         </RelativeLayout>
-
-        <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/loggoutButton"
-            android:src="@drawable/logout_red"
-            android:layout_toRightOf="@+id/status_layout"
-            style="@style/button_default"/>
 
     </RelativeLayout>
 </RelativeLayout>

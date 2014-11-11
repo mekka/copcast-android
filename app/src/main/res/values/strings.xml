@@ -38,4 +38,9 @@
     <string name="bad_request_error">Connection error. Please, contact administrator.</string>
     <string name="welcome">Welcome.</string>
     <string name="welcome_desc">Tap below to start recording and location capture.</string>
+    <string name="pause_recording">Pause Recording</string>
+    <string name="end_mission">End Mission</string>
+    <string name="upload_data">Upload data</string>
+    <string name="upload">Upload</string>
+    <string name="logout">Logout</string>
 </resources>
