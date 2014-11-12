@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -20,7 +21,7 @@ public class SplashScreenActivity extends Activity {
 
 	private static final int SPLASH_SHOW_TIME = 5000;
     public static String TAG = SplashScreenActivity.class.getName();
-    private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+    private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
     private Context context;
     private GoogleCloudMessaging gcm;
     private String regid = null;
@@ -28,25 +29,32 @@ public class SplashScreenActivity extends Activity {
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_spash_screen);
+		setContentView(R.layout.activity_splash_screen);
 
+
+
+	}
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         context = getApplicationContext();
         if (checkPlayServices()) {
             gcm = GoogleCloudMessaging.getInstance(this);
             regid = Globals.getRegistrationId(context);
+            Globals.setAccessToken(this, null);
+            new BackgroundSplashTask().execute();
         }
-        Globals.setAccessToken(this, null);
-		new BackgroundSplashTask().execute();
-	}
+    }
 
     private boolean checkPlayServices() {
-        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
-                GooglePlayServicesUtil.getErrorDialog(resultCode, this,
-                        PLAY_SERVICES_RESOLUTION_REQUEST).show();
+        int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+        if (status != ConnectionResult.SUCCESS) {
+            if (GooglePlayServicesUtil.isUserRecoverableError(status)) {
+                showErrorDialog(status);
             } else {
-                Log.i(TAG, "This device is not supported.");
+                Toast.makeText(this, "This device is not supported.",
+                        Toast.LENGTH_LONG).show();
                 finish();
             }
             return false;
@@ -54,6 +62,24 @@ public class SplashScreenActivity extends Activity {
         return true;
     }
 
+    void showErrorDialog(int code) {
+        GooglePlayServicesUtil.getErrorDialog(code, this,
+                REQUEST_CODE_RECOVER_PLAY_SERVICES).show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQUEST_CODE_RECOVER_PLAY_SERVICES:
+                if (resultCode == RESULT_CANCELED) {
+                    Toast.makeText(this, "Google Play Services must be installed.",
+                            Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+                return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
 	/**
 	 * Async Task: can be used to load DB, images during which the splash screen
 	 * is shown to user

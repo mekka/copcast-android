@@ -46,9 +46,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         ab.setTitle(Globals.getUserName());
         ab.setSubtitle(Globals.getUserLogin(this));
 
-        ((TextView)findViewById(R.id.userName)).setText(Globals.getUserName());
-        ((TextView)findViewById(R.id.userLogin)).setText(Globals.getUserLogin(this));
-
         ApiClient.get("/pictures/small/show", null, new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
@@ -67,11 +64,11 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         starMissionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                starMissionButton.setEnabled(false);
-                starMissionButton.setText(getString(R.string.recording_started));
+                starMissionButton.setVisibility(View.INVISIBLE);
 
                 findViewById(R.id.settingsLayout).setVisibility(View.VISIBLE);
-
+                ((TextView)findViewById(R.id.welcome)).setText(getString(R.string.mission_start));
+                ((TextView)findViewById(R.id.welcomeDesc)).setText(getString(R.string.mission_start_desc));
                 Intent intent = new Intent(MainActivity.this, RecorderService.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startService(intent);
@@ -79,6 +76,25 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 intent = new Intent(MainActivity.this, LocationService.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startService(intent);
+            }
+        });
+
+        final Button endMissionButton = (Button) findViewById(R.id.endMissionButton);
+        endMissionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                starMissionButton.setVisibility(View.VISIBLE);
+
+                findViewById(R.id.settingsLayout).setVisibility(View.INVISIBLE);
+                ((TextView)findViewById(R.id.welcome)).setText(getString(R.string.welcome));
+                ((TextView)findViewById(R.id.welcomeDesc)).setText(getString(R.string.welcome_desc));
+                Intent intent = new Intent(MainActivity.this, RecorderService.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                stopService(intent);
+
+                intent = new Intent(MainActivity.this, LocationService.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                stopService(intent);
             }
         });
 
