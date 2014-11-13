@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="bg_dark_block">#182a40</color>
+    <color name="bg_grey_block">#999999</color>
+    <color name="bg_blue_block">#33b5e5</color>
     <color name="text_dark_block">#ffffff</color>
     <color name="bg_button_default">#484849</color>
     <color name="text_dark">#999999</color>
+    <color name="bg_button_blue">#33b5e5</color>
 </resources>

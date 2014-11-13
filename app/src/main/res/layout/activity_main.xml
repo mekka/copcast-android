@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,81 +7,89 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
     style="@style/AppTheme"
+    android:orientation="vertical"
     tools:context="org.igarape.copcast.views.MainActivity">
 
-    <LinearLayout
-        android:orientation="vertical"
+    <RelativeLayout
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:gravity="center"
-        android:id="@+id/welcomeLayout"
-        android:layout_marginTop="90dp"
-        android:layout_marginBottom="30dp">
+        android:layout_height="fill_parent"
+        android:id="@+id/mainLayout"
+        android:layout_weight="0.15">
 
-            <TextView
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:id="@+id/welcomeLayout"
+            android:layout_marginTop="90dp"
+            android:layout_marginBottom="30dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:text="@string/welcome"
+                    android:id="@+id/welcome" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:text="@string/welcome_desc"
+                    android:id="@+id/welcomeDesc"
+                    android:textColor="@color/text_dark"
+                    android:gravity="center" />
+
+        </LinearLayout>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/start_mission"
+            style="@style/button_blue"
+            android:minHeight="@dimen/button_height"
+            android:minWidth="@dimen/button_width"
+            android:id="@+id/startMissionButton"
+            android:gravity="center"
+            android:layout_below="@+id/welcomeLayout"
+            android:layout_centerHorizontal="true" />
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/settingsLayout"
+            android:layout_below="@+id/welcomeLayout"
+            android:gravity="center_horizontal"
+            android:visibility="invisible">
+
+            <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:text="@string/welcome"
-                android:id="@+id/welcome" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="@string/welcome_desc"
-                android:id="@+id/welcomeDesc"
-                android:textColor="@color/text_dark"
+                android:text="@string/pause_recording"
+                style="@style/button_default"
+                android:id="@+id/pauseRecordingButton"
+                android:minHeight="@dimen/button_height"
+                android:minWidth="@dimen/button_width"
                 android:gravity="center" />
 
-    </LinearLayout>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/start_mission"
-        style="@style/button_blue"
-        android:minHeight="@dimen/button_height"
-        android:minWidth="@dimen/button_width"
-        android:id="@+id/startMissionButton"
-        android:gravity="center"
-        android:layout_below="@+id/welcomeLayout"
-        android:layout_centerHorizontal="true" />
-
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/settingsLayout"
-        android:layout_below="@+id/welcomeLayout"
-        android:gravity="center_horizontal"
-        android:visibility="invisible">
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/pause_recording"
-            style="@style/button_default"
-            android:id="@+id/pauseRecordingButton"
-            android:minHeight="@dimen/button_height"
-            android:minWidth="@dimen/button_width"
-            android:gravity="center" />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/end_mission"
+                style="@style/button_default"
+                android:id="@+id/endMissionButton"
+                android:minHeight="@dimen/button_height"
+                android:minWidth="@dimen/button_width"
+                android:gravity="center"
+                android:layout_marginTop="25dp"/>
 
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/end_mission"
-            style="@style/button_default"
-            android:id="@+id/endMissionButton"
-            android:minHeight="@dimen/button_height"
-            android:minWidth="@dimen/button_width"
-            android:gravity="center"
-            android:layout_marginTop="25dp"/>
-
-
-    </LinearLayout>
+        </LinearLayout>
+    </RelativeLayout>
 
     <SurfaceView
         android:id="@+id/surfaceView1"
@@ -92,99 +100,179 @@
 
     <RelativeLayout
         android:layout_width="fill_parent"
-        android:layout_height="match_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/bottonLayout"
+        android:layout_weight="1">
 
-        android:id="@+id/uploadLayout"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentStart="false"
-        android:layout_alignParentEnd="false"
-        android:layout_marginTop="430dp"
-        android:visibility="invisible">
         <RelativeLayout
             android:layout_width="fill_parent"
-            android:layout_height="2dip"
-            android:background="@color/bg_button_default"
-            android:id="@+id/horizontalRule"></RelativeLayout>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="@string/upload_data"
-            android:id="@+id/uploadData"
+            android:layout_height="match_parent"
+
+            android:id="@+id/uploadLayout"
+            android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_below="@+id/horizontalRule"
-            android:gravity="center" />
+            android:layout_alignParentRight="true"
+            android:layout_alignParentStart="false"
+            android:layout_alignParentEnd="false">
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="2dip"
+                android:background="@color/bg_button_default"
+                android:id="@+id/horizontalRule"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="@string/upload_data"
+                android:id="@+id/uploadData"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_below="@+id/horizontalRule"
+                android:gravity="center" />
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:id="@+id/uploadButtonLayout"
+                android:layout_below="@+id/horizontalRule"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:gravity="center">
+
+                <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/uploadButton"
+                        android:text="@string/upload"
+                        style="@style/button_default"
+                        android:minHeight="@dimen/button_height"
+                        android:minWidth="@dimen/button_width_small"
+                        android:gravity="center"/>
+            </RelativeLayout>
+
+        </RelativeLayout>
 
         <RelativeLayout
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:id="@+id/uploadButtonLayout"
-            android:layout_below="@+id/horizontalRule"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:gravity="center">
+            android:layout_width="fill_parent"
+            android:layout_height="match_parent"
 
-            <Button
+            android:id="@+id/uploadingLayout"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentStart="false"
+            android:layout_alignParentEnd="false"
+
+            android:visibility="gone">
+
+
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="2dip"
+                android:background="@color/bg_button_default"
+                android:id="@+id/relativeLayout" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="@string/uploading"
+                android:id="@+id/uploadingLabel"
+                android:layout_below="@+id/relativeLayout" />
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_below="@+id/uploadingLabel"
+                android:gravity="center">
+
+                <ProgressBar
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/progressBar"
+                    android:progressDrawable="@drawable/progress_bar"
+                    android:layout_width="wrap_content"
+                    android:layout_weight="0.10" />
+
+                <Button
+                    style="?android:attr/buttonStyleSmall"
+                    android:layout_width="35dp"
+                    android:layout_height="wrap_content"
+                    android:text="X"
+                    android:minWidth="@dimen/progressbar_width"
+                    android:id="@+id/uploadCancelButton"
+                    android:layout_weight="0.00" />
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="match_parent"
+
+            android:id="@+id/streamLayout"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentStart="false"
+            android:layout_alignParentEnd="false"
+            android:visibility="gone">
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="2dip"
+                android:background="@color/bg_button_default"
+                android:id="@+id/horizontalRule2"/>
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:layout_below="@+id/horizontalRule2"
+                android:gravity="center"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true">
+
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/uploadButton"
-                    android:text="@string/upload"
-                    style="@style/button_default"
-                    android:minHeight="@dimen/button_height"
-                    android:minWidth="@dimen/button_width_small"
-                    android:gravity="center"/>
-        </RelativeLayout>
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="@string/live_stream"
+                    android:id="@+id/liveStream"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true"
 
-    </RelativeLayout>
+                    android:gravity="center" />
 
-    <RelativeLayout
-        android:layout_width="fill_parent"
-        android:layout_height="match_parent"
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:text="@string/live_stream_desc"
+                    android:id="@+id/textView"
+                    android:textColor="@color/text_dark"
+                    android:layout_below="@+id/liveStream"
+                    android:gravity="center" />
+            </RelativeLayout>
 
-        android:id="@+id/streamLayout"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentStart="false"
-        android:layout_alignParentEnd="false"
-        android:layout_marginTop="@dimen/margin_top_botton">
-        <RelativeLayout
-            android:layout_width="fill_parent"
-            android:layout_height="2dip"
-            android:background="@color/bg_button_default"
-            android:id="@+id/horizontalRule2"></RelativeLayout>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="@string/live_stream"
-            android:id="@+id/liveStream"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_below="@+id/horizontalRule2"
-            android:gravity="center" />
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:id="@+id/streamToggleLayout"
+                android:layout_below="@+id/horizontalRule2"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
+                android:gravity="center">
+                <Switch
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:id="@+id/switch1"
+                    android:layout_alignParentBottom="true"
+                    android:layout_alignParentLeft="true"
+                    android:layout_alignParentStart="true" />
+            </RelativeLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="Small Text"
-            android:id="@+id/textView"
-            android:layout_below="@+id/liveStream" />
-
-        <RelativeLayout
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:id="@+id/streamToggleLayout"
-            android:layout_below="@+id/horizontalRule2"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:gravity="center">
 
         </RelativeLayout>
-
     </RelativeLayout>
-</RelativeLayout>
+
+</LinearLayout>

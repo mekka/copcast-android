@@ -46,4 +46,6 @@
     <string name="mission_start">Mission Started.</string>
     <string name="mission_start_desc">Recording and location capture are ON.</string>
     <string name="live_stream">Live streaming</string>
+    <string name="live_stream_desc">Stream data live to HQ</string>
+    <string name="uploading">Uploading</string>
 </resources>

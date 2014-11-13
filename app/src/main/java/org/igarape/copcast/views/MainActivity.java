@@ -64,11 +64,15 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         starMissionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                starMissionButton.setVisibility(View.INVISIBLE);
+                starMissionButton.setVisibility(View.GONE);
 
                 findViewById(R.id.settingsLayout).setVisibility(View.VISIBLE);
                 ((TextView)findViewById(R.id.welcome)).setText(getString(R.string.mission_start));
                 ((TextView)findViewById(R.id.welcomeDesc)).setText(getString(R.string.mission_start_desc));
+                findViewById(R.id.uploadLayout).setVisibility(View.GONE);
+                findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
+                findViewById(R.id.streamLayout).setVisibility(View.VISIBLE);
+
                 Intent intent = new Intent(MainActivity.this, RecorderService.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startService(intent);
@@ -85,9 +89,14 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             public void onClick(View view) {
                 starMissionButton.setVisibility(View.VISIBLE);
 
-                findViewById(R.id.settingsLayout).setVisibility(View.INVISIBLE);
+                findViewById(R.id.settingsLayout).setVisibility(View.GONE);
                 ((TextView)findViewById(R.id.welcome)).setText(getString(R.string.welcome));
                 ((TextView)findViewById(R.id.welcomeDesc)).setText(getString(R.string.welcome_desc));
+
+                findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
+                findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
+                findViewById(R.id.streamLayout).setVisibility(View.GONE);
+
                 Intent intent = new Intent(MainActivity.this, RecorderService.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 stopService(intent);
@@ -97,6 +106,27 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 stopService(intent);
             }
         });
+
+
+        ((Button) findViewById(R.id.uploadButton)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                findViewById(R.id.uploadLayout).setVisibility(View.GONE);
+                findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
+                findViewById(R.id.streamLayout).setVisibility(View.GONE);
+            }
+        });
+
+        ((Button) findViewById(R.id.uploadCancelButton)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
+                findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
+                findViewById(R.id.streamLayout).setVisibility(View.GONE);
+            }
+        });
+
+
 
     }
 
