@@ -26,7 +26,15 @@
             android:layout_marginTop="90dp"
             android:layout_marginBottom="30dp">
 
-                <TextView
+            <ImageView
+                android:contentDescription="@string/recording_started"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/recBall"
+                android:src="@drawable/rec_ball"
+                android:visibility="invisible"/>
+
+            <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceLarge"
@@ -89,6 +97,7 @@
 
 
         </LinearLayout>
+
     </RelativeLayout>
 
     <SurfaceView
@@ -113,7 +122,8 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentRight="true"
             android:layout_alignParentStart="false"
-            android:layout_alignParentEnd="false">
+            android:layout_alignParentEnd="false"
+            android:visibility="gone">
             <RelativeLayout
                 android:layout_width="fill_parent"
                 android:layout_height="2dip"
@@ -163,7 +173,7 @@
             android:layout_alignParentStart="false"
             android:layout_alignParentEnd="false"
 
-            android:visibility="gone">
+            android:visibility="visible">
 
 
             <RelativeLayout
@@ -194,14 +204,14 @@
                     android:layout_width="wrap_content"
                     android:layout_weight="0.10" />
 
-                <Button
-                    style="?android:attr/buttonStyleSmall"
+                <ImageView
+                    android:contentDescription="@string/recording_started"
                     android:layout_width="35dp"
                     android:layout_height="wrap_content"
-                    android:text="X"
                     android:minWidth="@dimen/progressbar_width"
                     android:id="@+id/uploadCancelButton"
-                    android:layout_weight="0.00" />
+                    android:layout_weight="0.00"
+                    android:src="@drawable/xis" />
             </LinearLayout>
 
         </RelativeLayout>

@@ -14,6 +14,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -72,6 +73,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 findViewById(R.id.uploadLayout).setVisibility(View.GONE);
                 findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
                 findViewById(R.id.streamLayout).setVisibility(View.VISIBLE);
+                findViewById(R.id.recBall).setVisibility(View.VISIBLE);
 
                 Intent intent = new Intent(MainActivity.this, RecorderService.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -96,6 +98,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
                 findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
                 findViewById(R.id.streamLayout).setVisibility(View.GONE);
+                findViewById(R.id.recBall).setVisibility(View.INVISIBLE);
 
                 Intent intent = new Intent(MainActivity.this, RecorderService.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -117,7 +120,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             }
         });
 
-        ((Button) findViewById(R.id.uploadCancelButton)).setOnClickListener(new View.OnClickListener() {
+        ((ImageView) findViewById(R.id.uploadCancelButton)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);

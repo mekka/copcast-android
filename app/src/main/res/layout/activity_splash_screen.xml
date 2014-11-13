@@ -2,14 +2,15 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@drawable/backrepeat" >
+    android:background="@color/bg_dark_block"
+    android:gravity="center">
 
     <ImageView
-        android:id="@+id/imgLogo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:src="@drawable/logo_pt"
-        android:tileMode="repeat" />
-
+        android:id="@+id/imageView"
+        android:layout_alignParentTop="true"
+        android:contentDescription="@string/copcast_main_title"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/logo_copcast" />
 </RelativeLayout>
