@@ -31,6 +31,7 @@ public class Globals {
     private static String streamingPath = "";
     private static String userName = null;
     private static Bitmap userImage = null;
+    private static Long directorySize;
 
     public synchronized static String getAccessToken(Context context) {
         if (accessToken == null) {
@@ -158,5 +159,13 @@ public class Globals {
         streamingPath = "";
         userName = null;
         userImage = null;
+    }
+
+    public static void setDirectorySize(long directorySize) {
+        Globals.directorySize = directorySize;
+    }
+
+    public static long getDirectorySize() {
+        return directorySize;
     }
 }

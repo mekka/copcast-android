@@ -20,13 +20,16 @@ android {
 
     productFlavors {
         local {
-            buildConfigField "String", "serverUrl", "\"http://192.168.1.117:3000\""
+            buildConfigField "String", "serverUrl", "\"http://192.168.0.101:3000\""
+            buildConfigField "Boolean", "requireWifiUpload", "true"
         }
         general {
             buildConfigField "String", "serverUrl", "\"http://mogi-api.igarape.org\""
+            buildConfigField "Boolean", "requireWifiUpload", "true"
         }
         capeTown {
             buildConfigField "String", "serverUrl", "\"http://api.mogidocs.co.za\""
+            buildConfigField "Boolean", "requireWifiUpload", "false"
         }
     }
 }
@@ -34,5 +37,6 @@ android {
 dependencies {
     compile 'com.google.android.gms:play-services:6.1.+'
     compile 'com.loopj.android:android-async-http:1.4.6'
+    compile "commons-io:commons-io:+"
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }

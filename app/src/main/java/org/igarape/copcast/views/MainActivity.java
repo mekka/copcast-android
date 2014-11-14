@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
@@ -15,7 +16,9 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
@@ -23,8 +26,10 @@ import org.apache.http.Header;
 import org.igarape.copcast.R;
 import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.service.RecorderService;
+import org.igarape.copcast.service.UploadService;
 import org.igarape.copcast.utils.ApiClient;
 import org.igarape.copcast.utils.Globals;
+import org.igarape.copcast.utils.NetworkUtils;
 
 
 public class MainActivity extends Activity implements SurfaceHolder.Callback {
@@ -114,9 +119,17 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         ((Button) findViewById(R.id.uploadButton)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                findViewById(R.id.uploadLayout).setVisibility(View.GONE);
-                findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
-                findViewById(R.id.streamLayout).setVisibility(View.GONE);
+                if (NetworkUtils.canUpload(getApplicationContext(), getIntent())) {
+                    findViewById(R.id.uploadLayout).setVisibility(View.GONE);
+                    findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
+                    findViewById(R.id.streamLayout).setVisibility(View.GONE);
+
+                    Intent intent = new Intent(MainActivity.this, UploadService.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startService(intent);
+                } else {
+                    Toast.makeText(getApplicationContext(), getString(R.string.upload_disabled), Toast.LENGTH_LONG).show();
+                }
             }
         });
 
@@ -126,6 +139,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
                 findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
                 findViewById(R.id.streamLayout).setVisibility(View.GONE);
+
+                Intent intent = new Intent(MainActivity.this, UploadService.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                stopService(intent);
             }
         });
 

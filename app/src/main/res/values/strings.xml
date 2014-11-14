@@ -48,4 +48,7 @@
     <string name="live_stream">Live streaming</string>
     <string name="live_stream_desc">Stream data live to HQ</string>
     <string name="uploading">Uploading</string>
+    <string name="notification_upload_title">Upload data.</string>
+    <string name="notification_upload_description">Uploading data to the server...</string>
+    <string name="upload_disabled">Can\'t upload right now. Is the phone charging?</string>
 </resources>

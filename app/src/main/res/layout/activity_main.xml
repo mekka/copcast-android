@@ -123,7 +123,7 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentStart="false"
             android:layout_alignParentEnd="false"
-            android:visibility="gone">
+            android:visibility="visible">
             <RelativeLayout
                 android:layout_width="fill_parent"
                 android:layout_height="2dip"
@@ -173,7 +173,7 @@
             android:layout_alignParentStart="false"
             android:layout_alignParentEnd="false"
 
-            android:visibility="visible">
+            android:visibility="gone">
 
 
             <RelativeLayout

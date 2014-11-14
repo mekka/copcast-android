@@ -13,6 +13,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import org.igarape.copcast.R;
+import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 
 import java.io.IOException;
@@ -117,7 +118,7 @@ public class SplashScreenActivity extends Activity {
 
 			// do not worry about this Thread.sleep
 			// this is an async task, it will not disrupt the UI
-
+            Globals.setDirectorySize(FileUtils.getDirectorySize());
 			try {
 				Thread.sleep(SPLASH_SHOW_TIME);
 			} catch (InterruptedException e) {

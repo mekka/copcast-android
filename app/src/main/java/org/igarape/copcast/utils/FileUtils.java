@@ -44,6 +44,16 @@ public class FileUtils {
         }
     }
 
+    public static String getHistoriesFilePath(String userLogin) {
+        String userPath = getUserPath(userLogin);
+
+        return userPath + HISTORY_TXT;
+    }
+
+    public static String getLocationsFilePath(String userLogin) {
+        return getUserPath(userLogin) + LOCATIONS_TXT;
+    }
+
     private static void LogToFile(String userLogin, String file, String data) {
         String userPath = getUserPath(userLogin);
         try {
@@ -91,5 +101,9 @@ public class FileUtils {
 
     public static void init() {
         setPath(getAlbumStorageDir("smartpolicing").getAbsolutePath());
+    }
+
+    public static long getDirectorySize(){
+        return org.apache.commons.io.FileUtils.sizeOfDirectory(new File(path));
     }
 }
