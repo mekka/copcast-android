@@ -32,6 +32,7 @@ public class Globals {
     private static String userName = null;
     private static Bitmap userImage = null;
     private static Long directorySize;
+    private static Long directoryUploadedSize;
 
     public synchronized static String getAccessToken(Context context) {
         if (accessToken == null) {
@@ -161,11 +162,20 @@ public class Globals {
         userImage = null;
     }
 
-    public static void setDirectorySize(long directorySize) {
+    public static void setDirectorySize(Long directorySize) {
         Globals.directorySize = directorySize;
+        Globals.directoryUploadedSize = Long.valueOf(0);
     }
 
-    public static long getDirectorySize() {
+    public static Long getDirectoryUploadedSize() {
+        return directoryUploadedSize;
+    }
+
+    public static void setDirectoryUploadedSize(Long directoryUploadedSize) {
+        Globals.directoryUploadedSize = directoryUploadedSize;
+    }
+
+    public static Long getDirectorySize() {
         return directorySize;
     }
 }

@@ -9,6 +9,7 @@ import android.os.AsyncTask;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import org.apache.http.NameValuePair;
@@ -41,11 +42,15 @@ import java.util.List;
  */
 public class UploadService extends Service {
     private static final String TAG = UploadService.class.getName();
+    public static final String UPLOAD_PROGRESS_ACTION = "org.igarape.copcast.UPLOAD_PROGRESS";
+    public static final String FILE_SIZE = "FILE_SIZE";
     private int mId = 3;
     private List<String> users;
     private final GenericExtFilter filter = new GenericExtFilter(".mp4");
     private ArrayList<File> videos;
     private DateFormat df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
+    private LocalBroadcastManager broadcaster;
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -76,13 +81,24 @@ public class UploadService extends Service {
         // mId allows you to update the notification later on.
         mNotificationManager.notify(mId, mBuilder.build());
 
-        users = Arrays.asList(FileUtils.getUserFolders());
+        users = new ArrayList<String>();
+        //users.addAll(FileUtils.getUserFolders());
 
         if (!users.isEmpty()){
             uploadUserData();
         }
 
+        broadcaster = LocalBroadcastManager.getInstance(this);
+
     }
+
+    public void sendUpdateToUI(Long size) {
+        Intent intent = new Intent(UPLOAD_PROGRESS_ACTION);
+        if(size != null)
+            intent.putExtra(FILE_SIZE, size);
+        broadcaster.sendBroadcast(intent);
+    }
+    
     private void uploadUserData() {
         if (users.isEmpty()){
             this.stopSelf();
@@ -257,6 +273,7 @@ public class UploadService extends Service {
 
                 @Override
                 public void success(JSONObject response) {
+                    sendUpdateToUI(nextVideo.length());
                     nextVideo.delete();
                     if (!videos.isEmpty()){
                         uploadVideo(videos.remove(0));

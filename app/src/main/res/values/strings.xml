@@ -41,6 +41,7 @@
     <string name="pause_recording">Pause Recording</string>
     <string name="end_mission">End Mission</string>
     <string name="upload_data">Upload data</string>
+    <string name="upload_data_size">Upload data (%1$dGB)</string>
     <string name="upload">Upload</string>
     <string name="logout">Logout</string>
     <string name="mission_start">Mission Started.</string>
@@ -48,6 +49,7 @@
     <string name="live_stream">Live streaming</string>
     <string name="live_stream_desc">Stream data live to HQ</string>
     <string name="uploading">Uploading</string>
+    <string name="uploading_size">Uploading (%1$dGB of %2$dGB)</string>
     <string name="notification_upload_title">Upload data.</string>
     <string name="notification_upload_description">Uploading data to the server...</string>
     <string name="upload_disabled">Can\'t upload right now. Is the phone charging?</string>

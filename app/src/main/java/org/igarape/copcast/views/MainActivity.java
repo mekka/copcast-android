@@ -2,12 +2,18 @@ package org.igarape.copcast.views;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.support.annotation.IntegerRes;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,6 +22,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,13 +38,18 @@ import org.igarape.copcast.utils.ApiClient;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.NetworkUtils;
 
+import static org.igarape.copcast.utils.Globals.getDirectorySize;
+import static org.igarape.copcast.utils.Globals.getDirectoryUploadedSize;
+
 
 public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
+    private static final String TAG = MainActivity.class.getName();
     public static SurfaceView mSurfaceView;
     public static SurfaceHolder mSurfaceHolder;
     public static Camera mCamera;
     public static boolean mPreviewRunning;
+    private BroadcastReceiver receiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +64,16 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         ab.setTitle(Globals.getUserName());
         ab.setSubtitle(Globals.getUserLogin(this));
 
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                long size = intent.getLongExtra(UploadService.FILE_SIZE, 0);
+                Log.d(TAG, "Progress upload received:" + size);
+                Globals.setDirectoryUploadedSize(getDirectoryUploadedSize() + size);
+                ((ProgressBar)findViewById(R.id.progressBar)).setProgress(getDirectoryUploadedSize().intValue());
+            }
+        };
+
         ApiClient.get("/pictures/small/show", null, new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
@@ -65,6 +87,11 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
             }
         });
+
+        ((ProgressBar)findViewById(R.id.progressBar)).setMax(getDirectorySize().intValue());
+
+        ((TextView)findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, 0, getDirectorySize()));
+        ((TextView)findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, getDirectorySize()));
 
         final Button starMissionButton = (Button) findViewById(R.id.startMissionButton);
         starMissionButton.setOnClickListener(new View.OnClickListener() {
@@ -146,8 +173,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             }
         });
 
-
-
     }
 
 
@@ -205,4 +230,15 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        LocalBroadcastManager.getInstance(this).registerReceiver((receiver), new IntentFilter(UploadService.UPLOAD_PROGRESS_ACTION));
+    }
+
+    @Override
+    protected void onStop() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
+        super.onStop();
+    }
 }
