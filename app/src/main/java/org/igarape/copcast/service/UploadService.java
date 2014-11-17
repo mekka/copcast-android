@@ -34,6 +34,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -82,7 +83,7 @@ public class UploadService extends Service {
         mNotificationManager.notify(mId, mBuilder.build());
 
         users = new ArrayList<String>();
-        //users.addAll(FileUtils.getUserFolders());
+        Collections.addAll(users, FileUtils.getUserFolders());
 
         if (!users.isEmpty()){
             uploadUserData();

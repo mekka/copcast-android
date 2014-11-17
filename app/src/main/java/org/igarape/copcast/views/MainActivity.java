@@ -11,10 +11,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Camera;
 import android.os.Bundle;
-import android.support.annotation.IntegerRes;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
@@ -23,7 +21,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,6 +36,7 @@ import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.NetworkUtils;
 
 import static org.igarape.copcast.utils.Globals.getDirectorySize;
+import static org.igarape.copcast.utils.FileUtils.formatMegaBytes;
 import static org.igarape.copcast.utils.Globals.getDirectoryUploadedSize;
 
 
@@ -71,6 +69,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 Log.d(TAG, "Progress upload received:" + size);
                 Globals.setDirectoryUploadedSize(getDirectoryUploadedSize() + size);
                 ((ProgressBar)findViewById(R.id.progressBar)).setProgress(getDirectoryUploadedSize().intValue());
+                ((TextView)findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes(size), formatMegaBytes(getDirectorySize())));
             }
         };
 
@@ -90,8 +89,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
         ((ProgressBar)findViewById(R.id.progressBar)).setMax(getDirectorySize().intValue());
 
-        ((TextView)findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, 0, getDirectorySize()));
-        ((TextView)findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, getDirectorySize()));
+        ((TextView)findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, 0, formatMegaBytes(getDirectorySize())));
+        ((TextView)findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, formatMegaBytes(getDirectorySize())));
 
         final Button starMissionButton = (Button) findViewById(R.id.startMissionButton);
         starMissionButton.setOnClickListener(new View.OnClickListener() {

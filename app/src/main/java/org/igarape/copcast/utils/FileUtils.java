@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.text.DecimalFormat;
 
 /**
  * Created by bruno on 11/3/14.
@@ -105,5 +106,9 @@ public class FileUtils {
 
     public static long getDirectorySize(){
         return org.apache.commons.io.FileUtils.sizeOfDirectory(new File(path));
+    }
+
+    public static String formatMegaBytes(Long size){
+        return new DecimalFormat("##.##").format((float) size / 1000000);
     }
 }
