@@ -13,14 +13,13 @@ android {
     }
     buildTypes {
         release {
-            runProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 
     productFlavors {
         local {
-            buildConfigField "String", "serverUrl", "\"http://192.168.0.101:3000\""
+            buildConfigField "String", "serverUrl", "\"http://192.168.1.105:3000\""
             buildConfigField "Boolean", "requireWifiUpload", "true"
         }
         general {

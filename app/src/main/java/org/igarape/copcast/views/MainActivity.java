@@ -28,6 +28,7 @@ import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.apache.http.Header;
 import org.igarape.copcast.R;
+import org.igarape.copcast.service.GcmIntentService;
 import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.service.RecorderService;
 import org.igarape.copcast.service.UploadService;
@@ -71,6 +72,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                     Globals.setDirectoryUploadedSize(getDirectoryUploadedSize() + size);
                     ((ProgressBar) findViewById(R.id.progressBar)).setProgress(getDirectoryUploadedSize().intValue());
                     ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes(getDirectoryUploadedSize()), formatMegaBytes(getDirectorySize())));
+                } else if (intent.getAction().equals(GcmIntentService.START_STREAMING)) {
+                    Toast.makeText(getApplicationContext(), "START STREAMING", Toast.LENGTH_LONG).show();
+                } else if (intent.getAction().equals(GcmIntentService.STOP_STREAMING)) {
+                    Toast.makeText(getApplicationContext(), "STOP STREAMING", Toast.LENGTH_LONG).show();
                 } else {
                     findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
                     findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
@@ -256,6 +261,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         IntentFilter filter = new IntentFilter(UploadService.UPLOAD_PROGRESS_ACTION);
         filter.addAction(UploadService.CANCEL_UPLOAD_ACTION);
         filter.addAction(UploadService.COMPLETED_UPLOAD_ACTION);
+        filter.addAction(GcmIntentService.START_STREAMING);
+        filter.addAction(GcmIntentService.STOP_STREAMING);
         LocalBroadcastManager.getInstance(this).registerReceiver((receiver), filter);
     }
 
