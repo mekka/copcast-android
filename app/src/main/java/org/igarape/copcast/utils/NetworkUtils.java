@@ -26,6 +26,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -174,7 +175,7 @@ public class NetworkUtils {
         }.execute();
     }
 
-    public static void post(final Context context, final String url, final JSONObject jsonObject, final HttpResponseCallback callback) {
+    public static void post(final Context context, final String url, final Object jsonObject, final HttpResponseCallback callback) {
         if (!hasConnection(context)){
             if (callback != null){
                 callback.noConnection();
@@ -190,6 +191,8 @@ public class NetworkUtils {
                 disableConnectionReuseIfNecessary();
 
                 HttpURLConnection urlConnection = null;
+                BufferedWriter writer = null;
+                OutputStream os = null;
                 try {
                     URL urlToRequest = new URL(Globals.SERVER_URL + url);
                     urlConnection = (HttpURLConnection) urlToRequest.openConnection();
@@ -198,20 +201,23 @@ public class NetworkUtils {
 
                     String charset = "UTF-8";
                     String token = Globals.getAccessToken(context);
-                    if (token != null){
+                    if (token != null) {
                         urlConnection.setRequestProperty("Authorization", token);
                     }
                     urlConnection.setRequestProperty("Accept-Charset", charset);
-                    urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=" + charset);
+                    urlConnection.setRequestProperty("Content-Type", "application/json;charset=" + charset);
 
                     urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
                     urlConnection.setReadTimeout(DATARETRIEVAL_TIMEOUT);
 
 
                     if (jsonObject != null) {
-                        //urlConnection.setRequestProperty("Content-Length", String.valueOf(jsonObject.length()));
-                        OutputStream os = urlConnection.getOutputStream();
-                        os.write(jsonObject.toString().getBytes(charset));
+                        os = urlConnection.getOutputStream();
+                        writer = new BufferedWriter(
+                                new OutputStreamWriter(os, "UTF-8"));
+                        writer.write(jsonObject.toString());
+                        writer.flush();
+
                     }
 
                     // handle issues
@@ -247,6 +253,12 @@ public class NetworkUtils {
 
                     return null;
                 } finally {
+                    try {
+                        writer.close();
+                        os.close();
+                    } catch (IOException e) {
+                    }
+
                     if (urlConnection != null) {
                         urlConnection.disconnect();
                     }
@@ -292,102 +304,30 @@ public class NetworkUtils {
         return isCharging && (isWiFi || !BuildConfig.requireWifiUpload);
     }
 
-    public static void post(final Context context, final String url,  final JSONArray jsonArray, final HttpResponseCallback callback) {
-        if (!hasConnection(context)){
-            if (callback != null){
-                callback.noConnection();
-            }
-        }
-        AsyncTask task = new AsyncTask<Void, Void, Void>() {
+    public static void post(final Context context, final String url, final List<NameValuePair> params, final File file, final HttpResponseCallback callback) {
+        new AsyncTask<Void, Void, Void>() {
 
             @Override
             protected Void doInBackground(Void... unused) {
-                JSONObject response = null;
-                final String regId = Globals.getRegistrationId(context);
-
-                disableConnectionReuseIfNecessary();
-
-                HttpURLConnection urlConnection = null;
                 try {
-                    URL urlToRequest = new URL(Globals.SERVER_URL + url);
-                    urlConnection = (HttpURLConnection) urlToRequest.openConnection();
-                    urlConnection.setDoOutput(true);
-
-
-                    String charset = "UTF-8";
+                    MultipartUtility request = new MultipartUtility(BuildConfig.serverUrl + url, "UTF-8", Globals.getAccessToken(context));
                     String token = Globals.getAccessToken(context);
-                    if (token != null){
-                        urlConnection.setRequestProperty("Authorization", token);
+                    if (token != null) {
+                        request.addHeaderField("Authorization", token);
                     }
-                    urlConnection.setRequestProperty("Accept-Charset", charset);
-                    urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=" + charset);
-
-                    urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
-                    urlConnection.setReadTimeout(DATARETRIEVAL_TIMEOUT);
-
-
-                    if (jsonArray != null) {
-                        //urlConnection.setRequestProperty("Content-Length", String.valueOf(jsonObject.length()));
-                        OutputStream os = urlConnection.getOutputStream();
-                        os.write(jsonArray.toString().getBytes(charset));
+                    for (NameValuePair pair : params) {
+                        request.addFormField(pair.getName(), pair.getValue());
                     }
+                    request.addFilePart("video", file);
 
-                    // handle issues
-                    urlConnection.connect();
-                    int statusCode = urlConnection.getResponseCode();
-                    if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                        callback.unauthorized();
-                        return null;
-                    } else if (statusCode != HttpURLConnection.HTTP_OK) {
-                        callback.failure(statusCode);
-                        return null;
-                    }
+                    request.finish();
 
-
-                    InputStream in = new BufferedInputStream(
-                            urlConnection.getInputStream());
-                    String responseText = getResponseText(in);
-
-                    response = new JSONObject(responseText);
-
-
-                    callback.success(response);
-                } catch (MalformedURLException e) {
-                    callback.badRequest();
-                    Log.e(TAG, "Url error ", e);
-                } catch (SocketTimeoutException e) {
-                    callback.badConnection();
-                    Log.e(TAG, "Timeout error ", e);
+                    callback.success(new JSONObject());
                 } catch (IOException e) {
-                    callback.badResponse();
-                    Log.e(TAG, "Could not read response body ", e);
-                } catch (JSONException e) {
-
-                    return null;
-                } finally {
-                    if (urlConnection != null) {
-                        urlConnection.disconnect();
-                    }
+                    callback.failure(500);
                 }
                 return null;
             }
-
-            @Override
-            protected void onPostExecute(Void unused) {
-
-            }
         }.execute();
-    }
-
-    public static void post(Context context, String url, List<NameValuePair> params, File file, HttpResponseCallback httpResponseCallback) {
-        HttpClient client = new DefaultHttpClient();
-        HttpPost post = new HttpPost();
-        BasicHttpParams params1 = new BasicHttpParams();
-        for(NameValuePair pair: params){
-            params1.setParameter(pair.getName(),pair.getValue());
-        }
-        post.setParams(params1);
-        //TODO FINISH IT
-
     }
 }

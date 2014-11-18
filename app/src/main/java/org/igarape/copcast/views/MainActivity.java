@@ -65,11 +65,26 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                long size = intent.getLongExtra(UploadService.FILE_SIZE, 0);
-                Log.d(TAG, "Progress upload received:" + size);
-                Globals.setDirectoryUploadedSize(getDirectoryUploadedSize() + size);
-                ((ProgressBar)findViewById(R.id.progressBar)).setProgress(getDirectoryUploadedSize().intValue());
-                ((TextView)findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes(size), formatMegaBytes(getDirectorySize())));
+                if (intent.getAction().equals(UploadService.UPLOAD_PROGRESS_ACTION)) {
+                    long size = intent.getLongExtra(UploadService.FILE_SIZE, 0);
+                    Log.d(TAG, "Progress upload received:" + size);
+                    Globals.setDirectoryUploadedSize(getDirectoryUploadedSize() + size);
+                    ((ProgressBar) findViewById(R.id.progressBar)).setProgress(getDirectoryUploadedSize().intValue());
+                    ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes(getDirectoryUploadedSize()), formatMegaBytes(getDirectorySize())));
+                } else {
+                    findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
+                    findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
+                    findViewById(R.id.streamLayout).setVisibility(View.GONE);
+
+                    Intent intentAux = new Intent(MainActivity.this, UploadService.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    stopService(intentAux);
+                    if (intent.getAction().equals(UploadService.CANCEL_UPLOAD_ACTION)) {
+                        Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
+                    }
+                }
             }
         };
 
@@ -172,6 +187,12 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             }
         });
 
+        ((Button)findViewById(R.id.pauseRecordingButton)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(getApplicationContext(), getString(R.string.under_construction), Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
 
@@ -232,7 +253,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     @Override
     protected void onStart() {
         super.onStart();
-        LocalBroadcastManager.getInstance(this).registerReceiver((receiver), new IntentFilter(UploadService.UPLOAD_PROGRESS_ACTION));
+        IntentFilter filter = new IntentFilter(UploadService.UPLOAD_PROGRESS_ACTION);
+        filter.addAction(UploadService.CANCEL_UPLOAD_ACTION);
+        filter.addAction(UploadService.COMPLETED_UPLOAD_ACTION);
+        LocalBroadcastManager.getInstance(this).registerReceiver((receiver), filter);
     }
 
     @Override

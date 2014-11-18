@@ -5,7 +5,6 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
@@ -18,6 +17,7 @@ import org.igarape.copcast.R;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.HttpResponseCallback;
 import org.igarape.copcast.utils.NetworkUtils;
+import org.igarape.copcast.utils.ServiceUtils;
 import org.igarape.copcast.views.MainActivity;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,7 +26,6 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
@@ -45,12 +44,15 @@ public class UploadService extends Service {
     private static final String TAG = UploadService.class.getName();
     public static final String UPLOAD_PROGRESS_ACTION = "org.igarape.copcast.UPLOAD_PROGRESS";
     public static final String FILE_SIZE = "FILE_SIZE";
+    public static final String CANCEL_UPLOAD_ACTION =  "org.igarape.copcast.CANCEL_UPLOAD";
+    public static final String COMPLETED_UPLOAD_ACTION = "org.igarape.copcast.COMPLETED_UPLOAD";
     private int mId = 3;
     private List<String> users;
     private final GenericExtFilter filter = new GenericExtFilter(".mp4");
     private ArrayList<File> videos;
     private DateFormat df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
     private LocalBroadcastManager broadcaster;
+    private Intent intent;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -58,8 +60,8 @@ public class UploadService extends Service {
     }
 
     @Override
-    public void onCreate() {
-        super.onCreate();
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        this.intent = intent;
         final Intent resultIntent = new Intent(this, MainActivity.class);
         final Context context = getApplicationContext();
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
@@ -85,12 +87,13 @@ public class UploadService extends Service {
         users = new ArrayList<String>();
         Collections.addAll(users, FileUtils.getUserFolders());
 
+        broadcaster = LocalBroadcastManager.getInstance(this);
+
         if (!users.isEmpty()){
             uploadUserData();
         }
 
-        broadcaster = LocalBroadcastManager.getInstance(this);
-
+        return super.onStartCommand(intent, flags, startId);
     }
 
     public void sendUpdateToUI(Long size) {
@@ -101,7 +104,16 @@ public class UploadService extends Service {
     }
     
     private void uploadUserData() {
+        if (!ServiceUtils.isMyServiceRunning(UploadService.class, getApplicationContext())){
+            return;
+        }
+        if (!NetworkUtils.canUpload(getApplicationContext(), this.intent)) {
+            sendCancelToUI();
+            this.stopSelf();
+            return;
+        }
         if (users.isEmpty()){
+            sendCompletedToUI();
             this.stopSelf();
             return;
         }
@@ -118,7 +130,7 @@ public class UploadService extends Service {
             videos = new ArrayList<File>(Arrays.asList(files));
             if (!videos.isEmpty()) {
                 File nextVideo = videos.remove(0);
-                uploadVideo(nextVideo);
+                uploadVideo(nextVideo, userLogin);
             } else {
                 uploadUserData();
             }
@@ -145,7 +157,7 @@ public class UploadService extends Service {
                 }
             }
 
-            NetworkUtils.post(getApplicationContext(),"/locations", locations, new HttpResponseCallback() {
+            NetworkUtils.post(getApplicationContext(),"/locations/"+userLogin, locations, new HttpResponseCallback() {
                 @Override
                 public void unauthorized() {
                     Log.e(TAG, "locations unauthorized");
@@ -198,17 +210,17 @@ public class UploadService extends Service {
             is = new FileInputStream(file);
 
             BufferedReader br = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
-            JSONArray locations = new JSONArray();
+            JSONArray histories = new JSONArray();
             String line;
 
             while ((line = br.readLine()) != null) {
                 JSONObject json = new JSONObject(line);
                 if (json.getString("previousState").length() > 0) {
-                    locations.put(json);
+                    histories.put(json);
                 }
             }
 
-            NetworkUtils.post(getApplicationContext(),"/histories", locations, new HttpResponseCallback() {
+            NetworkUtils.post(getApplicationContext(),"/histories/"+userLogin, histories, new HttpResponseCallback() {
                 @Override
                 public void unauthorized() {
                     Log.e(TAG, "histories unauthorized");
@@ -251,12 +263,20 @@ public class UploadService extends Service {
         }
     }
 
-    private void uploadVideo(final File nextVideo) {
+    private void uploadVideo(final File nextVideo, final String userLogin) {
+        if (!ServiceUtils.isMyServiceRunning(UploadService.class, getApplicationContext())){
+            return;
+        }
+        if (!NetworkUtils.canUpload(getApplicationContext(), this.intent)) {
+            sendCancelToUI();
+            this.stopSelf();
+            return;
+        }
         if (nextVideo.exists()) {
             List<NameValuePair> params = new ArrayList<NameValuePair>();
 
             params.add(new BasicNameValuePair("date", df.format(new Date(nextVideo.lastModified()))));
-            NetworkUtils.post(getApplicationContext(), "/videos", params, nextVideo, new HttpResponseCallback() {
+            NetworkUtils.post(getApplicationContext(), "/videos/" + userLogin, params, nextVideo, new HttpResponseCallback() {
 
                 @Override
                 public void unauthorized() {
@@ -266,7 +286,7 @@ public class UploadService extends Service {
                 @Override
                 public void failure(int statusCode) {
                     if (!videos.isEmpty()){
-                        uploadVideo(videos.remove(0));
+                        uploadVideo(videos.remove(0), userLogin);
                     } else {
                         uploadUserData();
                     }
@@ -277,7 +297,7 @@ public class UploadService extends Service {
                     sendUpdateToUI(nextVideo.length());
                     nextVideo.delete();
                     if (!videos.isEmpty()){
-                        uploadVideo(videos.remove(0));
+                        uploadVideo(videos.remove(0), userLogin);
                     } else {
                         uploadUserData();
                     }
@@ -304,6 +324,18 @@ public class UploadService extends Service {
                 }
             });
         }
+    }
+
+    private void sendCancelToUI() {
+        Intent intent = new Intent(CANCEL_UPLOAD_ACTION);
+
+        broadcaster.sendBroadcast(intent);
+    }
+
+    private void sendCompletedToUI() {
+        Intent intent = new Intent(COMPLETED_UPLOAD_ACTION);
+
+        broadcaster.sendBroadcast(intent);
     }
     @Override
     public void onDestroy() {
