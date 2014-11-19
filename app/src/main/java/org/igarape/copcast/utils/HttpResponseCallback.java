@@ -11,7 +11,8 @@ public abstract class HttpResponseCallback {
 
     public abstract void failure(int statusCode);
 
-    public abstract void success(JSONObject response);
+    public void success(JSONObject response) {
+    };
 
     public abstract void noConnection();
 
@@ -20,4 +21,7 @@ public abstract class HttpResponseCallback {
     public abstract void badRequest();
 
     public abstract void badResponse();
+
+    public void success(byte[] bufferedInputStream) {
+    }
 }

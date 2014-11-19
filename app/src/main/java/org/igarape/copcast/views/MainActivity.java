@@ -24,20 +24,18 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.loopj.android.http.AsyncHttpResponseHandler;
-
-import org.apache.http.Header;
 import org.igarape.copcast.R;
 import org.igarape.copcast.service.GcmIntentService;
 import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.service.RecorderService;
 import org.igarape.copcast.service.UploadService;
-import org.igarape.copcast.utils.ApiClient;
+
 import org.igarape.copcast.utils.Globals;
+import org.igarape.copcast.utils.HttpResponseCallback;
 import org.igarape.copcast.utils.NetworkUtils;
 
-import static org.igarape.copcast.utils.Globals.getDirectorySize;
 import static org.igarape.copcast.utils.FileUtils.formatMegaBytes;
+import static org.igarape.copcast.utils.Globals.getDirectorySize;
 import static org.igarape.copcast.utils.Globals.getDirectoryUploadedSize;
 
 
@@ -93,17 +91,49 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             }
         };
 
-        ApiClient.get("/pictures/small/show", null, new AsyncHttpResponseHandler() {
+        NetworkUtils.get(getApplicationContext(), "/pictures/small/show", new HttpResponseCallback() {
             @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                Bitmap bm = BitmapFactory.decodeByteArray(responseBody, 0, responseBody.length);
-                Globals.setUserImage(bm);
-                getActionBar().setIcon(new BitmapDrawable(MainActivity.this.getResources(), bm));
+            public void unauthorized() {
+
             }
 
             @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+            public void failure(int statusCode) {
 
+            }
+
+            @Override
+            public void noConnection() {
+
+            }
+
+            @Override
+            public void badConnection() {
+
+            }
+
+            @Override
+            public void badRequest() {
+
+            }
+
+            @Override
+            public void badResponse() {
+
+            }
+
+            @Override
+            public void success(byte[] response) {
+                final byte[] responseBody = response;
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        Bitmap bm = BitmapFactory.decodeByteArray(responseBody, 0, responseBody.length);
+                Globals.setUserImage(bm);
+                getActionBar().setIcon(new BitmapDrawable(MainActivity.this.getResources(), bm));
+                    }
+                });
             }
         });
 
@@ -204,7 +234,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     @Override
     protected void onDestroy() {
         Globals.clear(MainActivity.this);
-        ApiClient.setToken(null);
         super.onDestroy();
     }
 
@@ -232,7 +261,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     private void logout() {
         Globals.clear(MainActivity.this);
-        ApiClient.setToken(null);
         stopService(new Intent(MainActivity.this, RecorderService.class));
         stopService(new Intent(MainActivity.this, LocationService.class));
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
