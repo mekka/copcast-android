@@ -25,10 +25,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.igarape.copcast.R;
+import org.igarape.copcast.service.BackgroundVideoRecorder;
 import org.igarape.copcast.service.GcmIntentService;
 import org.igarape.copcast.service.LocationService;
-import org.igarape.copcast.service.RecorderService;
-import org.igarape.copcast.service.StreamService;
 import org.igarape.copcast.service.UploadService;
 
 import org.igarape.copcast.utils.Globals;
@@ -157,7 +156,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 findViewById(R.id.streamLayout).setVisibility(View.VISIBLE);
                 findViewById(R.id.recBall).setVisibility(View.VISIBLE);
 
-                Intent intent = new Intent(MainActivity.this, RecorderService.class);
+                Intent intent = new Intent(MainActivity.this, BackgroundVideoRecorder.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startService(intent);
 
@@ -182,7 +181,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 findViewById(R.id.streamLayout).setVisibility(View.GONE);
                 findViewById(R.id.recBall).setVisibility(View.INVISIBLE);
 
-                Intent intent = new Intent(MainActivity.this, RecorderService.class);
+                Intent intent = new Intent(MainActivity.this, BackgroundVideoRecorder.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 stopService(intent);
 
@@ -262,7 +261,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     private void logout() {
         Globals.clear(MainActivity.this);
-        stopService(new Intent(MainActivity.this, RecorderService.class));
+        stopService(new Intent(MainActivity.this, BackgroundVideoRecorder.class));
         stopService(new Intent(MainActivity.this, LocationService.class));
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);

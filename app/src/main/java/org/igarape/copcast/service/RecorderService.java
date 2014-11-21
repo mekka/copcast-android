@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
+@Deprecated
 public class RecorderService extends Service {
     private static final String TAG = "RecorderService";
 	private SurfaceView mSurfaceView;
