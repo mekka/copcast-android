@@ -28,6 +28,7 @@ import org.igarape.copcast.R;
 import org.igarape.copcast.service.GcmIntentService;
 import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.service.RecorderService;
+import org.igarape.copcast.service.StreamService;
 import org.igarape.copcast.service.UploadService;
 
 import org.igarape.copcast.utils.Globals;
