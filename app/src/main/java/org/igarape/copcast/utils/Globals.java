@@ -178,4 +178,24 @@ public class Globals {
     public static Long getDirectorySize() {
         return directorySize;
     }
+
+    public static String getServerIpAddress() {
+        return serverIpAddress;
+    }
+
+    public static Integer getStreamingPort() {
+        return streamingPort;
+    }
+
+    public static String getStreamingUser() {
+        return streamingUser;
+    }
+
+    public static String getStreamingPassword() {
+        return streamingPassword;
+    }
+
+    public static String getStreamingPath() {
+        return streamingPath;
+    }
 }

@@ -16,8 +16,8 @@ import org.igarape.copcast.receiver.GcmBroadcastReceiver;
 public class GcmIntentService  extends IntentService {
     private static final String KEY_STREAMING_START = "startStreaming";
     private static final String KEY_STREAMING_STOP = "stopStreaming";
-    public static final String START_STREAMING = "org.igarape.copcast.START_STREAMING";
-    public static final String STOP_STREAMING = "org.igarape.copcast.STOP_STREAMING";
+    public static final String START_STREAMING_ACTION = "org.igarape.copcast.START_STREAMING_ACTION";
+    public static final String STOP_STREAMING_ACTION = "org.igarape.copcast.STOP_STREAMING_ACTION";
     public static String TAG = GcmIntentService.class.getName();
 
     public GcmIntentService() {
@@ -43,9 +43,9 @@ public class GcmIntentService  extends IntentService {
                 String key = extras.getString("collapse_key");
                 LocalBroadcastManager broadcaster = LocalBroadcastManager.getInstance(this);
                 if (KEY_STREAMING_START.equals(key)) {
-                    broadcaster.sendBroadcast(new Intent(START_STREAMING));
+                    broadcaster.sendBroadcast(new Intent(START_STREAMING_ACTION));
                 } else {
-                    broadcaster.sendBroadcast(new Intent(STOP_STREAMING));
+                    broadcaster.sendBroadcast(new Intent(STOP_STREAMING_ACTION));
                 }
             }
         }

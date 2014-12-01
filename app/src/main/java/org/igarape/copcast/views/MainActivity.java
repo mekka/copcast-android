@@ -26,6 +26,7 @@ import android.widget.Toast;
 
 import org.igarape.copcast.R;
 import org.igarape.copcast.service.BackgroundVideoRecorder;
+import org.igarape.copcast.service.StreamService;
 import org.igarape.copcast.service.GcmIntentService;
 import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.service.UploadService;
@@ -70,10 +71,26 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                     Globals.setDirectoryUploadedSize(getDirectoryUploadedSize() + size);
                     ((ProgressBar) findViewById(R.id.progressBar)).setProgress(getDirectoryUploadedSize().intValue());
                     ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes(getDirectoryUploadedSize()), formatMegaBytes(getDirectorySize())));
-                } else if (intent.getAction().equals(GcmIntentService.START_STREAMING)) {
-                    Toast.makeText(getApplicationContext(), "START STREAMING", Toast.LENGTH_LONG).show();
-                } else if (intent.getAction().equals(GcmIntentService.STOP_STREAMING)) {
-                    Toast.makeText(getApplicationContext(), "STOP STREAMING", Toast.LENGTH_LONG).show();
+                } else if (intent.getAction().equals(GcmIntentService.START_STREAMING_ACTION)) {
+                    if (isMissionStarted()){
+                        Intent intentAux = new Intent(MainActivity.this, BackgroundVideoRecorder.class);
+                        intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        stopService(intentAux);
+
+                        intentAux = new Intent(MainActivity.this, StreamService.class);
+                        intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startService(intentAux);
+                    }
+                } else if (intent.getAction().equals(GcmIntentService.STOP_STREAMING_ACTION)) {
+                    if (isMissionStarted()){
+                        Intent intentAux = new Intent(MainActivity.this, StreamService.class);
+                        intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        stopService(intentAux);
+
+                        intentAux = new Intent(MainActivity.this, BackgroundVideoRecorder.class);
+                        intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startService(intentAux);
+                    }
                 } else {
                     findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
                     findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
@@ -181,7 +198,11 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 findViewById(R.id.streamLayout).setVisibility(View.GONE);
                 findViewById(R.id.recBall).setVisibility(View.INVISIBLE);
 
-                Intent intent = new Intent(MainActivity.this, BackgroundVideoRecorder.class);
+                Intent intent = new Intent(MainActivity.this, StreamService.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                stopService(intent);
+
+                intent = new Intent(MainActivity.this, BackgroundVideoRecorder.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 stopService(intent);
 
@@ -230,6 +251,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         });
     }
 
+    private boolean isMissionStarted() {
+        return findViewById(R.id.startMissionButton).getVisibility() != View.VISIBLE;
+    }
+
 
     @Override
     protected void onDestroy() {
@@ -261,7 +286,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     private void logout() {
         Globals.clear(MainActivity.this);
-        stopService(new Intent(MainActivity.this, BackgroundVideoRecorder.class));
+        stopService(new Intent(MainActivity.this, StreamService.class));
         stopService(new Intent(MainActivity.this, LocationService.class));
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
@@ -289,8 +314,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         IntentFilter filter = new IntentFilter(UploadService.UPLOAD_PROGRESS_ACTION);
         filter.addAction(UploadService.CANCEL_UPLOAD_ACTION);
         filter.addAction(UploadService.COMPLETED_UPLOAD_ACTION);
-        filter.addAction(GcmIntentService.START_STREAMING);
-        filter.addAction(GcmIntentService.STOP_STREAMING);
+        filter.addAction(GcmIntentService.START_STREAMING_ACTION);
+        filter.addAction(GcmIntentService.STOP_STREAMING_ACTION);
         LocalBroadcastManager.getInstance(this).registerReceiver((receiver), filter);
     }
 

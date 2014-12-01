@@ -387,4 +387,92 @@ public class NetworkUtils {
             }
         }.execute();
     }
+
+    public static void delete(final Context context, final String url, final HttpResponseCallback callback) {
+        if (!hasConnection(context)){
+            if (callback != null){
+                callback.noConnection();
+            }
+        }
+        AsyncTask task = new AsyncTask<Void, Void, Void>() {
+
+            @Override
+            protected Void doInBackground(Void... unused) {
+                JSONObject response = null;
+                final String regId = Globals.getRegistrationId(context);
+
+                disableConnectionReuseIfNecessary();
+
+                HttpURLConnection urlConnection = null;
+                BufferedWriter writer = null;
+                OutputStream os = null;
+                try {
+                    URL urlToRequest = new URL(Globals.SERVER_URL + url);
+                    urlConnection = (HttpURLConnection) urlToRequest.openConnection();
+                    urlConnection.setDoOutput(true);
+                    urlConnection.setRequestMethod("DELETE");
+
+                    String charset = "UTF-8";
+                    String token = Globals.getAccessToken(context);
+                    if (token != null) {
+                        urlConnection.setRequestProperty("Authorization", token);
+                    }
+                    urlConnection.setRequestProperty("Accept-Charset", charset);
+                    urlConnection.setRequestProperty("Content-Type", "application/json;charset=" + charset);
+
+                    urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
+                    urlConnection.setReadTimeout(DATARETRIEVAL_TIMEOUT);
+
+                    // handle issues
+                    urlConnection.connect();
+                    int statusCode = urlConnection.getResponseCode();
+                    if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                        callback.unauthorized();
+                        return null;
+                    } else if (statusCode != HttpURLConnection.HTTP_OK) {
+                        callback.failure(statusCode);
+                        return null;
+                    }
+
+
+                    InputStream in = new BufferedInputStream(
+                            urlConnection.getInputStream());
+                    String responseText = getResponseText(in);
+
+                    response = new JSONObject(responseText);
+
+
+                    callback.success(response);
+                } catch (MalformedURLException e) {
+                    callback.badRequest();
+                    Log.e(TAG, "Url error ", e);
+                } catch (SocketTimeoutException e) {
+                    callback.badConnection();
+                    Log.e(TAG, "Timeout error ", e);
+                } catch (IOException e) {
+                    callback.badResponse();
+                    Log.e(TAG, "Could not read response body ", e);
+                } catch (JSONException e) {
+
+                    return null;
+                } finally {
+                    try {
+                        writer.close();
+                        os.close();
+                    } catch (IOException e) {
+                    }
+
+                    if (urlConnection != null) {
+                        urlConnection.disconnect();
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void unused) {
+
+            }
+        }.execute();
+    }
 }
