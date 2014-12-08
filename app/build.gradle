@@ -19,7 +19,7 @@ android {
 
     productFlavors {
         local {
-            buildConfigField "String", "serverUrl", "\"http://192.168.10.118:3000\""
+            buildConfigField "String", "serverUrl", "\"http://192.168.10.104:3000\""
             buildConfigField "Boolean", "requireWifiUpload", "true"
         }
         general {
@@ -36,8 +36,8 @@ android {
 dependencies {
     compile 'com.google.android.gms:play-services:6.1.+'
     compile "commons-io:commons-io:+"
-    compile files('libs/javacpp.jar')
-    compile files('libs/javacv.jar')
+    //compile files('libs/javacpp.jar')
+    //compile files('libs/javacv.jar')
 //    compile 'com.googlecode.javacpp:javacpp:0.7'
 //    compile 'com.googlecode.javacv:javacv:0.7'
 }

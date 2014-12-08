@@ -43,8 +43,8 @@ public class LocationUtils {
             MILLISECONDS_PER_SECOND * FAST_CEILING_IN_SECONDS;
     private static final String TAG = LocationUtils.class.getName();
 
-    public static void sendLocation(Context context,final String login, final Location location) {
-        HttpResponseCallback callback = new HttpResponseCallback(){
+    public static void sendLocation(Context context, final String login, final Location location) {
+        HttpResponseCallback callback = new HttpResponseCallback() {
             @Override
             public void failure(int statusCode) {
                 FileUtils.logLocation(login, location);
@@ -92,7 +92,7 @@ public class LocationUtils {
         TimeZone tz = TimeZone.getTimeZone("UTC");
         DateFormat df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
         df.setTimeZone(tz);
-        return buildJson(location.getLatitude(),location.getLongitude(),df.format(new Date()),
+        return buildJson(location.getLatitude(), location.getLongitude(), df.format(new Date()),
                 location.getAccuracy(), location.getExtras() == null ? null : location.getExtras().get("satellites"), location.getProvider(),
                 location.getBearing(), location.getSpeed());
     }

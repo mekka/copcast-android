@@ -11,15 +11,16 @@
     android:gravity="center"
     android:background="@color/bg_dark_block">
 
-        <TextView
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="@string/login_title"
-            android:id="@+id/loggedUserLabel"
-            android:layout_alignParentTop="true"
-            android:layout_centerInParent="true"
-            android:textColor="@color/text_dark" />
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="@string/login_title"
+        android:id="@+id/loggedUserLabel"
+        android:layout_alignParentTop="true"
+        android:layout_centerInParent="true"
+        android:textColor="@color/text_dark" />
+
     <RelativeLayout
         android:layout_width="fill_parent"
         android:layout_height="2dip"
@@ -27,46 +28,46 @@
         android:background="#484849"
         android:id="@+id/horizontalRule"></RelativeLayout>
 
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/txtLoginUser"
-            android:hint="@string/login_hint"
-            android:layout_below="@+id/horizontalRule"
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtLoginUser"
+        android:hint="@string/login_hint"
+        android:layout_below="@+id/horizontalRule"
 
-            android:layout_marginTop="16dp"
-            android:inputType="text"
-            android:textColor="#FFFFFF"
-            android:textColorHighlight="#FFFFFF"
-            android:textColorLink="#FFFFFF"
-            android:textIsSelectable="true" />
+        android:layout_marginTop="16dp"
+        android:inputType="text"
+        android:textColor="#FFFFFF"
+        android:textColorHighlight="#FFFFFF"
+        android:textColorLink="#FFFFFF"
+        android:textIsSelectable="true" />
 
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/txtLoginPassword"
-            android:hint="@string/password_hint"
-            android:layout_below="@+id/txtLoginUser"
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtLoginPassword"
+        android:hint="@string/password_hint"
+        android:layout_below="@+id/txtLoginUser"
 
-            android:inputType="textPassword"
-            android:textColor="#FFFFFF"
-            android:textColorHighlight="#FFFFFF"
-            android:textColorLink="#FFFFFF" />
+        android:inputType="textPassword"
+        android:textColor="#FFFFFF"
+        android:textColorHighlight="#FFFFFF"
+        android:textColorLink="#FFFFFF" />
 
-        <Button
-            android:id="@+id/btn_login_ok"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            style="@style/button_default"
-            android:minHeight="@dimen/button_height"
-            android:minWidth="@dimen/button_width"
-            android:text="@android:string/ok"
-            android:layout_alignParentBottom="false"
-            android:layout_below="@+id/txtLoginPassword"
-            android:layout_alignParentEnd="false"
-            android:layout_alignParentRight="false"
-            android:onClick="makeLoginRequest"
-            android:gravity="center"
-            android:layout_centerInParent="true" />
+    <Button
+        android:id="@+id/btn_login_ok"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/button_default"
+        android:minHeight="@dimen/button_height"
+        android:minWidth="@dimen/button_width"
+        android:text="@android:string/ok"
+        android:layout_alignParentBottom="false"
+        android:layout_below="@+id/txtLoginPassword"
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentRight="false"
+        android:onClick="makeLoginRequest"
+        android:gravity="center"
+        android:layout_centerInParent="true" />
 
 </RelativeLayout>

@@ -30,7 +30,7 @@ import org.igarape.copcast.views.MainActivity;
 public class LocationService extends Service implements
         GooglePlayServicesClient.ConnectionCallbacks,
         GooglePlayServicesClient.OnConnectionFailedListener,
-        LocationListener{
+        LocationListener {
     // A request to connect to Location Services
     private LocationRequest mLocationRequest;
 
@@ -48,7 +48,7 @@ public class LocationService extends Service implements
 
         mNotificationManager.cancel(mId);
 
-        if (mLocationClient.isConnected()){
+        if (mLocationClient.isConnected()) {
             mLocationClient.removeLocationUpdates(this);
         }
         mLocationClient.disconnect();

@@ -11,7 +11,7 @@ import org.igarape.copcast.service.GcmIntentService;
 /**
  * Created by bruno on 11/18/14.
  */
-public class GcmBroadcastReceiver  extends WakefulBroadcastReceiver {
+public class GcmBroadcastReceiver extends WakefulBroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {

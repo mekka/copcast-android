@@ -41,20 +41,20 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
 
         // Start foreground service to avoid unexpected kill
         Notification notification = new Notification.Builder(this)
-            .setContentTitle("Background Video Recorder")
-            .setContentText("")
-            .setSmallIcon(R.drawable.ic_launcher)
-            .build();
+                .setContentTitle("Background Video Recorder")
+                .setContentText("")
+                .setSmallIcon(R.drawable.ic_launcher)
+                .build();
         startForeground(mId, notification);
 
         // Create new SurfaceView, set its size to 1x1, move it to the top left corner and set this service as a callback
         windowManager = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
         surfaceView = new SurfaceView(this);
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
-            1, 1,
-            WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-            WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-            PixelFormat.TRANSLUCENT
+                1, 1,
+                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
+                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                PixelFormat.TRANSLUCENT
         );
         layoutParams.gravity = Gravity.LEFT | Gravity.TOP;
         windowManager.addView(surfaceView, layoutParams);
@@ -115,16 +115,20 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
     }
 
     @Override
-    public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {}
+    public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
+    }
 
     @Override
-    public void surfaceDestroyed(SurfaceHolder surfaceHolder) {}
+    public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+    }
 
     @Override
-    public IBinder onBind(Intent intent) { return null; }
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
 
-    private void releaseMediaRecorder(){
-        try{
+    private void releaseMediaRecorder() {
+        try {
             if (mediaRecorder != null) {
                 mediaRecorder.stop();
                 mediaRecorder.reset();
@@ -134,7 +138,8 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
                 camera.lock();
                 camera.release();
             }
-        }catch (IllegalStateException i){}
+        } catch (IllegalStateException i) {
+        }
     }
 
     class MediaPrepareTask extends AsyncTask<Void, Void, Boolean> {
@@ -151,6 +156,7 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
             }
             return true;
         }
+
         @Override
         protected void onPostExecute(Boolean result) {
             if (!result) {

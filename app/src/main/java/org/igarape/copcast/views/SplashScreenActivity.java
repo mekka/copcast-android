@@ -20,23 +20,23 @@ import java.io.IOException;
 
 public class SplashScreenActivity extends Activity {
 
-	private static final int SPLASH_SHOW_TIME = 5000;
+    private static final int SPLASH_SHOW_TIME = 5000;
     public static String TAG = SplashScreenActivity.class.getName();
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
     private Context context;
     private GoogleCloudMessaging gcm;
     private String regid = null;
 
-	@Override
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_splash_screen);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_splash_screen);
 
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         decorView.setSystemUiVisibility(uiOptions);
-	}
+    }
 
     @Override
     protected void onResume() {
@@ -83,19 +83,20 @@ public class SplashScreenActivity extends Activity {
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
-	/**
-	 * Async Task: can be used to load DB, images during which the splash screen
-	 * is shown to user
-	 */
-	private class BackgroundSplashTask extends AsyncTask<Void, Integer, String> {
 
-		@Override
-		protected void onPreExecute() {
-			super.onPreExecute();
-		}
+    /**
+     * Async Task: can be used to load DB, images during which the splash screen
+     * is shown to user
+     */
+    private class BackgroundSplashTask extends AsyncTask<Void, Integer, String> {
 
-		@Override
-		protected String doInBackground(Void... arg0) {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(Void... arg0) {
             String msg = null;
             try {
                 if (gcm == null) {
@@ -112,36 +113,36 @@ public class SplashScreenActivity extends Activity {
                 // Require the user to click a button again, or perform
                 // exponential back-off.
             }
-			// I have just given a sleep for this thread
-			// if you want to load database, make
-			// network calls, load images
-			// you can do them here and remove the following
-			// sleep
+            // I have just given a sleep for this thread
+            // if you want to load database, make
+            // network calls, load images
+            // you can do them here and remove the following
+            // sleep
 
-			// do not worry about this Thread.sleep
-			// this is an async task, it will not disrupt the UI
+            // do not worry about this Thread.sleep
+            // this is an async task, it will not disrupt the UI
             Globals.setDirectorySize(FileUtils.getDirectorySize());
-			try {
-				Thread.sleep(SPLASH_SHOW_TIME);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+            try {
+                Thread.sleep(SPLASH_SHOW_TIME);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             return msg;
-		}
+        }
 
-		@Override
-		protected void onPostExecute(String msg) {
-			super.onPostExecute(msg);
+        @Override
+        protected void onPostExecute(String msg) {
+            super.onPostExecute(msg);
 
-			Intent i = new Intent(SplashScreenActivity.this,
-					LoginActivity.class);
-			// any info loaded can during splash_show
-			// can be passed to main activity using
-			// below
-			i.putExtra("loaded_info", " ");
-			startActivity(i);
-			finish();
-		}
+            Intent i = new Intent(SplashScreenActivity.this,
+                    LoginActivity.class);
+            // any info loaded can during splash_show
+            // can be passed to main activity using
+            // below
+            i.putExtra("loaded_info", " ");
+            startActivity(i);
+            finish();
+        }
 
-	}
+    }
 }

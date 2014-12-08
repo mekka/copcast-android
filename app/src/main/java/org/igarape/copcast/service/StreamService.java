@@ -86,36 +86,36 @@ public class StreamService extends Service implements RtspClient.Callback, Sessi
         /**
          * Here we`ll tell node(server) that user stopped streaming
          */
-        NetworkUtils.delete(this.getApplicationContext(), "/streams", new HttpResponseCallback(){
+        NetworkUtils.delete(this.getApplicationContext(), "/streams", new HttpResponseCallback() {
 
             @Override
             public void unauthorized() {
-
+                Log.e(TAG, "unauthorized");
             }
 
             @Override
             public void failure(int statusCode) {
-
+                Log.e(TAG, "failure");
             }
 
             @Override
             public void noConnection() {
-
+                Log.e(TAG, "noConnection");
             }
 
             @Override
             public void badConnection() {
-
+                Log.e(TAG, "badConnection");
             }
 
             @Override
             public void badRequest() {
-
+                Log.e(TAG, "badRequest");
             }
 
             @Override
             public void badResponse() {
-
+                Log.e(TAG, "badResponse");
             }
         });
     }

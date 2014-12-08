@@ -13,7 +13,7 @@ import org.igarape.copcast.receiver.GcmBroadcastReceiver;
 /**
  * Created by bruno on 11/18/14.
  */
-public class GcmIntentService  extends IntentService {
+public class GcmIntentService extends IntentService {
     private static final String KEY_STREAMING_START = "startStreaming";
     private static final String KEY_STREAMING_STOP = "stopStreaming";
     public static final String START_STREAMING_ACTION = "org.igarape.copcast.START_STREAMING_ACTION";

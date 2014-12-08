@@ -60,7 +60,7 @@ public class LoginActivity extends Activity {
                                     getSystemService(Context.INPUT_METHOD_SERVICE);
                             keyboard.showSoftInput(txtId, 0);
                         }
-                    },200);
+                    }, 200);
                 }
             }
         });
@@ -127,14 +127,21 @@ public class LoginActivity extends Activity {
                 showToast(R.string.unauthorized_login);
             }
 
-            private void showToast(int message) {
-                if (pDialog != null) {
-                    pDialog.dismiss();
-                    pDialog = null;
-                }
-                Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
-                toast.setGravity(Gravity.TOP, 0, 100);
-                toast.show();
+            private void showToast(final int message) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        if (pDialog != null) {
+                            pDialog.dismiss();
+                            pDialog = null;
+                        }
+                        Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
+                        toast.setGravity(Gravity.TOP, 0, 100);
+                        toast.show();
+
+                    }
+                });
             }
 
             @Override
@@ -167,15 +174,15 @@ public class LoginActivity extends Activity {
     private boolean hasErrors() {
         final String login = txtId.getText().toString();
         final String password = txtPwd.getText().toString();
-        if(null == login || login.isEmpty()){
+        if (null == login || login.isEmpty()) {
             Log.d(TAG, "login required");
             Toast toast = Toast.makeText(getApplicationContext(), R.string.login_required, Toast.LENGTH_LONG);
             toast.setGravity(Gravity.TOP, 0, 100);
             toast.show();
             return true;
         }
-        if(null == password || password.isEmpty()){
-            Log.d(TAG,"password required");
+        if (null == password || password.isEmpty()) {
+            Log.d(TAG, "password required");
             Toast toast = Toast.makeText(getApplicationContext(), R.string.password_required, Toast.LENGTH_LONG);
             toast.setGravity(Gravity.TOP, 0, 100);
             toast.show();

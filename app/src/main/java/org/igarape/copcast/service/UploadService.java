@@ -44,7 +44,7 @@ public class UploadService extends Service {
     private static final String TAG = UploadService.class.getName();
     public static final String UPLOAD_PROGRESS_ACTION = "org.igarape.copcast.UPLOAD_PROGRESS";
     public static final String FILE_SIZE = "FILE_SIZE";
-    public static final String CANCEL_UPLOAD_ACTION =  "org.igarape.copcast.CANCEL_UPLOAD";
+    public static final String CANCEL_UPLOAD_ACTION = "org.igarape.copcast.CANCEL_UPLOAD";
     public static final String COMPLETED_UPLOAD_ACTION = "org.igarape.copcast.COMPLETED_UPLOAD";
     private int mId = 3;
     private List<String> users;
@@ -89,7 +89,7 @@ public class UploadService extends Service {
 
         broadcaster = LocalBroadcastManager.getInstance(this);
 
-        if (!users.isEmpty()){
+        if (!users.isEmpty()) {
             uploadUserData();
         }
 
@@ -98,13 +98,13 @@ public class UploadService extends Service {
 
     public void sendUpdateToUI(Long size) {
         Intent intent = new Intent(UPLOAD_PROGRESS_ACTION);
-        if(size != null)
+        if (size != null)
             intent.putExtra(FILE_SIZE, size);
         broadcaster.sendBroadcast(intent);
     }
-    
+
     private void uploadUserData() {
-        if (!ServiceUtils.isMyServiceRunning(UploadService.class, getApplicationContext())){
+        if (!ServiceUtils.isMyServiceRunning(UploadService.class, getApplicationContext())) {
             return;
         }
         if (!NetworkUtils.canUpload(getApplicationContext(), this.intent)) {
@@ -112,7 +112,7 @@ public class UploadService extends Service {
             this.stopSelf();
             return;
         }
-        if (users.isEmpty()){
+        if (users.isEmpty()) {
             sendCompletedToUI();
             this.stopSelf();
             return;
@@ -157,7 +157,7 @@ public class UploadService extends Service {
                 }
             }
 
-            NetworkUtils.post(getApplicationContext(),"/locations/"+userLogin, locations, new HttpResponseCallback() {
+            NetworkUtils.post(getApplicationContext(), "/locations/" + userLogin, locations, new HttpResponseCallback() {
                 @Override
                 public void unauthorized() {
                     Log.e(TAG, "locations unauthorized");
@@ -165,7 +165,7 @@ public class UploadService extends Service {
 
                 @Override
                 public void failure(int statusCode) {
-                    Log.e(TAG, "locations failure - statusCode: "+statusCode);
+                    Log.e(TAG, "locations failure - statusCode: " + statusCode);
                 }
 
                 @Override
@@ -220,7 +220,7 @@ public class UploadService extends Service {
                 }
             }
 
-            NetworkUtils.post(getApplicationContext(),"/histories/"+userLogin, histories, new HttpResponseCallback() {
+            NetworkUtils.post(getApplicationContext(), "/histories/" + userLogin, histories, new HttpResponseCallback() {
                 @Override
                 public void unauthorized() {
                     Log.e(TAG, "histories unauthorized");
@@ -228,7 +228,7 @@ public class UploadService extends Service {
 
                 @Override
                 public void failure(int statusCode) {
-                    Log.e(TAG, "histories failure - statusCode: "+statusCode);
+                    Log.e(TAG, "histories failure - statusCode: " + statusCode);
                 }
 
                 @Override
@@ -264,7 +264,7 @@ public class UploadService extends Service {
     }
 
     private void uploadVideo(final File nextVideo, final String userLogin) {
-        if (!ServiceUtils.isMyServiceRunning(UploadService.class, getApplicationContext())){
+        if (!ServiceUtils.isMyServiceRunning(UploadService.class, getApplicationContext())) {
             return;
         }
         if (!NetworkUtils.canUpload(getApplicationContext(), this.intent)) {
@@ -285,7 +285,7 @@ public class UploadService extends Service {
 
                 @Override
                 public void failure(int statusCode) {
-                    if (!videos.isEmpty()){
+                    if (!videos.isEmpty()) {
                         uploadVideo(videos.remove(0), userLogin);
                     } else {
                         uploadUserData();
@@ -296,7 +296,7 @@ public class UploadService extends Service {
                 public void success(JSONObject response) {
                     sendUpdateToUI(nextVideo.length());
                     nextVideo.delete();
-                    if (!videos.isEmpty()){
+                    if (!videos.isEmpty()) {
                         uploadVideo(videos.remove(0), userLogin);
                     } else {
                         uploadUserData();
@@ -337,6 +337,7 @@ public class UploadService extends Service {
 
         broadcaster.sendBroadcast(intent);
     }
+
     @Override
     public void onDestroy() {
         super.onDestroy();

@@ -32,23 +32,23 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/recBall"
                 android:src="@drawable/rec_ball"
-                android:visibility="invisible"/>
+                android:visibility="invisible" />
 
             <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:text="@string/welcome"
-                    android:id="@+id/welcome" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="@string/welcome"
+                android:id="@+id/welcome" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:text="@string/welcome_desc"
-                    android:id="@+id/welcomeDesc"
-                    android:textColor="@color/text_dark"
-                    android:gravity="center" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="@string/welcome_desc"
+                android:id="@+id/welcomeDesc"
+                android:textColor="@color/text_dark"
+                android:gravity="center" />
 
         </LinearLayout>
 
@@ -93,7 +93,7 @@
                 android:minHeight="@dimen/button_height"
                 android:minWidth="@dimen/button_width"
                 android:gravity="center"
-                android:layout_marginTop="25dp"/>
+                android:layout_marginTop="25dp" />
 
 
         </LinearLayout>
@@ -103,8 +103,7 @@
     <SurfaceView
         android:id="@+id/surfaceView1"
         android:layout_width="1px"
-        android:layout_height="1px">
-    </SurfaceView>
+        android:layout_height="1px"></SurfaceView>
 
 
     <RelativeLayout
@@ -124,11 +123,13 @@
             android:layout_alignParentStart="false"
             android:layout_alignParentEnd="false"
             android:visibility="visible">
+
             <RelativeLayout
                 android:layout_width="fill_parent"
                 android:layout_height="2dip"
                 android:background="@color/bg_button_default"
-                android:id="@+id/horizontalRule"/>
+                android:id="@+id/horizontalRule" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="fill_parent"
@@ -150,14 +151,14 @@
                 android:gravity="center">
 
                 <Button
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/uploadButton"
-                        android:text="@string/upload"
-                        style="@style/button_default"
-                        android:minHeight="@dimen/button_height"
-                        android:minWidth="@dimen/button_width_small"
-                        android:gravity="center"/>
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/uploadButton"
+                    android:text="@string/upload"
+                    style="@style/button_default"
+                    android:minHeight="@dimen/button_height"
+                    android:minWidth="@dimen/button_width_small"
+                    android:gravity="center" />
             </RelativeLayout>
 
         </RelativeLayout>
@@ -227,11 +228,12 @@
             android:layout_alignParentStart="false"
             android:layout_alignParentEnd="false"
             android:visibility="gone">
+
             <RelativeLayout
                 android:layout_width="fill_parent"
                 android:layout_height="2dip"
                 android:background="@color/bg_button_default"
-                android:id="@+id/horizontalRule2"/>
+                android:id="@+id/horizontalRule2" />
 
             <RelativeLayout
                 android:layout_width="wrap_content"
@@ -271,11 +273,12 @@
                 android:layout_alignParentRight="true"
                 android:layout_alignParentEnd="true"
                 android:gravity="center">
+
                 <Switch
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text=""
-                    android:id="@+id/switch1"
+                    android:id="@+id/streamSwitch"
                     android:layout_alignParentBottom="true"
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentStart="true" />
