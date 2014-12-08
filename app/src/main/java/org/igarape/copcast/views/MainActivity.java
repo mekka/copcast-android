@@ -2,8 +2,10 @@ package org.igarape.copcast.views;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
@@ -152,25 +154,48 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         starMissionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (canStopUploading()) {
-                    starMissionButton.setVisibility(View.GONE);
+                if (isUploading()) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
-                    findViewById(R.id.settingsLayout).setVisibility(View.VISIBLE);
-                    ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.mission_start));
-                    ((TextView) findViewById(R.id.welcomeDesc)).setText(getString(R.string.mission_start_desc));
-                    findViewById(R.id.uploadLayout).setVisibility(View.GONE);
-                    findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
-                    findViewById(R.id.streamLayout).setVisibility(View.VISIBLE);
-                    findViewById(R.id.recBall).setVisibility(View.VISIBLE);
+                    builder.setMessage(R.string.stop_uploading)
+                            .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    stopUploading();
+                                    startMission();
 
-                    Intent intent = new Intent(MainActivity.this, BackgroundVideoRecorder.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startService(intent);
+                                }
+                            })
+                            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
 
-                    intent = new Intent(MainActivity.this, LocationService.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startService(intent);
+                                }
+                            });
+                    // Create the AlertDialog object and return it
+                    AlertDialog alertDialog = builder.create();
+                    alertDialog.show();
+                } else {
+                    startMission();
                 }
+            }
+
+            private void startMission() {
+                starMissionButton.setVisibility(View.GONE);
+
+                findViewById(R.id.settingsLayout).setVisibility(View.VISIBLE);
+                ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.mission_start));
+                ((TextView) findViewById(R.id.welcomeDesc)).setText(getString(R.string.mission_start_desc));
+                findViewById(R.id.uploadLayout).setVisibility(View.GONE);
+                findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
+                findViewById(R.id.streamLayout).setVisibility(View.VISIBLE);
+                findViewById(R.id.recBall).setVisibility(View.VISIBLE);
+
+                Intent intent = new Intent(MainActivity.this, BackgroundVideoRecorder.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startService(intent);
+
+                intent = new Intent(MainActivity.this, LocationService.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startService(intent);
             }
         });
 
@@ -224,13 +249,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         ((ImageView) findViewById(R.id.uploadCancelButton)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
-                findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
-                findViewById(R.id.streamLayout).setVisibility(View.GONE);
-
-                Intent intent = new Intent(MainActivity.this, UploadService.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                stopService(intent);
+                stopUploading();
             }
         });
 
@@ -266,12 +285,18 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         });
     }
 
-    private boolean canStopUploading() {
-        if (findViewById(R.id.uploadLayout).getVisibility() != View.VISIBLE){
-            return true;
-        }
+    private void stopUploading() {
+        findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
+        findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
+        findViewById(R.id.streamLayout).setVisibility(View.GONE);
 
-        return false;
+        Intent intent = new Intent(MainActivity.this, UploadService.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        stopService(intent);
+    }
+
+    private boolean isUploading() {
+        return findViewById(R.id.uploadingLayout).getVisibility() == View.VISIBLE;
     }
 
     private boolean isMissionStarted() {
@@ -311,6 +336,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         Globals.clear(MainActivity.this);
         stopService(new Intent(MainActivity.this, StreamService.class));
         stopService(new Intent(MainActivity.this, LocationService.class));
+        stopService(new Intent(MainActivity.this, BackgroundVideoRecorder.class));
+        stopService(new Intent(MainActivity.this, UploadService.class));
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
         MainActivity.this.finish();
@@ -346,5 +373,13 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     protected void onStop() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
         super.onStop();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (Globals.getAccessToken(getApplicationContext()) == null) {
+            logout();
+        }
     }
 }
