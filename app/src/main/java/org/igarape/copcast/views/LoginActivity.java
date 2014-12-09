@@ -17,7 +17,9 @@ import android.widget.Toast;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.igarape.copcast.R;
+import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.Globals;
+import org.igarape.copcast.utils.HistoryUtils;
 import org.igarape.copcast.utils.HttpResponseCallback;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -117,6 +119,9 @@ public class LoginActivity extends Activity {
                 }
                 Globals.setAccessToken(getBaseContext(), token);
                 Globals.setUserLogin(getBaseContext(), txtId.getText().toString());
+
+                HistoryUtils.registerHistory(getApplicationContext(), State.NOT_LOGGED, State.LOGGED, Globals.getUserName());
+
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
                 LoginActivity.this.finish();

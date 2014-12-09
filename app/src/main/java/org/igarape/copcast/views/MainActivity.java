@@ -34,7 +34,9 @@ import org.igarape.copcast.service.GcmIntentService;
 import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.service.StreamService;
 import org.igarape.copcast.service.UploadService;
+import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.Globals;
+import org.igarape.copcast.utils.HistoryUtils;
 import org.igarape.copcast.utils.HttpResponseCallback;
 import org.igarape.copcast.utils.NetworkUtils;
 
@@ -196,6 +198,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 intent = new Intent(MainActivity.this, LocationService.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startService(intent);
+
+                HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.RECORDING_ONLINE, Globals.getUserName());
             }
         });
 
@@ -225,6 +229,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 intent = new Intent(MainActivity.this, LocationService.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 stopService(intent);
+
+                HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.LOGGED, Globals.getUserName());
             }
         });
 
@@ -240,6 +246,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                     Intent intent = new Intent(MainActivity.this, UploadService.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startService(intent);
+
+                    HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserName());
                 } else {
                     Toast.makeText(getApplicationContext(), getString(R.string.upload_disabled), Toast.LENGTH_LONG).show();
                 }
@@ -271,6 +279,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                     intentAux = new Intent(MainActivity.this, StreamService.class);
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startService(intentAux);
+
+                    HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.STREAMING, Globals.getUserName());
                 } else {
                     Intent intentAux = new Intent(MainActivity.this, StreamService.class);
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -280,6 +290,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startService(intentAux);
 
+                    HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.RECORDING_ONLINE, Globals.getUserName());
                 }
             }
         });
@@ -293,6 +304,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         Intent intent = new Intent(MainActivity.this, UploadService.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         stopService(intent);
+
+        HistoryUtils.registerHistory(getApplicationContext(), State.UPLOADING, State.LOGGED, Globals.getUserName());
     }
 
     private boolean isUploading() {
@@ -333,6 +346,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     }
 
     private void logout() {
+        //TODO needs current state?
+        HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.NOT_LOGGED, Globals.getUserName());
+
         Globals.clear(MainActivity.this);
         stopService(new Intent(MainActivity.this, StreamService.class));
         stopService(new Intent(MainActivity.this, LocationService.class));

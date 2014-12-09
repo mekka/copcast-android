@@ -5,6 +5,7 @@ import android.os.Environment;
 import android.util.Log;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -43,6 +44,10 @@ public class FileUtils {
             Log.e(TAG, "error recording location in file", e);
 
         }
+    }
+
+    public static void LogHistory(String userLogin, JSONObject history) {
+        LogToFile(userLogin, HISTORY_TXT, history.toString());
     }
 
     public static String getHistoriesFilePath(String userLogin) {
