@@ -1,6 +1,7 @@
 package org.igarape.copcast.service;
 
-import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -10,6 +11,8 @@ import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.AsyncTask;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -18,13 +21,14 @@ import android.view.WindowManager;
 import org.igarape.copcast.R;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
+import org.igarape.copcast.views.MainActivity;
 
 import java.util.Date;
 
 /**
  * Created by fcavalcanti on 19/11/2014.
  */
-public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Callback {
+public class VideoRecorderService extends Service implements SurfaceHolder.Callback {
 
     private WindowManager windowManager;
     private SurfaceView surfaceView;
@@ -39,13 +43,28 @@ public class BackgroundVideoRecorder extends Service implements SurfaceHolder.Ca
     @Override
     public void onCreate() {
 
-        // Start foreground service to avoid unexpected kill
-        Notification notification = new Notification.Builder(this)
-                .setContentTitle("Background Video Recorder")
-                .setContentText("")
+        Intent resultIntent = new Intent(this, MainActivity.class);
+        Context context = getApplicationContext();
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
+                .setContentTitle(getString(R.string.notification_record_title))
+                .setContentText(getString(R.string.notification_record_description))
                 .setSmallIcon(R.drawable.ic_launcher)
-                .build();
-        startForeground(mId, notification);
+                .setOngoing(true);
+
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+        stackBuilder.addParentStack(MainActivity.class);
+        stackBuilder.addNextIntent(resultIntent);
+
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(
+                        0,
+                        PendingIntent.FLAG_NO_CREATE
+                );
+        mBuilder.setContentIntent(resultPendingIntent);
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        // mId allows you to update the notification later on.
+        mNotificationManager.notify(mId, mBuilder.build());
 
         // Create new SurfaceView, set its size to 1x1, move it to the top left corner and set this service as a callback
         windowManager = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);

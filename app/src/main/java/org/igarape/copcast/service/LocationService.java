@@ -70,7 +70,8 @@ public class LocationService extends Service implements
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
                 .setContentTitle(getString(R.string.notification_location_title))
                 .setContentText(getString(R.string.notification_location_description))
-                .setSmallIcon(R.drawable.ic_launcher);
+                .setSmallIcon(R.drawable.ic_launcher)
+                .setOngoing(true);
 
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
         stackBuilder.addParentStack(MainActivity.class);

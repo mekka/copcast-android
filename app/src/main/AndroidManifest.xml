@@ -49,7 +49,7 @@
             android:name=".views.LoginActivity"
             android:theme="@android:style/Theme.Holo.NoActionBar.Fullscreen"></activity>
         <!--<service android:name=".service.RecorderService" />-->
-        <service android:name=".service.BackgroundVideoRecorder" />
+        <service android:name=".service.VideoRecorderService" />
         <service android:name=".service.LocationService" />
         <service android:name=".service.UploadService" />
         <service android:name=".service.StreamService" />

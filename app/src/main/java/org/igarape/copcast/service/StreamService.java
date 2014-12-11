@@ -1,12 +1,15 @@
 package org.igarape.copcast.service;
 
-import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
@@ -24,6 +27,7 @@ import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.HttpResponseCallback;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.VideoUtils;
+import org.igarape.copcast.views.MainActivity;
 import org.json.JSONObject;
 
 
@@ -37,7 +41,7 @@ public class StreamService extends Service implements RtspClient.Callback, Sessi
     private static boolean IsStreaming = false;
     private SurfaceView mSurfaceView;
     private WindowManager mWindowManager;
-    private int ServiceID = 5;
+    private int mId = 5;
     private SurfaceHolder mSurfaceHolder;
     private boolean bitrateStarted;
 
@@ -48,6 +52,28 @@ public class StreamService extends Service implements RtspClient.Callback, Sessi
         if (IsStreaming) {
             return START_STICKY;
         }
+        Intent resultIntent = new Intent(this, MainActivity.class);
+        Context context = getApplicationContext();
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
+                .setContentTitle(getString(R.string.notification_stream_title))
+                .setContentText(getString(R.string.notification_stream_description))
+                .setSmallIcon(R.drawable.ic_launcher)
+                .setOngoing(true);
+
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+        stackBuilder.addParentStack(MainActivity.class);
+        stackBuilder.addNextIntent(resultIntent);
+
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(
+                        0,
+                        PendingIntent.FLAG_NO_CREATE
+                );
+        mBuilder.setContentIntent(resultPendingIntent);
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        // mId allows you to update the notification later on.
+        mNotificationManager.notify(mId, mBuilder.build());
 
         mWindowManager = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
 
@@ -63,14 +89,6 @@ public class StreamService extends Service implements RtspClient.Callback, Sessi
         mWindowManager.addView(mSurfaceView, layoutParams);
         mSurfaceHolder = mSurfaceView.getHolder();
         mSurfaceHolder.addCallback(this);
-
-        Notification notification = new Notification.Builder(this)
-                .setContentTitle("SmartPolicing Streaming")
-                .setContentText("")
-                .setSmallIcon(R.drawable.ic_launcher)
-                .build();
-
-        startForeground(ServiceID, notification);
 
         return START_STICKY;
     }

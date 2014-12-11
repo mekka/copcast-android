@@ -29,11 +29,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.igarape.copcast.R;
-import org.igarape.copcast.service.BackgroundVideoRecorder;
 import org.igarape.copcast.service.GcmIntentService;
 import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.service.StreamService;
 import org.igarape.copcast.service.UploadService;
+import org.igarape.copcast.service.VideoRecorderService;
 import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.HistoryUtils;
@@ -191,7 +191,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 findViewById(R.id.streamLayout).setVisibility(View.VISIBLE);
                 findViewById(R.id.recBall).setVisibility(View.VISIBLE);
 
-                Intent intent = new Intent(MainActivity.this, BackgroundVideoRecorder.class);
+                Intent intent = new Intent(MainActivity.this, VideoRecorderService.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startService(intent);
 
@@ -222,7 +222,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 stopService(intent);
 
-                intent = new Intent(MainActivity.this, BackgroundVideoRecorder.class);
+                intent = new Intent(MainActivity.this, VideoRecorderService.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 stopService(intent);
 
@@ -272,7 +272,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    Intent intentAux = new Intent(MainActivity.this, BackgroundVideoRecorder.class);
+                    Intent intentAux = new Intent(MainActivity.this, VideoRecorderService.class);
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     stopService(intentAux);
 
@@ -286,7 +286,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     stopService(intentAux);
 
-                    intentAux = new Intent(MainActivity.this, BackgroundVideoRecorder.class);
+                    intentAux = new Intent(MainActivity.this, VideoRecorderService.class);
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startService(intentAux);
 
@@ -352,7 +352,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         Globals.clear(MainActivity.this);
         stopService(new Intent(MainActivity.this, StreamService.class));
         stopService(new Intent(MainActivity.this, LocationService.class));
-        stopService(new Intent(MainActivity.this, BackgroundVideoRecorder.class));
+        stopService(new Intent(MainActivity.this, VideoRecorderService.class));
         stopService(new Intent(MainActivity.this, UploadService.class));
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);

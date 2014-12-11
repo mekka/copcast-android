@@ -67,6 +67,7 @@ public class UploadService extends Service {
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
                 .setContentTitle(getString(R.string.notification_upload_title))
                 .setContentText(getString(R.string.notification_upload_description))
+                .setOngoing(true)
                 .setSmallIcon(R.drawable.ic_launcher);
 
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);

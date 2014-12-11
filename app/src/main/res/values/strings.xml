@@ -58,4 +58,6 @@
     <string name="stop_uploading">You are uploading data. Want to stop it and start the mission?</string>
     <string name="ok">Ok</string>
     <string name="cancel">Cancel</string>
+    <string name="notification_stream_title">Livestreaming</string>
+    <string name="notification_stream_description">Livestreaming videos to the server</string>
 </resources>
