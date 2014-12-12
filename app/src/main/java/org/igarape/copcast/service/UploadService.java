@@ -15,6 +15,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.igarape.copcast.R;
 import org.igarape.copcast.utils.FileUtils;
+import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.HttpResponseCallback;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.ServiceUtils;
@@ -36,6 +37,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+
+import static org.igarape.copcast.utils.Globals.getDirectoryUploadedSize;
 
 /**
  * Created by bruno on 11/14/14.
@@ -99,9 +102,10 @@ public class UploadService extends Service {
 
     public void sendUpdateToUI(Long size) {
         Intent intent = new Intent(UPLOAD_PROGRESS_ACTION);
-        if (size != null)
-            intent.putExtra(FILE_SIZE, size);
-        broadcaster.sendBroadcast(intent);
+        if (size != null) {
+            Globals.setDirectoryUploadedSize(getDirectoryUploadedSize() + size);
+            broadcaster.sendBroadcast(intent);
+        }
     }
 
     private void uploadUserData() {
@@ -135,6 +139,8 @@ public class UploadService extends Service {
             } else {
                 uploadUserData();
             }
+        } else {
+            uploadUserData();
         }
     }
 

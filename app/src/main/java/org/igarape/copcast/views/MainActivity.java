@@ -71,11 +71,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(UploadService.UPLOAD_PROGRESS_ACTION)) {
-                    long size = intent.getLongExtra(UploadService.FILE_SIZE, 0);
-                    Log.d(TAG, "Progress upload received:" + size);
-                    Globals.setDirectoryUploadedSize(getDirectoryUploadedSize() + size);
-                    ((ProgressBar) findViewById(R.id.progressBar)).setProgress(getDirectoryUploadedSize().intValue());
-                    ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes(getDirectoryUploadedSize()), formatMegaBytes(getDirectorySize())));
+                    updateProgressBar();
                 } else if (intent.getAction().equals(GcmIntentService.START_STREAMING_ACTION)) {
                     if (isMissionStarted()) {
                         ((Switch) findViewById(R.id.streamSwitch)).setChecked(true);
@@ -199,7 +195,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startService(intent);
 
-                HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.RECORDING_ONLINE, Globals.getUserName());
+                HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this));
             }
         });
 
@@ -230,7 +226,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 stopService(intent);
 
-                HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.LOGGED, Globals.getUserName());
+                HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.LOGGED, Globals.getUserLogin(MainActivity.this));
             }
         });
 
@@ -247,7 +243,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startService(intent);
 
-                    HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserName());
+                    HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this));
                 } else {
                     Toast.makeText(getApplicationContext(), getString(R.string.upload_disabled), Toast.LENGTH_LONG).show();
                 }
@@ -280,7 +276,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startService(intentAux);
 
-                    HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.STREAMING, Globals.getUserName());
+                    HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.STREAMING, Globals.getUserLogin(MainActivity.this));
                 } else {
                     Intent intentAux = new Intent(MainActivity.this, StreamService.class);
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -290,10 +286,15 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startService(intentAux);
 
-                    HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.RECORDING_ONLINE, Globals.getUserName());
+                    HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this));
                 }
             }
         });
+    }
+
+    private void updateProgressBar() {
+        ((ProgressBar) findViewById(R.id.progressBar)).setProgress(getDirectoryUploadedSize().intValue());
+        ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes(getDirectoryUploadedSize()), formatMegaBytes(getDirectorySize())));
     }
 
     private void stopUploading() {
@@ -305,7 +306,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         stopService(intent);
 
-        HistoryUtils.registerHistory(getApplicationContext(), State.UPLOADING, State.LOGGED, Globals.getUserName());
+        HistoryUtils.registerHistory(getApplicationContext(), State.UPLOADING, State.LOGGED, Globals.getUserLogin(MainActivity.this));
     }
 
     private boolean isUploading() {
@@ -347,7 +348,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     private void logout() {
         //TODO needs current state?
-        HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.NOT_LOGGED, Globals.getUserName());
+        HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.NOT_LOGGED, Globals.getUserLogin(MainActivity.this));
 
         Globals.clear(MainActivity.this);
         stopService(new Intent(MainActivity.this, StreamService.class));
@@ -397,5 +398,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         if (Globals.getAccessToken(getApplicationContext()) == null) {
             logout();
         }
+        updateProgressBar();
     }
 }

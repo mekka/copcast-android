@@ -120,7 +120,7 @@ public class LoginActivity extends Activity {
                 Globals.setAccessToken(getBaseContext(), token);
                 Globals.setUserLogin(getBaseContext(), txtId.getText().toString());
 
-                HistoryUtils.registerHistory(getApplicationContext(), State.NOT_LOGGED, State.LOGGED, Globals.getUserName());
+                HistoryUtils.registerHistory(getApplicationContext(), State.NOT_LOGGED, State.LOGGED, Globals.getUserLogin(LoginActivity.this));
 
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
