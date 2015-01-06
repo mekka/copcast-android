@@ -131,6 +131,10 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         releaseMediaRecorder();
         windowManager.removeView(surfaceView);
 
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        mNotificationManager.cancel(mId);
     }
 
     @Override
