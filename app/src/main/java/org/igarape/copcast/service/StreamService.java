@@ -100,7 +100,10 @@ public class StreamService extends Service implements RtspClient.Callback, Sessi
         mClient.release();
         mSession.release();
         IsStreaming = false;
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
+        mNotificationManager.cancel(mId);
         /**
          * Here we`ll tell node(server) that user stopped streaming
          */
