@@ -205,6 +205,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             public void onClick(View view) {
                 starMissionButton.setVisibility(View.VISIBLE);
 
+                findViewById(R.id.pauseRecordingButton).setVisibility(View.VISIBLE);
+                findViewById(R.id.pausedLayout).setVisibility(View.GONE);
+                findViewById(R.id.resumeMissionButton).setVisibility(View.GONE);
                 findViewById(R.id.settingsLayout).setVisibility(View.GONE);
                 ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.welcome));
                 ((TextView) findViewById(R.id.welcomeDesc)).setText(getString(R.string.welcome_desc));
@@ -257,10 +260,47 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             }
         });
 
-        ((Button) findViewById(R.id.pauseRecordingButton)).setOnClickListener(new View.OnClickListener() {
+        final Button pauseRecordingButton = (Button) findViewById(R.id.pauseRecordingButton);
+        pauseRecordingButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(getApplicationContext(), getString(R.string.under_construction), Toast.LENGTH_LONG).show();
+                pauseRecordingButton.setVisibility(View.GONE);
+                findViewById(R.id.pausedLayout).setVisibility(View.VISIBLE);
+            }
+        });
+
+        ((Button) findViewById(R.id.tenMinutesButton)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                findViewById(R.id.pausedLayout).setVisibility(View.GONE);
+                findViewById(R.id.resumeMissionButton).setVisibility(View.VISIBLE);
+                //TODO
+            }
+        });
+
+        ((Button) findViewById(R.id.thirtyMinutesButton)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                findViewById(R.id.pausedLayout).setVisibility(View.GONE);
+                findViewById(R.id.resumeMissionButton).setVisibility(View.VISIBLE);
+                //TODO
+            }
+        });
+
+        final Button resumeMissionButton = (Button) findViewById(R.id.resumeMissionButton);
+        resumeMissionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                resumeMissionButton.setVisibility(View.GONE);
+                pauseRecordingButton.setVisibility(View.VISIBLE);
+                findViewById(R.id.pausedLayout).setVisibility(View.GONE);
+            }
+        });
+        ((Button) findViewById(R.id.pauseCancelButton)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                pauseRecordingButton.setVisibility(View.VISIBLE);
+                findViewById(R.id.pausedLayout).setVisibility(View.GONE);
             }
         });
 

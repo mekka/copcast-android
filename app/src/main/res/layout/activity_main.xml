@@ -81,7 +81,59 @@
                 android:id="@+id/pauseRecordingButton"
                 android:minHeight="@dimen/button_height"
                 android:minWidth="@dimen/button_width"
-                android:gravity="center" />
+                android:gravity="center"
+                android:visibility="visible"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/pausedLayout"
+                android:orientation="vertical"
+                android:visibility="gone">
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/thirty_minutes"
+                    style="@style/button_default"
+                    android:id="@+id/thirtyMinutesButton"
+                    android:minHeight="@dimen/button_height"
+                    android:minWidth="@dimen/button_width"
+                    android:gravity="center" />
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ten_minutes"
+                    style="@style/button_default"
+                    android:id="@+id/tenMinutesButton"
+                    android:minHeight="@dimen/button_height"
+                    android:minWidth="@dimen/button_width"
+                    android:gravity="center"
+                    android:layout_marginTop="10dp"/>
+
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/cancel"
+                    style="@style/button_default"
+                    android:id="@+id/pauseCancelButton"
+                    android:minHeight="@dimen/button_height"
+                    android:minWidth="@dimen/button_width"
+                    android:gravity="center"
+                    android:layout_marginTop="10dp"/>
+            </LinearLayout>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/resume_mission"
+                android:id="@+id/resumeMissionButton"
+                android:minHeight="@dimen/button_height"
+                android:minWidth="@dimen/button_width"
+                style="@style/button_blue"
+                android:gravity="center"
+                android:visibility="gone"/>
+
 
 
             <Button

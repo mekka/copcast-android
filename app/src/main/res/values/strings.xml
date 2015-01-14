@@ -60,4 +60,7 @@
     <string name="cancel">Cancel</string>
     <string name="notification_stream_title">Livestreaming</string>
     <string name="notification_stream_description">Livestreaming videos to the server</string>
+    <string name="ten_minutes">10 minutes</string>
+    <string name="thirty_minutes">30 minutes</string>
+    <string name="resume_mission">Resume Mission</string>
 </resources>
