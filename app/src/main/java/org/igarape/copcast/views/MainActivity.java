@@ -13,8 +13,9 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Vibrator;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
@@ -40,9 +41,10 @@ import org.igarape.copcast.utils.HistoryUtils;
 import org.igarape.copcast.utils.HttpResponseCallback;
 import org.igarape.copcast.utils.NetworkUtils;
 
+import java.util.concurrent.TimeUnit;
+
 import static org.igarape.copcast.utils.FileUtils.formatMegaBytes;
 import static org.igarape.copcast.utils.Globals.getDirectorySize;
-import static org.igarape.copcast.utils.Globals.getDirectoryUploadedSize;
 
 
 public class MainActivity extends Activity implements SurfaceHolder.Callback {
@@ -53,6 +55,15 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     public static Camera mCamera;
     public static boolean mPreviewRunning;
     private BroadcastReceiver receiver;
+    private Button mStarMissionButton;
+    private Button mEndMissionButton;
+    private Button mPauseRecordingButton;
+    private Button mResumeMissionButton;
+    private TextView mPauseCounter;
+    private CountDownPausedTimer mCountDownThirtyPaused;
+    private CountDownPausedTimer mCountDownTenPaused;
+    private Switch mStreamSwitch;
+    private CompoundButton.OnCheckedChangeListener mStreamListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +73,42 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         mSurfaceView = (SurfaceView) findViewById(R.id.surfaceView1);
         mSurfaceHolder = mSurfaceView.getHolder();
         mSurfaceHolder.addCallback(this);
+
+        mStreamSwitch = (Switch) findViewById(R.id.streamSwitch);
+        mStarMissionButton = (Button) findViewById(R.id.startMissionButton);
+        mEndMissionButton = (Button) findViewById(R.id.endMissionButton);
+        mPauseRecordingButton = (Button) findViewById(R.id.pauseRecordingButton);
+        mResumeMissionButton = (Button) findViewById(R.id.resumeMissionButton);
+        mPauseCounter = (TextView) findViewById(R.id.pauseCounter);
+
+        mCountDownThirtyPaused = new CountDownPausedTimer(1800000, 1000);
+        mCountDownTenPaused = new CountDownPausedTimer(600000, 1000);
+        mStreamListener = new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Intent intentAux = new Intent(MainActivity.this, VideoRecorderService.class);
+                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    stopService(intentAux);
+
+                    intentAux = new Intent(MainActivity.this, StreamService.class);
+                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startService(intentAux);
+
+                    HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.STREAMING, Globals.getUserLogin(MainActivity.this));
+                } else {
+                    Intent intentAux = new Intent(MainActivity.this, StreamService.class);
+                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    stopService(intentAux);
+
+                    intentAux = new Intent(MainActivity.this, VideoRecorderService.class);
+                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startService(intentAux);
+
+                    HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this));
+                }
+            }
+        };
 
         ActionBar ab = getActionBar(); //needs  import android.app.ActionBar;
         ab.setTitle(Globals.getUserName());
@@ -74,11 +121,11 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                     updateProgressBar();
                 } else if (intent.getAction().equals(GcmIntentService.START_STREAMING_ACTION)) {
                     if (isMissionStarted()) {
-                        ((Switch) findViewById(R.id.streamSwitch)).setChecked(true);
+                        mStreamSwitch.setChecked(true);
                     }
                 } else if (intent.getAction().equals(GcmIntentService.STOP_STREAMING_ACTION)) {
                     if (isMissionStarted()) {
-                        ((Switch) findViewById(R.id.streamSwitch)).setChecked(false);
+                        mStreamSwitch.setChecked(false);
                     }
                 } else {
                     findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
@@ -148,8 +195,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, 0, formatMegaBytes(getDirectorySize())));
         ((TextView) findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, formatMegaBytes(getDirectorySize())));
 
-        final Button starMissionButton = (Button) findViewById(R.id.startMissionButton);
-        starMissionButton.setOnClickListener(new View.OnClickListener() {
+        mStarMissionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (isUploading()) {
@@ -177,7 +223,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             }
 
             private void startMission() {
-                starMissionButton.setVisibility(View.GONE);
+                mStarMissionButton.setVisibility(View.GONE);
 
                 findViewById(R.id.settingsLayout).setVisibility(View.VISIBLE);
                 ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.mission_start));
@@ -199,142 +245,184 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             }
         });
 
-        final Button endMissionButton = (Button) findViewById(R.id.endMissionButton);
-        endMissionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                starMissionButton.setVisibility(View.VISIBLE);
+        mEndMissionButton.setOnClickListener(new View.OnClickListener()
 
-                findViewById(R.id.pauseRecordingButton).setVisibility(View.VISIBLE);
-                findViewById(R.id.pausedLayout).setVisibility(View.GONE);
-                findViewById(R.id.resumeMissionButton).setVisibility(View.GONE);
-                findViewById(R.id.settingsLayout).setVisibility(View.GONE);
-                ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.welcome));
-                ((TextView) findViewById(R.id.welcomeDesc)).setText(getString(R.string.welcome_desc));
+                                             {
+                                                 @Override
+                                                 public void onClick(View view) {
+                                                     mStarMissionButton.setVisibility(View.VISIBLE);
+                                                     mPauseCounter.setVisibility(View.GONE);
+                                                     findViewById(R.id.pauseRecordingButton).setVisibility(View.VISIBLE);
+                                                     findViewById(R.id.pausedLayout).setVisibility(View.GONE);
+                                                     findViewById(R.id.resumeMissionButton).setVisibility(View.GONE);
+                                                     findViewById(R.id.settingsLayout).setVisibility(View.GONE);
+                                                     ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.welcome));
+                                                     ((TextView) findViewById(R.id.welcomeDesc)).setText(getString(R.string.welcome_desc));
 
-                findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
-                findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
-                findViewById(R.id.streamLayout).setVisibility(View.GONE);
-                findViewById(R.id.recBall).setVisibility(View.INVISIBLE);
+                                                     findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
+                                                     findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
+                                                     findViewById(R.id.streamLayout).setVisibility(View.GONE);
+                                                     findViewById(R.id.recBall).setVisibility(View.INVISIBLE);
 
-                Intent intent = new Intent(MainActivity.this, StreamService.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                stopService(intent);
+                                                     Intent intent = new Intent(MainActivity.this, StreamService.class);
+                                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                     stopService(intent);
 
-                intent = new Intent(MainActivity.this, VideoRecorderService.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                stopService(intent);
+                                                     intent = new Intent(MainActivity.this, VideoRecorderService.class);
+                                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                     stopService(intent);
 
-                intent = new Intent(MainActivity.this, LocationService.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                stopService(intent);
+                                                     intent = new Intent(MainActivity.this, LocationService.class);
+                                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                     stopService(intent);
 
-                HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.LOGGED, Globals.getUserLogin(MainActivity.this));
-            }
-        });
+                                                     mCountDownTenPaused.cancel();
+                                                     mCountDownThirtyPaused.cancel();
+
+                                                     HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.LOGGED, Globals.getUserLogin(MainActivity.this));
+                                                 }
+                                             }
+        );
 
 
-        ((Button) findViewById(R.id.uploadButton)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (NetworkUtils.canUpload(getApplicationContext(), getIntent())) {
-                    findViewById(R.id.uploadLayout).setVisibility(View.GONE);
-                    findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
-                    findViewById(R.id.streamLayout).setVisibility(View.GONE);
+        ((Button)findViewById(R.id.uploadButton)).setOnClickListener(new View.OnClickListener() {
+                                                                         @Override
+                                                                         public void onClick(View view) {
+                                                                             if (NetworkUtils.canUpload(getApplicationContext(), getIntent())) {
+                                                                                 findViewById(R.id.uploadLayout).setVisibility(View.GONE);
+                                                                                 findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
+                                                                                 findViewById(R.id.streamLayout).setVisibility(View.GONE);
 
-                    Intent intent = new Intent(MainActivity.this, UploadService.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startService(intent);
+                                                                                 Intent intent = new Intent(MainActivity.this, UploadService.class);
+                                                                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                                                 startService(intent);
 
-                    HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this));
-                } else {
-                    Toast.makeText(getApplicationContext(), getString(R.string.upload_disabled), Toast.LENGTH_LONG).show();
-                }
-            }
-        });
+                                                                                 HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this));
+                                                                             } else {
+                                                                                 Toast.makeText(getApplicationContext(), getString(R.string.upload_disabled), Toast.LENGTH_LONG).show();
+                                                                             }
+                                                                         }
+                                                                     }
+        );
 
-        ((ImageView) findViewById(R.id.uploadCancelButton)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                stopUploading();
-            }
-        });
+        ((ImageView)findViewById(R.id.uploadCancelButton)).setOnClickListener(new View.OnClickListener() {
+                                                                                  @Override
+                                                                                  public void onClick(View view) {
+                                                                                      stopUploading();
+                                                                                  }
+                                                                              }
+        );
 
-        final Button pauseRecordingButton = (Button) findViewById(R.id.pauseRecordingButton);
-        pauseRecordingButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                pauseRecordingButton.setVisibility(View.GONE);
-                findViewById(R.id.pausedLayout).setVisibility(View.VISIBLE);
-            }
-        });
 
-        ((Button) findViewById(R.id.tenMinutesButton)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                findViewById(R.id.pausedLayout).setVisibility(View.GONE);
-                findViewById(R.id.resumeMissionButton).setVisibility(View.VISIBLE);
-                //TODO
-            }
-        });
+        mPauseRecordingButton.setOnClickListener(new View.OnClickListener()
+                                                 {
+                                                     @Override
+                                                     public void onClick(View view) {
+                                                         mPauseRecordingButton.setVisibility(View.GONE);
+                                                         findViewById(R.id.pausedLayout).setVisibility(View.VISIBLE);
+                                                     }
+                                                 }
+        );
 
-        ((Button) findViewById(R.id.thirtyMinutesButton)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                findViewById(R.id.pausedLayout).setVisibility(View.GONE);
-                findViewById(R.id.resumeMissionButton).setVisibility(View.VISIBLE);
-                //TODO
-            }
-        });
+        ((Button)findViewById(R.id.tenMinutesButton)).
+                setOnClickListener(new View.OnClickListener() {
+                                       @Override
+                                       public void onClick(View view) {
+                                           startPausedCountdown();
+                                           mCountDownTenPaused.start();
+                                       }
+                                   }
+                );
 
-        final Button resumeMissionButton = (Button) findViewById(R.id.resumeMissionButton);
-        resumeMissionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                resumeMissionButton.setVisibility(View.GONE);
-                pauseRecordingButton.setVisibility(View.VISIBLE);
-                findViewById(R.id.pausedLayout).setVisibility(View.GONE);
-            }
-        });
-        ((Button) findViewById(R.id.pauseCancelButton)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                pauseRecordingButton.setVisibility(View.VISIBLE);
-                findViewById(R.id.pausedLayout).setVisibility(View.GONE);
-            }
-        });
+        ((Button)findViewById(R.id.thirtyMinutesButton)).
+                setOnClickListener(new View.OnClickListener() {
+                                       @Override
+                                       public void onClick(View view) {
+                                           startPausedCountdown();
+                                           mCountDownThirtyPaused.start();
+                                       }
+                                   }
+                );
 
-        ((Switch) findViewById(R.id.streamSwitch)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    Intent intentAux = new Intent(MainActivity.this, VideoRecorderService.class);
-                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    stopService(intentAux);
+        mResumeMissionButton.setOnClickListener(new View.OnClickListener()
+                                                {
+                                                    @Override
+                                                    public void onClick(View view) {
+                                                        resumeMission();
+                                                    }
+                                                }
+        );
+        ((Button)findViewById(R.id.pauseCancelButton)).setOnClickListener(new View.OnClickListener() {
+                                                                              @Override
+                                                                              public void onClick(View view) {
+                                                                                  mPauseRecordingButton.setVisibility(View.VISIBLE);
+                                                                                  findViewById(R.id.pausedLayout).setVisibility(View.GONE);
+                                                                              }
+                                                                          }
+        );
 
-                    intentAux = new Intent(MainActivity.this, StreamService.class);
-                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startService(intentAux);
 
-                    HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.STREAMING, Globals.getUserLogin(MainActivity.this));
-                } else {
-                    Intent intentAux = new Intent(MainActivity.this, StreamService.class);
-                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    stopService(intentAux);
+        mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+    }
 
-                    intentAux = new Intent(MainActivity.this, VideoRecorderService.class);
-                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startService(intentAux);
+    private void startPausedCountdown() {
+        findViewById(R.id.pausedLayout).setVisibility(View.GONE);
+        findViewById(R.id.resumeMissionButton).setVisibility(View.VISIBLE);
 
-                    HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this));
-                }
-            }
-        });
+        Intent intent = new Intent(this, VideoRecorderService.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        stopService(intent);
+
+        intent = new Intent(this, StreamService.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        stopService(intent);
+
+        mStreamSwitch.setOnCheckedChangeListener(null);
+        mStreamSwitch.setChecked(false);
+        mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+
+        HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.PAUSED, Globals.getUserLogin(getApplicationContext()));
+
+        mPauseCounter.setVisibility(View.VISIBLE);
+        findViewById(R.id.recBall).setVisibility(View.GONE);
+        ((TextView) findViewById(R.id.welcomeDesc)).setText(getString(R.string.pause_desc));
+        ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.pause_title));
+    }
+
+    private void resumeMission() {
+        mResumeMissionButton.setVisibility(View.GONE);
+        mPauseRecordingButton.setVisibility(View.VISIBLE);
+        mPauseCounter.setVisibility(View.GONE);
+        findViewById(R.id.recBall).setVisibility(View.VISIBLE);
+        findViewById(R.id.pausedLayout).setVisibility(View.GONE);
+        ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.mission_start));
+        ((TextView) findViewById(R.id.welcomeDesc)).setText(getString(R.string.mission_start_desc));
+        mCountDownTenPaused.cancel();
+        mCountDownThirtyPaused.cancel();
+
+        Intent intent = new Intent(MainActivity.this, VideoRecorderService.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startService(intent);
+
+        HistoryUtils.registerHistory(getApplicationContext(),State.PAUSED,State.RECORDING_ONLINE, Globals.getUserLogin(getApplicationContext()));
+
+        Vibrator v = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
+        // Vibrate for 500 milliseconds
+        v.vibrate(500);
+    }
+
+
+    private String formatCounterTime(long millis) {
+        return String.format("%02d:%02d",
+                TimeUnit.MILLISECONDS.toMinutes(millis) -
+                        TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)), // The change is in this line
+                TimeUnit.MILLISECONDS.toSeconds(millis) -
+                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)));
     }
 
     private void updateProgressBar() {
-        ((ProgressBar) findViewById(R.id.progressBar)).setProgress(getDirectoryUploadedSize().intValue());
-        ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes(getDirectoryUploadedSize()), formatMegaBytes(getDirectorySize())));
+        ((ProgressBar) findViewById(R.id.progressBar)).setProgress(Globals.getDirectoryUploadedSize().intValue());
+        ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes(Globals.getDirectoryUploadedSize()), formatMegaBytes(getDirectorySize())));
     }
 
     private void stopUploading() {
@@ -356,7 +444,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     private boolean isMissionStarted() {
         return findViewById(R.id.startMissionButton).getVisibility() != View.VISIBLE;
     }
-
 
     @Override
     protected void onDestroy() {
@@ -439,5 +526,19 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             logout();
         }
         updateProgressBar();
+    }
+
+    private class CountDownPausedTimer extends CountDownTimer {
+        public CountDownPausedTimer(int millisInFuture, int countDownInterval) {
+            super(millisInFuture, countDownInterval);
+        }
+
+        public void onTick(long millisUntilFinished) {
+            mPauseCounter.setText(formatCounterTime(millisUntilFinished));
+        }
+
+        public void onFinish() {
+            resumeMission();
+        }
     }
 }

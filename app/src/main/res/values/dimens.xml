@@ -7,5 +7,6 @@
     <dimen name="button_width_small">80dp</dimen>
     <dimen name="margin_top_botton">430dp</dimen>
     <dimen name="progressbar_width">100dp</dimen>
+    <dimen name="activity_vertical_login_margin">80dp</dimen>
 
 </resources>
