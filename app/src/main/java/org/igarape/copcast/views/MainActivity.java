@@ -264,6 +264,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                                                      findViewById(R.id.streamLayout).setVisibility(View.GONE);
                                                      findViewById(R.id.recBall).setVisibility(View.INVISIBLE);
 
+                                                     mStreamSwitch.setOnCheckedChangeListener(null);
+                                                     mStreamSwitch.setChecked(false);
+                                                     mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+
                                                      Intent intent = new Intent(MainActivity.this, StreamService.class);
                                                      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                                      stopService(intent);
