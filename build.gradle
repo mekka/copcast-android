@@ -28,14 +28,14 @@ deploygate {
 
     apks {
         general {
-            sourceFile = file("Mogi/Mogi-general-release.apk")
+            sourceFile = file("app/app-general-release.apk")
             message = "General Release"
             releaseNote = "General Release"
             distributionKey = "4bb0924742ce03df543443040e4feac8486cacf4"
 
         }
         capeTown {
-            sourceFile = file("Mogi/Mogi-capeTown-release.apk")
+            sourceFile = file("app/app-capeTown-release.apk")
             message = "Cape Town Release"
             releaseNote = "Cape Town Release"
             distributionKey = "dbde0f031cfeaf9856db0b5cfcea6f59a2dafe4b"
