@@ -30,6 +30,13 @@ public class SplashScreenActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (Globals.getAccessToken(getApplicationContext())!=null){
+            Intent intent = new Intent(SplashScreenActivity.this, MainActivity.class);
+            startActivity(intent);
+            SplashScreenActivity.this.finish();
+            return;
+        }
         setContentView(R.layout.activity_splash_screen);
 
         View decorView = getWindow().getDecorView();
