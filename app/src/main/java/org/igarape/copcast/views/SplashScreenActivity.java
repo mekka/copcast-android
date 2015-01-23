@@ -128,7 +128,7 @@ public class SplashScreenActivity extends Activity {
 
             // do not worry about this Thread.sleep
             // this is an async task, it will not disrupt the UI
-            Globals.setDirectorySize(FileUtils.getDirectorySize());
+            Globals.setDirectorySize(getApplicationContext(),FileUtils.getDirectorySize());
             try {
                 Thread.sleep(SPLASH_SHOW_TIME);
             } catch (InterruptedException e) {

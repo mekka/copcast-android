@@ -170,9 +170,9 @@ public class StreamService extends Service implements RtspClient.Callback, Sessi
         // Configures the RTSP client
         mClient = new RtspClient();
 
-        mClient.setCredentials(Globals.getStreamingUser(), Globals.getStreamingPassword());
-        mClient.setServerAddress(Globals.getServerIpAddress(), Globals.getStreamingPort());
-        mClient.setStreamPath(Globals.getStreamingPath());
+        mClient.setCredentials(Globals.getStreamingUser(getApplicationContext()), Globals.getStreamingPassword(getApplicationContext()));
+        mClient.setServerAddress(Globals.getServerIpAddress(this), Globals.getStreamingPort(getApplicationContext()));
+        mClient.setStreamPath(Globals.getStreamingPath(getApplicationContext()));
 
 
         mClient.setSession(mSession);

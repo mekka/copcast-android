@@ -103,7 +103,7 @@ public class UploadService extends Service {
     public void sendUpdateToUI(Long size) {
         Intent intent = new Intent(UPLOAD_PROGRESS_ACTION);
         if (size != null) {
-            Globals.setDirectoryUploadedSize(getDirectoryUploadedSize() + size);
+            Globals.setDirectoryUploadedSize(getApplicationContext(),getDirectoryUploadedSize(getApplicationContext()) + size);
             broadcaster.sendBroadcast(intent);
         }
     }

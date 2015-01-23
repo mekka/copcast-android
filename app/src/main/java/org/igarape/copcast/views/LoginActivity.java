@@ -98,18 +98,18 @@ public class LoginActivity extends Activity {
                     token = (String) response.get("token");
                     String ipAddress = (String) response.get("ipAddress");
                     if (ipAddress != null) {
-                        Globals.setServerIpAddress(ipAddress);
+                        Globals.setServerIpAddress(getApplicationContext(),ipAddress);
                     }
                 } catch (JSONException e) {
                     Log.e(TAG, "error on login", e);
                 }
 
                 try {
-                    Globals.setStreamingPort(Integer.parseInt((String) response.get("streamingPort")));
-                    Globals.setStreamingUser((String) response.get("streamingUser"));
-                    Globals.setStreamingPassword((String) response.get("streamingPassword"));
-                    Globals.setStreamingPath((String) response.get("streamingPath"));
-                    Globals.setUserName((String) response.get("userName"));
+                    Globals.setStreamingPort(getApplicationContext(),Integer.parseInt((String) response.get("streamingPort")));
+                    Globals.setStreamingUser(getApplicationContext(), (String) response.get("streamingUser"));
+                    Globals.setStreamingPassword(getApplicationContext(), (String) response.get("streamingPassword"));
+                    Globals.setStreamingPath(getApplicationContext(), (String) response.get("streamingPath"));
+                    Globals.setUserName(getApplicationContext(), (String) response.get("userName"));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

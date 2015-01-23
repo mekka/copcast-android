@@ -111,7 +111,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         };
 
         ActionBar ab = getActionBar(); //needs  import android.app.ActionBar;
-        ab.setTitle(Globals.getUserName());
+        ab.setTitle(Globals.getUserName(getApplicationContext()));
         ab.setSubtitle(Globals.getUserLogin(this));
 
         receiver = new BroadcastReceiver() {
@@ -190,10 +190,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             }
         });
 
-        ((ProgressBar) findViewById(R.id.progressBar)).setMax(getDirectorySize().intValue());
+         ((ProgressBar) findViewById(R.id.progressBar)).setMax(getDirectorySize(getApplicationContext()).intValue());
 
-        ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, 0, formatMegaBytes(getDirectorySize())));
-        ((TextView) findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, formatMegaBytes(getDirectorySize())));
+        ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, 0, formatMegaBytes(getDirectorySize(getApplicationContext()))));
+        ((TextView) findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, formatMegaBytes(getDirectorySize(getApplicationContext()))));
 
         mStarMissionButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -425,8 +425,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     }
 
     private void updateProgressBar() {
-        ((ProgressBar) findViewById(R.id.progressBar)).setProgress(Globals.getDirectoryUploadedSize().intValue());
-        ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes(Globals.getDirectoryUploadedSize()), formatMegaBytes(getDirectorySize())));
+        ((ProgressBar) findViewById(R.id.progressBar)).setProgress(Globals.getDirectoryUploadedSize(getApplicationContext()).intValue());
+        ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes(Globals.getDirectoryUploadedSize(getApplicationContext())), formatMegaBytes(getDirectorySize(getApplicationContext()))));
     }
 
     private void stopUploading() {
