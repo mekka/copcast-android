@@ -225,6 +225,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             private void startMission() {
                 mStarMissionButton.setVisibility(View.GONE);
 
+                vibrate(200); //vibrate when touch a button
+
                 findViewById(R.id.settingsLayout).setVisibility(View.VISIBLE);
                 ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.mission_start));
                 ((TextView) findViewById(R.id.welcomeDesc)).setText(getString(R.string.mission_start_desc));
@@ -267,6 +269,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                                                      mStreamSwitch.setOnCheckedChangeListener(null);
                                                      mStreamSwitch.setChecked(false);
                                                      mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+
+                                                     vibrate(200); //vibrate when touch a button
 
                                                      Intent intent = new Intent(MainActivity.this, StreamService.class);
                                                      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -410,9 +414,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
         HistoryUtils.registerHistory(getApplicationContext(),State.PAUSED,State.RECORDING_ONLINE, Globals.getUserLogin(getApplicationContext()));
 
-        Vibrator v = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
-        // Vibrate for 500 milliseconds
-        v.vibrate(500);
+        vibrate(200); //vibrate when touch a button
     }
 
 
@@ -447,6 +449,14 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
     private boolean isMissionStarted() {
         return findViewById(R.id.startMissionButton).getVisibility() != View.VISIBLE;
+    }
+
+    private void vibrate(int mili)
+    {
+        Vibrator v = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
+        // Vibrate for (mili) milliseconds
+        v.vibrate(mili);
+
     }
 
     @Override
