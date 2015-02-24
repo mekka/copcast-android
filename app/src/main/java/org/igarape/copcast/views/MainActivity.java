@@ -231,9 +231,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 mStarMissionButton.setVisibility(View.GONE);
 
                 vibrate(200); //vibrate when touch a button
-                // todo: create a mp3 for each button
-                //talk("mission_started");
-                //Log.d("talk","mission started");
+                talk("mission_started");
+                // Log.d("talk","mission started");
 
                 findViewById(R.id.settingsLayout).setVisibility(View.VISIBLE);
                 ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.mission_start));
@@ -396,8 +395,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     public void missionCompleted()
     {
         vibrate(200); //vibrate when touch a button
+        talk("mission_completed");
+        talk("wait");
 
-        mySongclick.release();
 
         // Log.d("talk","mission completed...!!");
 
@@ -505,9 +505,22 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
             if (text.equals("mission_started")) {
                 mySongclick = MediaPlayer.create(this, R.raw.mission_started);
+            } else if (text.equals("mission_completed")) {
+                mySongclick = MediaPlayer.create(this, R.raw.mission_completed);
             }
 
-            mySongclick.start();
+            if (text.equals("wait")) { // according some song length is necessary to wait a time
+                try {
+                    Thread.sleep(1500); // Sleep for one second
+                    mySongclick.release(); //release the song variable
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+            else
+            {
+                mySongclick.start();  //start song
+            }
 
         } catch (Exception e)
         {
@@ -521,6 +534,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
         Globals.clear(MainActivity.this);
         super.onDestroy();
+
     }
 
     @Override
