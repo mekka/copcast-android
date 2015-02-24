@@ -12,10 +12,13 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.hardware.Camera;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Vibrator;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
@@ -64,6 +67,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     private CountDownPausedTimer mCountDownTenPaused;
     private Switch mStreamSwitch;
     private CompoundButton.OnCheckedChangeListener mStreamListener;
+
+    private MediaPlayer mySongclick;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -226,6 +231,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 mStarMissionButton.setVisibility(View.GONE);
 
                 vibrate(200); //vibrate when touch a button
+                // todo: create a mp3 for each button
+                //talk("mission_started");
+                //Log.d("talk","mission started");
 
                 findViewById(R.id.settingsLayout).setVisibility(View.VISIBLE);
                 ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.mission_start));
@@ -245,6 +253,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
                 HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this));
             }
+
+
         });
 
         mEndMissionButton.setOnClickListener(new View.OnClickListener()
@@ -252,6 +262,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                                              {
                                                  @Override
                                                  public void onClick(View view) {
+                                                     missionCompleted();
+
                                                      mStarMissionButton.setVisibility(View.VISIBLE);
                                                      mPauseCounter.setVisibility(View.GONE);
                                                      findViewById(R.id.pauseRecordingButton).setVisibility(View.VISIBLE);
@@ -270,7 +282,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                                                      mStreamSwitch.setChecked(false);
                                                      mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
 
-                                                     vibrate(200); //vibrate when touch a button
 
                                                      Intent intent = new Intent(MainActivity.this, StreamService.class);
                                                      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -288,9 +299,18 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                                                      mCountDownThirtyPaused.cancel();
 
                                                      HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.LOGGED, Globals.getUserLogin(MainActivity.this));
+
+
+
                                                  }
+
+
                                              }
+
+
         );
+
+
 
 
         ((Button)findViewById(R.id.uploadButton)).setOnClickListener(new View.OnClickListener() {
@@ -373,6 +393,16 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
     }
 
+    public void missionCompleted()
+    {
+        vibrate(200); //vibrate when touch a button
+
+        mySongclick.release();
+
+        // Log.d("talk","mission completed...!!");
+
+    }
+
     private void startPausedCountdown() {
         findViewById(R.id.pausedLayout).setVisibility(View.GONE);
         findViewById(R.id.resumeMissionButton).setVisibility(View.VISIBLE);
@@ -451,6 +481,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         return findViewById(R.id.startMissionButton).getVisibility() != View.VISIBLE;
     }
 
+    /*
+        Create a function to vibrate the cell phone in milliseconds
+     */
     private void vibrate(int mili)
     {
         Vibrator v = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
@@ -458,9 +491,34 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         v.vibrate(mili);
 
     }
+    private void msgBox(String text)
+    {
+        Toast.makeText(getApplicationContext(), text, Toast.LENGTH_LONG).show();
+    }
+
+    /*
+        Create a function to play mp3 songs to simulate voice response
+     */
+    public void talk(String text)
+    {
+        try{
+
+            if (text.equals("mission_started")) {
+                mySongclick = MediaPlayer.create(this, R.raw.mission_started);
+            }
+
+            mySongclick.start();
+
+        } catch (Exception e)
+        {
+            msgBox("Talk - Feature not supported in your device");
+        }
+
+    }
 
     @Override
     protected void onDestroy() {
+
         Globals.clear(MainActivity.this);
         super.onDestroy();
     }
@@ -531,6 +589,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     protected void onStop() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
         super.onStop();
+
+        //Log.d("state","onStop");
     }
 
     @Override
@@ -540,6 +600,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             logout();
         }
         updateProgressBar();
+
+        //Log.d("state","onResume");
     }
 
     private class CountDownPausedTimer extends CountDownTimer {
@@ -554,5 +616,25 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         public void onFinish() {
             resumeMission();
         }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+    /*
+        Detect volumen key down event
+     */
+        switch(keyCode){
+            case KeyEvent.KEYCODE_VOLUME_DOWN:
+                //Log.d("Keydown","Volumen Down pressed");
+                vibrate(500);
+                flagOcurrence();
+                return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    private void flagOcurrence()
+    {
+        //Log.d("flag","flag to database!");
     }
 }
