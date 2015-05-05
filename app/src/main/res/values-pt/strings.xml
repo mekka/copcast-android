@@ -99,7 +99,7 @@
         
     <string name="notification_upload_description">Enviando dados para o servidor ... </string>
         
-    <string name="upload_disabled">Não é possível enviar neste momento. O telefone está carregando?</string>
+    <string name="upload_disabled">Não é possível enviar neste momento. É necessário que o celular esteja carregando ou com bateria cheia.</string>
         
     <string name="upload_stopped">Envio cancelado devido a restrições de rede/bateria</string>
         

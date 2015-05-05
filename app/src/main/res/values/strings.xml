@@ -51,7 +51,7 @@
     <string name="uploading_size">Uploading (%1$sMB of %2$sMB)</string>
     <string name="notification_upload_title">Upload data.</string>
     <string name="notification_upload_description">Uploading data to the server...</string>
-    <string name="upload_disabled">Can\'t upload right now. Is the phone charging?</string>
+    <string name="upload_disabled">Can\'t upload right now. The phone need to be charging or battery status full.</string>
     <string name="upload_stopped">Upload canceled due to network/charging restrictions</string>
     <string name="under_construction">Under construction</string>
     <string name="upload_completed">Upload completed!</string>
