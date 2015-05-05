@@ -31,7 +31,7 @@ public class SplashScreenActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (!(Globals.getAccessToken(getApplicationContext()) instanceof String)){
+        if (Globals.getAccessToken(getApplicationContext()) instanceof String){
             Intent intent = new Intent(SplashScreenActivity.this, MainActivity.class);
             startActivity(intent);
             SplashScreenActivity.this.finish();
