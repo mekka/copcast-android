@@ -641,10 +641,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         switch(keyCode){
             case KeyEvent.KEYCODE_VOLUME_DOWN:
                 //Log.d("Keydown","Volumen Down pressed");
-                vibrate(500);
-                mStarMissionButton.callOnClick();
+                //vibrate(500);
+                //mStarMissionButton.callOnClick();
 
-                return true;
+                //return true;
         }
         return super.onKeyDown(keyCode, event);
     }
