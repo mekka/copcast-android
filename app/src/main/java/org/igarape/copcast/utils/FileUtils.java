@@ -105,16 +105,6 @@ public class FileUtils {
         return file;
     }
 
-    public static File getAlbumStorageDirOld(String albumName) {
-        // Get the directory for the user's public pictures directory.
-        File file = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_MOVIES), albumName);
-        if (!file.exists() && !file.mkdirs()) {
-            Log.e(TAG, "Directory '" + albumName + "' not created");
-        }
-        return file;
-    }
-
     public static void init(Context context) {
         setPath(getAlbumStorageDir("smartpolicing", context).getAbsolutePath());
     }

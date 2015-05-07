@@ -39,6 +39,7 @@ import org.igarape.copcast.service.StreamService;
 import org.igarape.copcast.service.UploadService;
 import org.igarape.copcast.service.VideoRecorderService;
 import org.igarape.copcast.state.State;
+import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.HistoryUtils;
 import org.igarape.copcast.utils.HttpResponseCallback;
@@ -299,8 +300,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
                                                      HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.LOGGED, Globals.getUserLogin(MainActivity.this));
 
-
-
+                                                     Globals.setDirectorySize(getApplicationContext(), FileUtils.getDirectorySize());
+                                                     ((TextView) findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, formatMegaBytes(getDirectorySize(getApplicationContext()))));
                                                  }
 
 
