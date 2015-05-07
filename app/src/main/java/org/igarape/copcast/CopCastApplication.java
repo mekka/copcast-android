@@ -18,7 +18,7 @@ public class CopCastApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        FileUtils.init();
+        FileUtils.init(getApplicationContext());
     }
 
 

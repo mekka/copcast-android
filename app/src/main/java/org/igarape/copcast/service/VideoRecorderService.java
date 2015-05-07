@@ -120,7 +120,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         try {
             mediaRecorder.prepare();
         } catch (Exception e) {
-            //logar ???
+            //logar ???//TODO
             return false;
         }
         return true;

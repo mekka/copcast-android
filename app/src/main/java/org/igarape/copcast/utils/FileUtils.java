@@ -1,5 +1,6 @@
 package org.igarape.copcast.utils;
 
+import android.content.Context;
 import android.location.Location;
 import android.os.Environment;
 import android.util.Log;
@@ -8,6 +9,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -95,7 +97,15 @@ public class FileUtils {
         });
     }
 
-    public static File getAlbumStorageDir(String albumName) {
+    public static File getAlbumStorageDir(String albumName, Context context) {
+        File file = new File(context.getFilesDir(), albumName);
+        if (!file.exists() && !file.mkdirs()) {
+            Log.e(TAG, "Directory '" + albumName + "' not created");
+        }
+        return file;
+    }
+
+    public static File getAlbumStorageDirOld(String albumName) {
         // Get the directory for the user's public pictures directory.
         File file = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_MOVIES), albumName);
@@ -105,8 +115,8 @@ public class FileUtils {
         return file;
     }
 
-    public static void init() {
-        setPath(getAlbumStorageDir("smartpolicing").getAbsolutePath());
+    public static void init(Context context) {
+        setPath(getAlbumStorageDir("smartpolicing", context).getAbsolutePath());
     }
 
     public static long getDirectorySize() {
