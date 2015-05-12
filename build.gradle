@@ -6,7 +6,6 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:1.0.0'
-        classpath 'com.deploygate:gradle:0.6'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -17,29 +16,5 @@ allprojects {
         jcenter()
         mavenCentral()
         maven { url 'http://maven2.javacv.googlecode.com/git/' }
-    }
-}
-
-apply plugin: 'deploygate'
-
-deploygate {
-    userName = "brunosiqueira"
-    token = "5afbb059e2def63d028b1bc3e0cdd85923ed0dfe"
-
-    apks {
-        general {
-            sourceFile = file("app/app-general-release.apk")
-            message = "General Release"
-            releaseNote = "General Release"
-            distributionKey = "8774f65fd7833d1c7539e43b696408bea621c1a1"
-
-        }
-        capeTown {
-            sourceFile = file("app/app-capeTown-release.apk")
-            message = "Cape Town Release"
-            releaseNote = "Cape Town Release"
-            distributionKey = "5a3b941c3dcaec9e45809188b21343053dfacd87"
-
-        }
     }
 }
