@@ -13,6 +13,7 @@ import android.os.AsyncTask;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -23,6 +24,7 @@ import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.views.MainActivity;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 /**
@@ -78,6 +80,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         layoutParams.gravity = Gravity.LEFT | Gravity.TOP;
         windowManager.addView(surfaceView, layoutParams);
         surfaceView.getHolder().addCallback(this);
+
     }
 
     @Override
@@ -86,17 +89,21 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         new MediaPrepareTask().execute(null, null, null);
     }
 
+
     private boolean prepareMediaEncoder() {
 
         camera = Camera.open();
         mediaRecorder = new MediaRecorder();
         camera.unlock();
 
+
         mediaRecorder.setPreviewDisplay(this.surfaceHolder.getSurface());
         mediaRecorder.setCamera(camera);
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
         mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_LOW));
+
+        //mediaRecorder.setVideoSize(320, 240);
 
         mediaRecorder.setOutputFile(
                 FileUtils.getPath(Globals.getUserLogin(getBaseContext())) +

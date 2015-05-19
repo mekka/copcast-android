@@ -129,7 +129,7 @@ public class NetworkUtils {
                     }
                     request.addFilePart("video", file);
 
-                    request.finish();
+                    request.finish();  //send the video to the server
 
                     callback.success(new JSONObject());
                 } catch (IOException e) {
@@ -186,7 +186,9 @@ public class NetworkUtils {
                     urlConnection.setReadTimeout(DATA_RETRIEVAL_TIMEOUT);
 
 
+
                     if (params != null) {
+                        Log.d("log1-app", "p1");
                         os = urlConnection.getOutputStream();
                         writer = new BufferedWriter(
                                 new OutputStreamWriter(os, "UTF-8"));
@@ -195,6 +197,7 @@ public class NetworkUtils {
                         writer.close();
                         os.close();
                     } else if (jsonObject != null) {
+                        Log.d("log1-app", "p2");
                         urlConnection.setRequestProperty("Content-Type", "application/json;charset=" + charset);
                         os = urlConnection.getOutputStream();
                         writer = new BufferedWriter(
@@ -202,6 +205,7 @@ public class NetworkUtils {
                         writer.write(jsonObject.toString());
                         writer.flush();
                     }
+                    Log.d("log1-app", "p3");
                     // handle issues
                     urlConnection.connect();
                     statusCode = urlConnection.getResponseCode();
