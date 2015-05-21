@@ -1,26 +1,38 @@
 package webrtcclient;
 
+import android.opengl.EGLContext;
+import android.util.Log;
+
+import com.github.nkzawa.emitter.Emitter;
+import com.github.nkzawa.socketio.client.IO;
+import com.github.nkzawa.socketio.client.Socket;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.webrtc.AudioSource;
+import org.webrtc.DataChannel;
+import org.webrtc.IceCandidate;
+import org.webrtc.MediaConstraints;
+import org.webrtc.MediaStream;
+import org.webrtc.PeerConnection;
+import org.webrtc.PeerConnectionFactory;
+import org.webrtc.SdpObserver;
+import org.webrtc.SessionDescription;
+import org.webrtc.VideoCapturer;
+import org.webrtc.VideoCapturerAndroid;
+import org.webrtc.VideoSource;
+
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.LinkedList;
-
-import com.github.nkzawa.socketio.client.IO;
-import com.github.nkzawa.socketio.client.Socket;
-import com.github.nkzawa.emitter.Emitter;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.opengl.EGLContext;
-import android.util.Log;
-import org.webrtc.*;
 
 public class WebRtcClient {
     private final static String TAG = WebRtcClient.class.getCanonicalName();
     private final static int MAX_PEER = 2;
     private boolean[] endPoints = new boolean[MAX_PEER];
     private PeerConnectionFactory factory;
-    private HashMap<String, Peer> peers = new HashMap<>();
-    private LinkedList<PeerConnection.IceServer> iceServers = new LinkedList<>();
+    private HashMap<String, Peer> peers = new HashMap<String, Peer>();
+    private LinkedList<PeerConnection.IceServer> iceServers = new LinkedList<PeerConnection.IceServer>();
     private PeerConnectionParameters pcParams;
     private MediaConstraints pcConstraints = new MediaConstraints();
     private MediaStream localMS;
@@ -115,7 +127,7 @@ public class WebRtcClient {
         private HashMap<String, Command> commandMap;
 
         private MessageHandler() {
-            this.commandMap = new HashMap<>();
+            this.commandMap = new HashMap<String, Command>();
             commandMap.put("init", new CreateOfferCommand());
             commandMap.put("offer", new CreateAnswerCommand());
             commandMap.put("answer", new SetRemoteSDPCommand());
