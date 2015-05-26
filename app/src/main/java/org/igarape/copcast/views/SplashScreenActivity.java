@@ -11,6 +11,7 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.splunk.mint.Mint;
 
 import org.igarape.copcast.R;
 import org.igarape.copcast.utils.FileUtils;
@@ -30,6 +31,8 @@ public class SplashScreenActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Mint.initAndStartSession(SplashScreenActivity.this, "0c1e5146");
 
         if (Globals.getAccessToken(getApplicationContext()) instanceof String){
             Intent intent = new Intent(SplashScreenActivity.this, MainActivity.class);
