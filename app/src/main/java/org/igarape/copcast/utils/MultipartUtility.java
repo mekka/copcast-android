@@ -1,5 +1,8 @@
 package org.igarape.copcast.utils;
 
+import android.nfc.Tag;
+import android.util.Log;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -134,24 +137,35 @@ public class MultipartUtility {
     public List<String> finish() throws IOException {
         List<String> response = new ArrayList<String>();
 
+        Log.d("MultipartUtility", "M1");
         writer.append(LINE_FEED).flush();
+        Log.d("MultipartUtility", "M1");
         writer.append("--" + boundary + "--").append(LINE_FEED);
+        Log.d("MultipartUtility", "M1");
         writer.close();
+        Log.d("MultipartUtility", "M2");
 
         // checks server's status code first
         int status = httpConn.getResponseCode();
+        Log.d("MultipartUtility", "M3");
         if (status == HttpURLConnection.HTTP_OK || status == HttpURLConnection.HTTP_CREATED) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(
                     httpConn.getInputStream()));
+            Log.d("MultipartUtility", "M4");
             String line = null;
+            Log.d("MultipartUtility", "M5");
             while ((line = reader.readLine()) != null) {
                 response.add(line);
             }
+            Log.d("MultipartUtility", "M6");
             reader.close();
             httpConn.disconnect();
+            Log.d("MultipartUtility", "M7");
         } else {
+            Log.d("MultipartUtility", "M8");
             throw new IOException("Server returned non-OK status: " + status);
         }
+        Log.d("MultipartUtility", "M9");
 
         return response;
     }
