@@ -1,12 +1,13 @@
 package webrtcclient;
 
+import android.content.Context;
 import android.opengl.EGLContext;
 import android.util.Log;
 
-import com.github.nkzawa.emitter.Emitter;
-import com.github.nkzawa.socketio.client.IO;
-import com.github.nkzawa.socketio.client.Socket;
-
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
+import org.igarape.copcast.utils.HttpResponseCallback;
+import org.igarape.copcast.utils.NetworkUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.webrtc.AudioSource;
@@ -23,12 +24,17 @@ import org.webrtc.VideoCapturerAndroid;
 import org.webrtc.VideoSource;
 
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 public class WebRtcClient {
     private final static String TAG = WebRtcClient.class.getCanonicalName();
     private final static int MAX_PEER = 2;
+    private final Context mContext;
+    private final MessageHandler mMessageHandler;
     private boolean[] endPoints = new boolean[MAX_PEER];
     private PeerConnectionFactory factory;
     private HashMap<String, Peer> peers = new HashMap<String, Peer>();
@@ -38,7 +44,6 @@ public class WebRtcClient {
     private MediaStream localMS;
     private VideoSource videoSource;
     private RtcListener mListener;
-    private Socket client;
 
     /**
      * Implement this interface to be notified of events.
@@ -116,11 +121,43 @@ public class WebRtcClient {
      * @throws JSONException
      */
     public void sendMessage(String to, String type, JSONObject payload) throws JSONException {
-        JSONObject message = new JSONObject();
-        message.put("to", to);
-        message.put("type", type);
-        message.put("payload", payload);
-        client.emit("message", message);
+        List<NameValuePair> params = new ArrayList<NameValuePair>();
+
+        params.add(new BasicNameValuePair("to", to));
+        params.add(new BasicNameValuePair("type", type));
+        params.add(new BasicNameValuePair("payload", String.valueOf(payload)));
+        NetworkUtils.post(mContext, "/streams/messages", params, new HttpResponseCallback() {
+
+            @Override
+            public void unauthorized() {
+
+            }
+
+            @Override
+            public void failure(int statusCode) {
+
+            }
+
+            @Override
+            public void noConnection() {
+
+            }
+
+            @Override
+            public void badConnection() {
+
+            }
+
+            @Override
+            public void badRequest() {
+
+            }
+
+            @Override
+            public void badResponse() {
+
+            }
+        });
     }
 
     private class MessageHandler {
@@ -134,42 +171,29 @@ public class WebRtcClient {
             commandMap.put("candidate", new AddIceCandidateCommand());
         }
 
-        private Emitter.Listener onMessage = new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                JSONObject data = (JSONObject) args[0];
-                try {
-                    String from = data.getString("from");
-                    String type = data.getString("type");
-                    JSONObject payload = null;
-                    if(!type.equals("init")) {
-                        payload = data.getJSONObject("payload");
-                    }
-                    // if peer is unknown, try to add him
-                    if(!peers.containsKey(from)) {
-                        // if MAX_PEER is reach, ignore the call
-                        int endPoint = findEndPoint();
-                        if(endPoint != MAX_PEER) {
-                            Peer peer = addPeer(from, endPoint);
-                            peer.pc.addStream(localMS);
-                            commandMap.get(type).execute(from, payload);
-                        }
-                    } else {
-                        commandMap.get(type).execute(from, payload);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
+        public void message(String from, String type, String payload) {
+            JSONObject payloadJSon = null;
+            try {
 
-        private Emitter.Listener onId = new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                String id = (String) args[0];
-                mListener.onCallReady(id);
+                if(!type.equals("init")) {
+                    payloadJSon = new JSONObject(payload);
+                }
+                // if peer is unknown, try to add him
+                if(!peers.containsKey(from)) {
+                    // if MAX_PEER is reach, ignore the call
+                    int endPoint = findEndPoint();
+                    if(endPoint != MAX_PEER) {
+                        Peer peer = addPeer(from, endPoint);
+                        peer.pc.addStream(localMS);
+                        commandMap.get(type).execute(from, payloadJSon);
+                    }
+                } else {
+                    commandMap.get(type).execute(from, payloadJSon);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-        };
+        }
     }
 
     private class Peer implements SdpObserver, PeerConnection.Observer{
@@ -276,22 +300,24 @@ public class WebRtcClient {
         endPoints[peer.endPoint] = false;
     }
 
-    public WebRtcClient(RtcListener listener, String host, PeerConnectionParameters params, EGLContext mEGLcontext) {
+    public WebRtcClient(Context context, RtcListener listener, String host, PeerConnectionParameters params, EGLContext mEGLcontext) {
+        mContext = context;
         mListener = listener;
         pcParams = params;
         PeerConnectionFactory.initializeAndroidGlobals(listener, true, true,
                 params.videoCodecHwAcceleration, mEGLcontext);
         factory = new PeerConnectionFactory();
-        MessageHandler messageHandler = new MessageHandler();
+       mMessageHandler = new MessageHandler();
 
-        try {
-            client = IO.socket(host);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-        client.on("id", messageHandler.onId);
-        client.on("message", messageHandler.onMessage);
-        client.connect();
+//        try {
+//            client = IO.socket(host);
+//        } catch (URISyntaxException e) {
+//            e.printStackTrace();
+//        }
+        //TODO client.on("id", messageHandler.onId);
+        //TODO client.on("message", messageHandler.onMessage);
+
+        //client.connect();
 
         iceServers.add(new PeerConnection.IceServer("stun:23.21.150.121"));
         iceServers.add(new PeerConnection.IceServer("stun:stun.l.google.com:19302"));
@@ -299,6 +325,52 @@ public class WebRtcClient {
         pcConstraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"));
         pcConstraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"));
         pcConstraints.optional.add(new MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"));
+
+        NetworkUtils.post(mContext, "/streams", null, new HttpResponseCallback() {
+            @Override
+            public void success(JSONObject response) {
+                super.success(response);
+                try {
+                    mListener.onCallReady(response.getString("id"));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void unauthorized() {
+
+            }
+
+            @Override
+            public void failure(int statusCode) {
+
+            }
+
+            @Override
+            public void noConnection() {
+
+            }
+
+            @Override
+            public void badConnection() {
+
+            }
+
+            @Override
+            public void badRequest() {
+
+            }
+
+            @Override
+            public void badResponse() {
+
+            }
+        });
+    }
+
+    public void message(String from, String type, String payload){
+        mMessageHandler.message(from, type, payload);
     }
 
     /**
@@ -324,8 +396,8 @@ public class WebRtcClient {
         }
         videoSource.dispose();
         factory.dispose();
-        client.disconnect();
-        client.close();
+        //TODO client.disconnect();
+        //TODO client.close();
     }
 
     private int findEndPoint() {
@@ -341,15 +413,45 @@ public class WebRtcClient {
      *
      * @param name client name
      */
-    public void start(String name){
+    public void start(String callId, String name){
         setCamera();
-        try {
-            JSONObject message = new JSONObject();
-            message.put("name", name);
-            client.emit("readyToStream", message);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+
+            List<NameValuePair> params = new ArrayList<NameValuePair>();
+            params.add(new BasicNameValuePair("name", name));
+            params.add(new BasicNameValuePair("callId", callId));
+            NetworkUtils.post(mContext, "/streams/readyToStream", params, new HttpResponseCallback() {
+
+                @Override
+                public void unauthorized() {
+
+                }
+
+                @Override
+                public void failure(int statusCode) {
+
+                }
+
+                @Override
+                public void noConnection() {
+
+                }
+
+                @Override
+                public void badConnection() {
+
+                }
+
+                @Override
+                public void badRequest() {
+
+                }
+
+                @Override
+                public void badResponse() {
+
+                }
+            });
+
     }
 
     private void setCamera(){
