@@ -38,5 +38,6 @@ dependencies {
     compile "commons-io:commons-io:+"
     compile 'com.splunk.mint:mint:4.2'
     compile 'io.pristine:libjingle:8871@aar'
+    compile 'com.github.nkzawa:socket.io-client:0.4.2'
 
 }

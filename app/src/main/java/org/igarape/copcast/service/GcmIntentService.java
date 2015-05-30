@@ -16,11 +16,9 @@ import org.igarape.copcast.receiver.GcmBroadcastReceiver;
  */
 public class GcmIntentService extends IntentService {
     private static final String KEY_STREAMING_START = "startStreaming";
-    private static final String KEY_STREAMING_MESSAGE = "message";
     private static final String KEY_STREAMING_STOP = "stopStreaming";
     public static final String START_STREAMING_ACTION = "org.igarape.copcast.hSTART_STREAMING_ACTION";
     public static final String STOP_STREAMING_ACTION = "org.igarape.copcast.STOP_STREAMING_ACTION";
-    public static final String MESSAGE_STREAMING_ACTION = "org.igarape.copcast.MESSAGE_STREAMING_ACTION";
     public static String TAG = GcmIntentService.class.getName();
 
     public GcmIntentService() {
@@ -47,15 +45,8 @@ public class GcmIntentService extends IntentService {
                 LocalBroadcastManager broadcaster = LocalBroadcastManager.getInstance(this);
                 if (KEY_STREAMING_START.equals(key)) {
                     broadcaster.sendBroadcast(new Intent(START_STREAMING_ACTION));
-                } else if (KEY_STREAMING_STOP.equals(key)){
-                    broadcaster.sendBroadcast(new Intent(STOP_STREAMING_ACTION));
                 } else {
-                    Intent serviceIntent = new Intent(this, StreamService.class);
-                    for(String keyAux : extras.keySet()){
-                        serviceIntent.putExtra(keyAux, String.valueOf(extras.get(keyAux)));
-                    }
-
-                    startService(serviceIntent);
+                    broadcaster.sendBroadcast(new Intent(STOP_STREAMING_ACTION));
                 }
             }
         }
