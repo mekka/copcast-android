@@ -51,7 +51,7 @@ import static org.igarape.copcast.utils.FileUtils.formatMegaBytes;
 import static org.igarape.copcast.utils.Globals.getDirectorySize;
 
 
-public class MainActivity extends Activity implements SurfaceHolder.Callback {
+public class MainActivity extends Activity {
 
     private static final String TAG = MainActivity.class.getName();
     public static SurfaceView mSurfaceView;
@@ -75,10 +75,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        mSurfaceView = (SurfaceView) findViewById(R.id.surfaceView1);
-        mSurfaceHolder = mSurfaceView.getHolder();
-        mSurfaceHolder.addCallback(this);
 
         mStreamSwitch = (Switch) findViewById(R.id.streamSwitch);
         mStarMissionButton = (Button) findViewById(R.id.startMissionButton);
@@ -572,21 +568,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
         MainActivity.this.finish();
-    }
-
-    @Override
-    public void surfaceCreated(SurfaceHolder surfaceHolder) {
-
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i2, int i3) {
-
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-
     }
 
     @Override

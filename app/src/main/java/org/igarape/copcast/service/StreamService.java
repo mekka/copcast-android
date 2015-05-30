@@ -6,6 +6,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
+import android.graphics.Point;
 import android.opengl.GLSurfaceView;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
@@ -80,7 +81,7 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
         windowManager = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
         surfaceView = new GLSurfaceView(this);
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
-                1, 1,
+                320, 240,
                 WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
                 WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
                 PixelFormat.TRANSLUCENT
@@ -105,23 +106,18 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
     }
 
     private void init() {
-//        Point displaySize = new Point();
-//        getWindowManager().getDefaultDisplay().getSize(displaySize);
-//        PeerConnectionParameters params = new PeerConnectionParameters(
-//                true, false, displaySize.x, displaySize.y, 30, 1, VIDEO_CODEC_VP9, true, 1, AUDIO_CODEC_OPUS, true);
-//
-//        client = new WebRtcClient(this, mSocketAddress, params, VideoRendererGui.getEGLContext());
+        Point displaySize = new Point();
+        windowManager.getDefaultDisplay().getSize(displaySize);
+        PeerConnectionParameters params = new PeerConnectionParameters(
+                true, false, displaySize.x, displaySize.y, 15, 1, VIDEO_CODEC_VP9, true, 1, AUDIO_CODEC_OPUS, true);
+
+        client = new WebRtcClient(this, BuildConfig.serverUrl, params, VideoRendererGui.getEGLContext(), Globals.getAccessTokenStraight(getApplicationContext()));
 
 
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        PeerConnectionParameters params = new PeerConnectionParameters(
-                true, false, 320 , 240, 15, 1, VIDEO_CODEC_VP9, true, 1, AUDIO_CODEC_OPUS, true);
-
-        client = new WebRtcClient(this, BuildConfig.serverUrl, params, VideoRendererGui.getEGLContext(), Globals.getAccessTokenStraight(getApplicationContext()));
-
 
     }
 

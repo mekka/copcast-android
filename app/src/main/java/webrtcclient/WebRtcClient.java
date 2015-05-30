@@ -293,27 +293,15 @@ public class WebRtcClient {
     }
 
     /**
-     * Call this method in Activity.onPause()
-     */
-    public void onPause() {
-        if(videoSource != null) videoSource.stop();
-    }
-
-    /**
-     * Call this method in Activity.onResume()
-     */
-    public void onResume() {
-        if(videoSource != null) videoSource.restart();
-    }
-
-    /**
      * Call this method in Activity.onDestroy()
      */
     public void onDestroy() {
         for (Peer peer : peers.values()) {
             peer.pc.dispose();
         }
-        videoSource.stop();
+        if (videoSource != null) {
+            videoSource.stop();
+        }
         factory.dispose();
         client.disconnect();
         client.close();
