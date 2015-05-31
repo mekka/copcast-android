@@ -18,6 +18,8 @@ import android.view.WindowManager;
 import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
 import org.igarape.copcast.utils.Globals;
+import org.igarape.copcast.utils.HttpResponseCallback;
+import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.views.MainActivity;
 import org.json.JSONException;
 import org.webrtc.MediaStream;
@@ -81,7 +83,7 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
         windowManager = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
         surfaceView = new GLSurfaceView(this);
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
-                1, 1,
+                1, 240,
                 WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
                 WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
                 PixelFormat.TRANSLUCENT
@@ -141,6 +143,37 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         mNotificationManager.cancel(mId);
+        NetworkUtils.delete(this.getApplicationContext(), "/streams", new HttpResponseCallback() {
+            @Override
+            public void unauthorized() {
+
+            }
+
+            @Override
+            public void failure(int statusCode) {
+
+            }
+
+            @Override
+            public void noConnection() {
+
+            }
+
+            @Override
+            public void badConnection() {
+
+            }
+
+            @Override
+            public void badRequest() {
+
+            }
+
+            @Override
+            public void badResponse() {
+
+            }
+        });
         super.onDestroy();
     }
 
@@ -161,6 +194,6 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
         VideoRendererGui.update(localRender,
                 LOCAL_X_CONNECTING, LOCAL_Y_CONNECTING,
                 LOCAL_WIDTH_CONNECTING, LOCAL_HEIGHT_CONNECTING,
-                scalingType);
+                scalingType, false);
     }
 }

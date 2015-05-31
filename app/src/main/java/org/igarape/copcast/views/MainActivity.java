@@ -89,6 +89,8 @@ public class MainActivity extends Activity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
+                    HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.STREAMING, Globals.getUserLogin(MainActivity.this));
+
                     Intent intentAux = new Intent(MainActivity.this, VideoRecorderService.class);
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     stopService(intentAux);
@@ -97,8 +99,9 @@ public class MainActivity extends Activity {
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startService(intentAux);
 
-                    HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.STREAMING, Globals.getUserLogin(MainActivity.this));
                 } else {
+                    HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this));
+
                     Intent intentAux = new Intent(MainActivity.this, StreamService.class);
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     stopService(intentAux);
@@ -107,7 +110,6 @@ public class MainActivity extends Activity {
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startService(intentAux);
 
-                    HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this));
                 }
             }
         };
@@ -439,7 +441,7 @@ public class MainActivity extends Activity {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startService(intent);
 
-        HistoryUtils.registerHistory(getApplicationContext(),State.PAUSED,State.RECORDING_ONLINE, Globals.getUserLogin(getApplicationContext()));
+        HistoryUtils.registerHistory(getApplicationContext(), State.PAUSED, State.RECORDING_ONLINE, Globals.getUserLogin(getApplicationContext()));
 
         vibrate(200); //vibrate when touch a button
     }
