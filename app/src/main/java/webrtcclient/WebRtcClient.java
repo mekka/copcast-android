@@ -111,6 +111,7 @@ public class WebRtcClient {
         JSONObject message = new JSONObject();
         message.put("to", to);
         message.put("type", type);
+        message.put("client", "android");
         message.put("payload", payload);
         client.emit("message", message);
     }
@@ -353,7 +354,7 @@ public class WebRtcClient {
     }
 
     private VideoCapturer getVideoCapturer() {
-        String frontCameraDeviceName = VideoCapturerAndroid.getNameOfFrontFacingDevice();
-        return VideoCapturerAndroid.create(frontCameraDeviceName);
+        String cameraDeviceName = VideoCapturerAndroid.getNameOfBackFacingDevice();
+        return VideoCapturerAndroid.create(cameraDeviceName);
     }
 }
