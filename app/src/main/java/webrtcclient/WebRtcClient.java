@@ -29,7 +29,7 @@ import java.util.LinkedList;
 
 public class WebRtcClient {
     private final static String TAG = WebRtcClient.class.getCanonicalName();
-    private final static int MAX_PEER = 2;
+    private final static int MAX_PEER = 10;
     private boolean[] endPoints = new boolean[MAX_PEER];
     private PeerConnectionFactory factory;
     private HashMap<String, Peer> peers = new HashMap<String, Peer>();
@@ -59,7 +59,7 @@ public class WebRtcClient {
 
     private class CreateOfferCommand implements Command{
         public void execute(String peerId, JSONObject payload) throws JSONException {
-            Log.d(TAG,"CreateOfferCommand");
+            Log.d(TAG,"CreateOfferCommand " + peerId);
             Peer peer = peers.get(peerId);
             peer.pc.createOffer(peer, pcConstraints);
         }
@@ -73,7 +73,7 @@ public class WebRtcClient {
 
     private class SetRemoteSDPCommand implements Command{
         public void execute(String peerId, JSONObject payload) throws JSONException {
-            Log.d(TAG,"SetRemoteSDPCommand");
+            Log.d(TAG,"SetRemoteSDPCommand "+peerId);
             Peer peer = peers.get(peerId);
             SessionDescription sdp = new SessionDescription(
                     SessionDescription.Type.fromCanonicalForm(payload.getString("type")),
@@ -107,6 +107,7 @@ public class WebRtcClient {
      * @throws JSONException
      */
     public void sendMessage(String to, String type, JSONObject payload) throws JSONException {
+        Log.d(TAG, "send message " +to + " type "+type);
         JSONObject message = new JSONObject();
         message.put("to", to);
         message.put("type", type);
@@ -132,6 +133,7 @@ public class WebRtcClient {
                 try {
                     String from = data.getString("from");
                     String type = data.getString("type");
+                    Log.d(TAG, "Received message " + from + " type "+type);
                     JSONObject payload = null;
                     if(!type.equals("init")) {
                         payload = data.getJSONObject("payload");
