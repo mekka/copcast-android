@@ -174,6 +174,13 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
 
             }
         });
+        if (Globals.isToggling()){
+            Intent intentAux = new Intent(this, VideoRecorderService.class);
+            intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startService(intentAux);
+
+            Globals.setToggling(false);
+        }
         super.onDestroy();
     }
 
