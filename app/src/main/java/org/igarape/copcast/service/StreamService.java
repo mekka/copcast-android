@@ -83,7 +83,7 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
         windowManager = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
         surfaceView = new GLSurfaceView(this);
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
-                1, 240,
+                1, 1,
                 WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
                 WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
                 PixelFormat.TRANSLUCENT
