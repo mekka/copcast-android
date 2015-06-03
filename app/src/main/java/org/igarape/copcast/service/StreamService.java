@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
+import android.hardware.Camera;
+import android.media.CamcorderProfile;
 import android.opengl.GLSurfaceView;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
@@ -108,10 +110,12 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
     }
 
     private void init() {
-        Point displaySize = new Point();
-        windowManager.getDefaultDisplay().getSize(displaySize);
+
+        CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
+
+        //windowManager.getDefaultDisplay().getSize(displaySize);
         PeerConnectionParameters params = new PeerConnectionParameters(
-                true, false, displaySize.x, displaySize.y, 15, 1, VIDEO_CODEC_VP9, true, 1, AUDIO_CODEC_OPUS, true);
+                true, false, profile.videoFrameWidth, profile.videoFrameHeight, 15, 1, VIDEO_CODEC_VP9, true, 1, AUDIO_CODEC_OPUS, true);
 
         client = new WebRtcClient(this, BuildConfig.serverUrl, params, VideoRendererGui.getEGLContext(), Globals.getAccessTokenStraight(getApplicationContext()));
 
