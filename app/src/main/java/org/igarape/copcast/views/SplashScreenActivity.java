@@ -26,7 +26,7 @@ public class SplashScreenActivity extends Activity {
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
     private Context context;
     private GoogleCloudMessaging gcm;
-    private String regid = null;
+    private String regid = null;  //testing
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
