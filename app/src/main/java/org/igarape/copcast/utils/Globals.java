@@ -43,6 +43,7 @@ public class Globals {
     private static Bitmap userImage = null;
     private static Long directorySize;
     private static Long directoryUploadedSize;
+    private static Boolean toggling = false;
 
     public synchronized static String getAccessToken(Context context) {
         if (accessToken == null) {
@@ -50,6 +51,14 @@ public class Globals {
             accessToken = sharedPrefs.getString(PREF_ACCESS_TOKEN, null);
         }
         return accessToken != null ? "Bearer " + accessToken : null;
+    }
+
+    public synchronized static String getAccessTokenStraight(Context context) {
+        if (accessToken == null) {
+            SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
+            accessToken = sharedPrefs.getString(PREF_ACCESS_TOKEN, null);
+        }
+        return accessToken != null ? accessToken : null;
     }
 
     public synchronized static void setAccessToken(Context context, String token) {
@@ -200,6 +209,7 @@ public class Globals {
         streamingPath = "";
         userName = null;
         userImage = null;
+        toggling = false;
     }
 
     public static void setDirectorySize(Context context,Long directorySize) {
@@ -274,5 +284,13 @@ public class Globals {
             streamingPath = sharedPrefs.getString(STREAMING_PATH, null);
         }
         return streamingPath;
+    }
+
+    public static void setToggling(boolean value) {
+        toggling = value;
+    }
+
+    public static Boolean isToggling(){
+        return toggling;
     }
 }

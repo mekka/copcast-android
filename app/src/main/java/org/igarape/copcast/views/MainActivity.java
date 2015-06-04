@@ -51,7 +51,7 @@ import static org.igarape.copcast.utils.FileUtils.formatMegaBytes;
 import static org.igarape.copcast.utils.Globals.getDirectorySize;
 
 
-public class MainActivity extends Activity implements SurfaceHolder.Callback {
+public class MainActivity extends Activity {
 
     private static final String TAG = MainActivity.class.getName();
     public static SurfaceView mSurfaceView;
@@ -76,10 +76,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mSurfaceView = (SurfaceView) findViewById(R.id.surfaceView1);
-        mSurfaceHolder = mSurfaceView.getHolder();
-        mSurfaceHolder.addCallback(this);
-
         mStreamSwitch = (Switch) findViewById(R.id.streamSwitch);
         mStarMissionButton = (Button) findViewById(R.id.startMissionButton);
         mEndMissionButton = (Button) findViewById(R.id.endMissionButton);
@@ -92,26 +88,29 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         mStreamListener = new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Globals.setToggling(true);
                 if (isChecked) {
+                    HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.STREAMING, Globals.getUserLogin(MainActivity.this));
+
                     Intent intentAux = new Intent(MainActivity.this, VideoRecorderService.class);
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     stopService(intentAux);
 
-                    intentAux = new Intent(MainActivity.this, StreamService.class);
-                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startService(intentAux);
+//                    intentAux = new Intent(MainActivity.this, StreamService.class);
+//                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                    startService(intentAux);
 
-                    HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.STREAMING, Globals.getUserLogin(MainActivity.this));
                 } else {
+                    HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this));
+
                     Intent intentAux = new Intent(MainActivity.this, StreamService.class);
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     stopService(intentAux);
 
-                    intentAux = new Intent(MainActivity.this, VideoRecorderService.class);
-                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startService(intentAux);
+//                    intentAux = new Intent(MainActivity.this, VideoRecorderService.class);
+//                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                    startService(intentAux);
 
-                    HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this));
                 }
             }
         };
@@ -443,7 +442,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startService(intent);
 
-        HistoryUtils.registerHistory(getApplicationContext(),State.PAUSED,State.RECORDING_ONLINE, Globals.getUserLogin(getApplicationContext()));
+        HistoryUtils.registerHistory(getApplicationContext(), State.PAUSED, State.RECORDING_ONLINE, Globals.getUserLogin(getApplicationContext()));
 
         vibrate(200); //vibrate when touch a button
     }
@@ -572,21 +571,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
         MainActivity.this.finish();
-    }
-
-    @Override
-    public void surfaceCreated(SurfaceHolder surfaceHolder) {
-
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i2, int i3) {
-
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-
     }
 
     @Override

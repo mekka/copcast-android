@@ -142,6 +142,14 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         mNotificationManager.cancel(mId);
+
+        if (Globals.isToggling()){
+            Intent intentAux = new Intent(this, StreamService.class);
+            intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startService(intentAux);
+
+            Globals.setToggling(false);
+        }
     }
 
     @Override
