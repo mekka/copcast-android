@@ -57,6 +57,9 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent == null){
+            stopSelf();
+        }
 
         Intent resultIntent = new Intent(this, MainActivity.class);
         Context context = getApplicationContext();

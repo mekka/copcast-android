@@ -65,6 +65,10 @@ public class UploadService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         this.intent = intent;
+        if (intent == null){
+            stopSelf();
+        }
+
         final Intent resultIntent = new Intent(this, MainActivity.class);
         final Context context = getApplicationContext();
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)

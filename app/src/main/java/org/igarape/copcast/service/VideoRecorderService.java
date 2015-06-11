@@ -43,6 +43,14 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     private int mId = 1;
 
     @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent == null){
+            stopSelf();
+        }
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
     public void onCreate() {
 
         Intent resultIntent = new Intent(this, MainActivity.class);

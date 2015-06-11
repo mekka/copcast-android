@@ -204,7 +204,6 @@ public class NetworkUtils {
                         writer.close();
                         os.close();
                     } else if (jsonObject != null) {
-                        Log.d("log1-app", "p2");
                         urlConnection.setRequestProperty("Content-Type", "application/json;charset=" + charset);
                         os = urlConnection.getOutputStream();
                         writer = new BufferedWriter(
@@ -212,27 +211,20 @@ public class NetworkUtils {
                         writer.write(jsonObject.toString());
                         writer.flush();
                     }
-                    Log.d("log1-app", "p3");
                     // handle issues
-                    Log.d(TAG, url +" type is "+ type);
+
 
                     urlConnection.connect();
-                    Log.d(TAG, url + " connected " + type);
                     statusCode = urlConnection.getResponseCode();
-                    Log.d(TAG, url + " retrieved response " + type);
                     if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                        Log.d(TAG, url + " status code " + type + "   "+statusCode);
                         callback.unauthorized();
                         return null;
                     } else if (statusCode != HttpURLConnection.HTTP_OK) {
-                        Log.d(TAG, url + " status code " + type + "   "+statusCode);
                         callback.failure(statusCode);
                         return null;
                     }
 
-                    Log.d(TAG, url + " to bufferes stream " + type);
                     if (type.equals(Response.JSON)){
-                        Log.d(TAG, url + " wrong path" + type);
                         InputStream in = new BufferedInputStream(
                                 urlConnection.getInputStream());
 
@@ -249,7 +241,6 @@ public class NetworkUtils {
                             output.write(buffer, 0, bytesRead);
                         }
 
-                        Log.d(TAG, url + " calling callback" + type);
                         callback.success( output.toByteArray());
                     }
 

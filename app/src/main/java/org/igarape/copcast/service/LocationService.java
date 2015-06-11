@@ -130,4 +130,12 @@ public class LocationService extends Service implements
         LocationUtils.sendLocation(this, Globals.getUserLogin(getApplicationContext()), location);
     }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent == null){
+            stopSelf();
+        }
+        return super.onStartCommand(intent, flags, startId);
+    }
+
 }
