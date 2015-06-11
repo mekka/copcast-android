@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -44,7 +45,11 @@ import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.HistoryUtils;
 import org.igarape.copcast.utils.HttpResponseCallback;
 import org.igarape.copcast.utils.NetworkUtils;
+import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
 import static org.igarape.copcast.utils.FileUtils.formatMegaBytes;
@@ -149,7 +154,7 @@ public class MainActivity extends Activity {
             }
         };
 
-        NetworkUtils.get(getApplicationContext(), "/pictures/small/show", new HttpResponseCallback() {
+        NetworkUtils.get(getApplicationContext(), "/pictures/icon/show", NetworkUtils.Response.BYTEARRAY, new HttpResponseCallback() {
             @Override
             public void unauthorized() {
 

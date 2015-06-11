@@ -17,6 +17,8 @@ import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -75,15 +77,20 @@ public class NetworkUtils {
     }
 
     public static void get(Context context, String url, HttpResponseCallback callback) {
-        executeRequest(Method.GET, context, null, null, url, callback);
+        get( context,  url,  Response.JSON,  callback);
     }
 
+    public static void get(Context context, String url, Response type, HttpResponseCallback callback) {
+        executeRequest(Method.GET, context, null, null, url,type, callback);
+    }
+
+
     public static void post(Context context, String url, List<NameValuePair> params, HttpResponseCallback callback) {
-        executeRequest(Method.POST, context, params, null, url, callback);
+        executeRequest(Method.POST, context, params, null, url, Response.JSON, callback);
     }
 
     public static void post(Context context, String url, Object jsonObject, HttpResponseCallback callback) {
-        executeRequest(Method.POST, context, null, jsonObject, url, callback);
+        executeRequest(Method.POST, context, null, jsonObject, url, Response.JSON, callback);
     }
 
     public static boolean hasConnection(Context context) {
@@ -141,10 +148,10 @@ public class NetworkUtils {
     }
 
     public static void delete(final Context context, final String url, final HttpResponseCallback callback) {
-        executeRequest(Method.DELETE, context, null, null, url, callback);
+        executeRequest(Method.DELETE, context, null, null, url, Response.JSON, callback);
     }
 
-    private static Void executeRequest(final Method method, final Context context, final List<NameValuePair> params, final Object jsonObject, final String url, final HttpResponseCallback callback) {
+    private static Void executeRequest(final Method method, final Context context, final List<NameValuePair> params, final Object jsonObject, final String url, final Response type, final HttpResponseCallback callback) {
         if (!hasConnection(context)) {
             if (callback != null) {
                 callback.noConnection();
@@ -162,6 +169,7 @@ public class NetworkUtils {
                 BufferedWriter writer = null;
 
                 HttpURLConnection urlConnection = null;
+
                 try {
                     URL urlToRequest = new URL(Globals.SERVER_URL + url);
                     urlConnection = (HttpURLConnection) urlToRequest.openConnection();
@@ -186,7 +194,6 @@ public class NetworkUtils {
                     urlConnection.setReadTimeout(DATA_RETRIEVAL_TIMEOUT);
 
 
-
                     if (params != null) {
                         Log.d("log1-app", "p1");
                         os = urlConnection.getOutputStream();
@@ -207,24 +214,46 @@ public class NetworkUtils {
                     }
                     Log.d("log1-app", "p3");
                     // handle issues
+                    Log.d(TAG, url +" type is "+ type);
+
                     urlConnection.connect();
+                    Log.d(TAG, url + " connected " + type);
                     statusCode = urlConnection.getResponseCode();
+                    Log.d(TAG, url + " retrieved response " + type);
                     if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                        Log.d(TAG, url + " status code " + type + "   "+statusCode);
                         callback.unauthorized();
                         return null;
                     } else if (statusCode != HttpURLConnection.HTTP_OK) {
+                        Log.d(TAG, url + " status code " + type + "   "+statusCode);
                         callback.failure(statusCode);
                         return null;
                     }
 
-                    InputStream in = new BufferedInputStream(
-                            urlConnection.getInputStream());
-                    String responseText = getResponseText(in);
+                    Log.d(TAG, url + " to bufferes stream " + type);
+                    if (type.equals(Response.JSON)){
+                        Log.d(TAG, url + " wrong path" + type);
+                        InputStream in = new BufferedInputStream(
+                                urlConnection.getInputStream());
 
-                    JSONObject response = new JSONObject(responseText);
+                        String responseText = getResponseText(in);
+                        JSONObject response = new JSONObject(responseText);
+                        callback.success(response);
+                    } else {
+                        byte[] buffer = new byte[8192];
+                        int bytesRead;
+                        ByteArrayOutputStream output = new ByteArrayOutputStream();
+                        InputStream inputStream = urlConnection.getInputStream();
+                        while ((bytesRead = inputStream.read(buffer)) != -1)
+                        {
+                            output.write(buffer, 0, bytesRead);
+                        }
+
+                        Log.d(TAG, url + " calling callback" + type);
+                        callback.success( output.toByteArray());
+                    }
 
 
-                    callback.success(response);
                 } catch (MalformedURLException e) {
                     callback.badRequest();
                     Log.e(TAG, "Url error ", e);
@@ -235,8 +264,7 @@ public class NetworkUtils {
                     callback.badResponse();
                     Log.e(TAG, "Could not read response body ", e);
                 } catch (JSONException e) {
-
-                    return null;
+                    Log.e(TAG, "Json exception ", e);
                 } finally {
                     try {
                         if (writer != null) {
@@ -268,7 +296,10 @@ public class NetworkUtils {
         return null;
     }
 
+
     enum Method {
         POST, DELETE, GET;
     }
+
+    public enum Response {BYTEARRAY, JSON}
 }

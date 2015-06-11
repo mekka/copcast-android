@@ -2,6 +2,8 @@ package org.igarape.copcast.utils;
 
 import org.json.JSONObject;
 
+import java.io.InputStream;
+
 /**
  * Created by bruno on 11/5/14.
  */
