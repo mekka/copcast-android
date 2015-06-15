@@ -37,8 +37,6 @@ import webrtcclient.WebRtcClient;
  */
 public class StreamService extends Service implements SurfaceHolder.Callback, WebRtcClient.RtcListener {
     private WebRtcClient client;
-    private WindowManager windowManager;
-    private GLSurfaceView surfaceView;
     private static final String VIDEO_CODEC_VP9 = "VP9";
     private static final String AUDIO_CODEC_OPUS = "opus";
     private int mId = 5;
@@ -60,7 +58,11 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
         if (intent == null){
             stopSelf();
         }
+        return super.onStartCommand(intent, flags, startId);
+    }
 
+    @Override
+    public void onCreate() {
         Intent resultIntent = new Intent(this, MainActivity.class);
         Context context = getApplicationContext();
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
@@ -85,8 +87,8 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
         mNotificationManager.notify(mId, mBuilder.build());
 
         // Create new SurfaceView, set its size to 1x1, move it to the top left corner and set this service as a callback
-        windowManager = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
-        surfaceView = new GLSurfaceView(this);
+        WindowManager windowManager = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
+        GLSurfaceView surfaceView = new GLSurfaceView(this);
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 1, 1,
                 WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
@@ -109,7 +111,6 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
                 LOCAL_X_CONNECTING, LOCAL_Y_CONNECTING,
                 LOCAL_WIDTH_CONNECTING, LOCAL_HEIGHT_CONNECTING, scalingType, true);
 
-        return super.onStartCommand(intent, flags, startId);
     }
 
     private void init() {
