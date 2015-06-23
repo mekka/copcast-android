@@ -96,22 +96,9 @@ public class LoginActivity extends Activity {
                 String token = null;
                 try {
                     token = (String) response.get("token");
-                    String ipAddress = (String) response.get("ipAddress");
-                    if (ipAddress != null) {
-                        Globals.setServerIpAddress(getApplicationContext(),ipAddress);
-                    }
-                } catch (JSONException e) {
-                    Log.e(TAG, "error on login", e);
-                }
-
-                try {
-                    Globals.setStreamingPort(getApplicationContext(),Integer.parseInt((String) response.get("streamingPort")));
-                    Globals.setStreamingUser(getApplicationContext(), (String) response.get("streamingUser"));
-                    Globals.setStreamingPassword(getApplicationContext(), (String) response.get("streamingPassword"));
-                    Globals.setStreamingPath(getApplicationContext(), (String) response.get("streamingPath"));
                     Globals.setUserName(getApplicationContext(), (String) response.get("userName"));
                 } catch (JSONException e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "error on login", e);
                 }
                 if (pDialog != null) {
                     pDialog.dismiss();
