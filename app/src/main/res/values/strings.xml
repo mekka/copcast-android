@@ -65,4 +65,8 @@
     <string name="resume_mission">Resume Mission</string>
     <string name="pause_title">Paused</string>
     <string name="pause_desc">Recording have been paused.</string>
+    <string name="wifi_dialog_title">Wi-Fi is disabled</string>
+    <string name="wifi_dialog_msg">For better location accuracy please turn Wi-Fi on. Do you wanna change settings?</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="settings_button">Settings</string>
 </resources>

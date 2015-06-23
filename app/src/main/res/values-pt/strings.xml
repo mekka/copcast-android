@@ -121,4 +121,8 @@
     <string name="resume_mission">Reiniciar Missão</string>
     <string name="pause_title">Pausar</string>
     <string name="pause_desc">Gravação foi pausada.</string>
+    <string name="wifi_dialog_title">Wi-Fi desativado</string>
+    <string name="wifi_dialog_msg">Para melhorar a precisão de sua localização por favor ligar o Wi-Fi. Deseja modificar as configurações?</string>
+    <string name="cancel_button">Cancelar</string>
+    <string name="settings_button">Configurações</string>
 </resources>
