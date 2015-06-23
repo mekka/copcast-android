@@ -16,12 +16,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
@@ -70,10 +72,15 @@ public class NetworkUtils {
         }
     }
 
-    private static String getResponseText(InputStream inStream) {
-        // very nice trick from
-        // http://weblogs.java.net/blog/pat/archive/2004/10/stupid_scanner_1.html
-        return new Scanner(inStream).useDelimiter("\\A").next();
+    private static String getResponseText(InputStream inStream) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(inStream));
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = br.readLine()) != null) {
+            sb.append(line+"\n");
+        }
+        br.close();
+        return sb.toString();
     }
 
     public static void get(Context context, String url, HttpResponseCallback callback) {
@@ -229,8 +236,12 @@ public class NetworkUtils {
                                 urlConnection.getInputStream());
 
                         String responseText = getResponseText(in);
-                        JSONObject response = new JSONObject(responseText);
-                        callback.success(response);
+                        try {
+                            JSONObject response = new JSONObject(responseText);
+                            callback.success(response);
+                        } catch (JSONException ex) {
+                            callback.success((JSONObject)null);
+                        }
                     } else {
                         byte[] buffer = new byte[8192];
                         int bytesRead;
@@ -254,8 +265,6 @@ public class NetworkUtils {
                 } catch (IOException e) {
                     callback.badResponse();
                     Log.e(TAG, "Could not read response body ", e);
-                } catch (JSONException e) {
-                    Log.e(TAG, "Json exception ", e);
                 } finally {
                     try {
                         if (writer != null) {
