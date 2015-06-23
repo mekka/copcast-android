@@ -46,12 +46,8 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent == null){
             stopSelf();
+            return START_STICKY;
         }
-        return super.onStartCommand(intent, flags, startId);
-    }
-
-    @Override
-    public void onCreate() {
 
         Intent resultIntent = new Intent(this, MainActivity.class);
         Context context = getApplicationContext();
@@ -88,8 +84,9 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         layoutParams.gravity = Gravity.LEFT | Gravity.TOP;
         windowManager.addView(surfaceView, layoutParams);
         surfaceView.getHolder().addCallback(this);
-
+        return START_STICKY;
     }
+
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {

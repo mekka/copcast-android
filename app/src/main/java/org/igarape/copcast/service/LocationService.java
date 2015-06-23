@@ -61,8 +61,32 @@ public class LocationService extends Service implements
 
 
     @Override
-    public void onCreate() {
-        super.onCreate();
+    public void onConnected(Bundle bundle) {
+        mLocationClient.requestLocationUpdates(mLocationRequest, this);
+    }
+
+    @Override
+    public void onDisconnected() {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        LocationUtils.sendLocation(this, Globals.getUserLogin(getApplicationContext()), location);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent == null){
+            stopSelf();
+            return START_STICKY;
+        }
+
         final Intent resultIntent = new Intent(this, MainActivity.class);
         final Context context = getApplicationContext();
 
@@ -108,34 +132,7 @@ public class LocationService extends Service implements
          */
         mLocationClient = new LocationClient(this, this, this);
         mLocationClient.connect();
-    }
-
-    @Override
-    public void onConnected(Bundle bundle) {
-        mLocationClient.requestLocationUpdates(mLocationRequest, this);
-    }
-
-    @Override
-    public void onDisconnected() {
-
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        LocationUtils.sendLocation(this, Globals.getUserLogin(getApplicationContext()), location);
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent == null){
-            stopSelf();
-        }
-        return super.onStartCommand(intent, flags, startId);
+        return START_STICKY;
     }
 
 }

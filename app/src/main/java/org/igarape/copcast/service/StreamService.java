@@ -57,12 +57,9 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent == null){
             stopSelf();
+            return START_STICKY;
         }
-        return super.onStartCommand(intent, flags, startId);
-    }
 
-    @Override
-    public void onCreate() {
         Intent resultIntent = new Intent(this, MainActivity.class);
         Context context = getApplicationContext();
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
@@ -110,8 +107,9 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
         localRender = VideoRendererGui.create(
                 LOCAL_X_CONNECTING, LOCAL_Y_CONNECTING,
                 LOCAL_WIDTH_CONNECTING, LOCAL_HEIGHT_CONNECTING, scalingType, true);
-
+        return START_STICKY;
     }
+
 
     private void init() {
 

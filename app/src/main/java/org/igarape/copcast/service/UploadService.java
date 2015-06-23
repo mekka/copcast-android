@@ -67,6 +67,7 @@ public class UploadService extends Service {
         this.intent = intent;
         if (intent == null){
             stopSelf();
+            return START_STICKY;
         }
 
         final Intent resultIntent = new Intent(this, MainActivity.class);
@@ -101,7 +102,7 @@ public class UploadService extends Service {
             uploadUserData();
         }
 
-        return super.onStartCommand(intent, flags, startId);
+        return START_STICKY;
     }
 
     public void sendUpdateToUI(Long size) {
