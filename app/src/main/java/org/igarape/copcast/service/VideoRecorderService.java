@@ -185,6 +185,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 camera.release();
             }
         } catch (IllegalStateException i) {
+            Log.e(TAG,"IllegalStateException on prepareMediaEncoder", i);
         }
     }
 
