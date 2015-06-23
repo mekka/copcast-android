@@ -24,6 +24,7 @@ import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.views.MainActivity;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -31,6 +32,8 @@ import java.util.Date;
  * Created by fcavalcanti on 19/11/2014.
  */
 public class VideoRecorderService extends Service implements SurfaceHolder.Callback {
+
+    private static final String TAG = VideoRecorderService.class.getName();
 
     private WindowManager windowManager;
     private SurfaceView surfaceView;
@@ -131,8 +134,8 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
         try {
             mediaRecorder.prepare();
-        } catch (Exception e) {
-            //logar ???//TODO
+        } catch (IOException e) {
+            Log.e(TAG,"ioException on prepareMediaEncoder", e);
             return false;
         }
         return true;
