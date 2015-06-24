@@ -69,4 +69,8 @@
     <string name="wifi_dialog_msg">For better location accuracy please turn Wi-Fi on. Do you wanna change settings?</string>
     <string name="cancel_button">Cancel</string>
     <string name="settings_button">Settings</string>
+    <string name="confirmation_tittle">Confirmation</string>
+    <string name="confirmation_msg">Do you really want to leave the app?</string>
+    <string name="confirmation_button_positive">Yes</string>
+    <string name="confirmation_button_negative">No</string>
 </resources>

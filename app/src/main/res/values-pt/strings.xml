@@ -3,8 +3,6 @@
         
     <string name="app_name"> CopCast </string>
         
-    <string name="hello_world"> Olá, mundo! </string>
-        
     <string name="login_title"> LOGIN </string>
         
     <string name="action_settings"> Configurações </string>
@@ -125,4 +123,8 @@
     <string name="wifi_dialog_msg">Para melhorar a precisão de sua localização por favor ligar o Wi-Fi. Deseja modificar as configurações?</string>
     <string name="cancel_button">Cancelar</string>
     <string name="settings_button">Configurações</string>
+    <string name="confirmation_tittle">Confirmação</string>
+    <string name="confirmation_msg">Você quer realmente sair do app?</string>
+    <string name="confirmation_button_positive">Sim</string>
+    <string name="confirmation_button_negative">Não</string>
 </resources>

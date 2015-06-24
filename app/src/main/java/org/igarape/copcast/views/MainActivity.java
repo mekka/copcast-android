@@ -203,7 +203,7 @@ public class MainActivity extends Activity {
             }
         });
 
-         ((ProgressBar) findViewById(R.id.progressBar)).setMax(getDirectorySize(getApplicationContext()).intValue());
+        ((ProgressBar) findViewById(R.id.progressBar)).setMax(getDirectorySize(getApplicationContext()).intValue());
 
         ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, 0, formatMegaBytes(getDirectorySize(getApplicationContext()))));
         ((TextView) findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, formatMegaBytes(getDirectorySize(getApplicationContext()))));
@@ -318,39 +318,36 @@ public class MainActivity extends Activity {
         );
 
 
+        ((Button) findViewById(R.id.uploadButton)).setOnClickListener(new View.OnClickListener() {
+                                                                          @Override
+                                                                          public void onClick(View view) {
+                                                                              if (NetworkUtils.canUpload(getApplicationContext(), getIntent())) {
+                                                                                  findViewById(R.id.uploadLayout).setVisibility(View.GONE);
+                                                                                  findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
+                                                                                  findViewById(R.id.streamLayout).setVisibility(View.GONE);
 
+                                                                                  Intent intent = new Intent(MainActivity.this, UploadService.class);
+                                                                                  intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                                                  startService(intent);
 
-        ((Button)findViewById(R.id.uploadButton)).setOnClickListener(new View.OnClickListener() {
-                                                                         @Override
-                                                                         public void onClick(View view) {
-                                                                             if (NetworkUtils.canUpload(getApplicationContext(), getIntent())) {
-                                                                                 findViewById(R.id.uploadLayout).setVisibility(View.GONE);
-                                                                                 findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
-                                                                                 findViewById(R.id.streamLayout).setVisibility(View.GONE);
-
-                                                                                 Intent intent = new Intent(MainActivity.this, UploadService.class);
-                                                                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                                                 startService(intent);
-
-                                                                                 HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this));
-                                                                             } else {
-                                                                                 Toast.makeText(getApplicationContext(), getString(R.string.upload_disabled), Toast.LENGTH_LONG).show();
-                                                                             }
-                                                                         }
-                                                                     }
-        );
-
-        ((ImageView)findViewById(R.id.uploadCancelButton)).setOnClickListener(new View.OnClickListener() {
-                                                                                  @Override
-                                                                                  public void onClick(View view) {
-                                                                                      stopUploading();
-                                                                                  }
+                                                                                  HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this));
+                                                                              } else {
+                                                                                  Toast.makeText(getApplicationContext(), getString(R.string.upload_disabled), Toast.LENGTH_LONG).show();
                                                                               }
+                                                                          }
+                                                                      }
+        );
+
+        ((ImageView) findViewById(R.id.uploadCancelButton)).setOnClickListener(new View.OnClickListener() {
+                                                                                   @Override
+                                                                                   public void onClick(View view) {
+                                                                                       stopUploading();
+                                                                                   }
+                                                                               }
         );
 
 
-        mPauseRecordingButton.setOnClickListener(new View.OnClickListener()
-                                                 {
+        mPauseRecordingButton.setOnClickListener(new View.OnClickListener() {
                                                      @Override
                                                      public void onClick(View view) {
                                                          mPauseRecordingButton.setVisibility(View.GONE);
@@ -359,7 +356,7 @@ public class MainActivity extends Activity {
                                                  }
         );
 
-        ((Button)findViewById(R.id.tenMinutesButton)).
+        ((Button) findViewById(R.id.tenMinutesButton)).
                 setOnClickListener(new View.OnClickListener() {
                                        @Override
                                        public void onClick(View view) {
@@ -369,7 +366,7 @@ public class MainActivity extends Activity {
                                    }
                 );
 
-        ((Button)findViewById(R.id.thirtyMinutesButton)).
+        ((Button) findViewById(R.id.thirtyMinutesButton)).
                 setOnClickListener(new View.OnClickListener() {
                                        @Override
                                        public void onClick(View view) {
@@ -379,21 +376,20 @@ public class MainActivity extends Activity {
                                    }
                 );
 
-        mResumeMissionButton.setOnClickListener(new View.OnClickListener()
-                                                {
+        mResumeMissionButton.setOnClickListener(new View.OnClickListener() {
                                                     @Override
                                                     public void onClick(View view) {
                                                         resumeMission();
                                                     }
                                                 }
         );
-        ((Button)findViewById(R.id.pauseCancelButton)).setOnClickListener(new View.OnClickListener() {
-                                                                              @Override
-                                                                              public void onClick(View view) {
-                                                                                  mPauseRecordingButton.setVisibility(View.VISIBLE);
-                                                                                  findViewById(R.id.pausedLayout).setVisibility(View.GONE);
-                                                                              }
-                                                                          }
+        ((Button) findViewById(R.id.pauseCancelButton)).setOnClickListener(new View.OnClickListener() {
+                                                                               @Override
+                                                                               public void onClick(View view) {
+                                                                                   mPauseRecordingButton.setVisibility(View.VISIBLE);
+                                                                                   findViewById(R.id.pausedLayout).setVisibility(View.GONE);
+                                                                               }
+                                                                           }
         );
 
 
@@ -539,10 +535,30 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-
+        killServices();
         Globals.clear(MainActivity.this);
         super.onDestroy();
+    }
 
+    @Override
+    public void onBackPressed() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
+
+        Resources res = getResources();
+        alertDialog.setTitle(res.getString(R.string.confirmation_tittle));
+        alertDialog.setMessage(res.getString(R.string.confirmation_msg));
+
+        alertDialog.setPositiveButton(res.getText(R.string.confirmation_button_positive), new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog,int which) {
+                MainActivity.this.finish();
+            }
+        });
+        alertDialog.setNegativeButton(res.getText(R.string.confirmation_button_negative), new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        alertDialog.show();
     }
 
     @Override
@@ -572,13 +588,17 @@ public class MainActivity extends Activity {
         HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.NOT_LOGGED, Globals.getUserLogin(MainActivity.this));
 
         Globals.clear(MainActivity.this);
+        killServices();
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        startActivity(intent);
+        MainActivity.this.finish();
+    }
+
+    private void killServices() {
         stopService(new Intent(MainActivity.this, StreamService.class));
         stopService(new Intent(MainActivity.this, LocationService.class));
         stopService(new Intent(MainActivity.this, VideoRecorderService.class));
         stopService(new Intent(MainActivity.this, UploadService.class));
-        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-        startActivity(intent);
-        MainActivity.this.finish();
     }
 
     @Override
