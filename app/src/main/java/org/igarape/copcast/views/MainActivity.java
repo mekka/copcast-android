@@ -331,6 +331,7 @@ public class MainActivity extends Activity {
                                                                                   startService(intent);
 
                                                                                   HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this));
+                                                                                  updateProgressBar();
                                                                               } else {
                                                                                   Toast.makeText(getApplicationContext(), getString(R.string.upload_disabled), Toast.LENGTH_LONG).show();
                                                                               }
