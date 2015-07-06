@@ -2,7 +2,9 @@ package org.igarape.copcast.views;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -37,6 +39,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.igarape.copcast.R;
+import org.igarape.copcast.receiver.AlarmReceiver;
 import org.igarape.copcast.service.GcmIntentService;
 import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.service.StreamService;
@@ -393,6 +396,14 @@ public class MainActivity extends Activity {
                                                                            }
         );
 
+        /**
+         * AlarmManager...wakes every 15 sec.
+         */
+        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        PendingIntent pending = PendingIntent.getBroadcast(this, 0, intent,
+                PendingIntent.FLAG_CANCEL_CURRENT);
+        manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), Globals.GPS_REPEAT_TIME, pending);
 
         mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
     }

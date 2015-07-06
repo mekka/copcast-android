@@ -55,6 +55,7 @@
         <service android:name=".service.LocationService" />
         <service android:name=".service.UploadService" />
         <service android:name=".service.StreamService" />
+        <receiver android:name=".receiver.AlarmReceiver"/>
 
         <receiver
             android:name=".receiver.GcmBroadcastReceiver"

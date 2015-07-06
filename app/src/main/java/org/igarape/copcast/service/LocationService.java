@@ -77,7 +77,10 @@ public class LocationService extends Service implements
 
     @Override
     public void onLocationChanged(Location location) {
-        LocationUtils.sendLocation(this, Globals.getUserLogin(getApplicationContext()), location);
+        //LocationUtils.sendLocation(this, Globals.getUserLogin(getApplicationContext()), location);
+        if(null != location){
+            Globals.setLastKnownLocation(location);
+        }
     }
 
     @Override
