@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.location.Location;
 import android.util.Log;
 
 import org.igarape.copcast.BuildConfig;
@@ -34,6 +35,8 @@ public class Globals {
     private static Long directorySize;
     private static Long directoryUploadedSize;
     private static Boolean toggling = false;
+    private static Location lastKnownLocation = null;
+    public static final long GPS_REPEAT_TIME = 1000 * 15; // 15 seconds
 
     public synchronized static String getAccessToken(Context context) {
         if (accessToken == null) {
@@ -61,6 +64,14 @@ public class Globals {
         if (accessToken == null) {
             setUserImage(null);
         }
+    }
+
+    public static Location getLastKnownLocation() {
+        return lastKnownLocation;
+    }
+
+    public static void setLastKnownLocation(Location lastKnownLocation) {
+        Globals.lastKnownLocation = lastKnownLocation;
     }
 
     public synchronized static String getUserLogin(Context context) {
