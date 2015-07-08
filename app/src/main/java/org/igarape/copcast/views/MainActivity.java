@@ -262,6 +262,8 @@ public class MainActivity extends Activity {
                 startService(intent);
 
                 HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this));
+
+                startAlarmReceiver();
             }
 
 
@@ -312,6 +314,8 @@ public class MainActivity extends Activity {
 
                                                      Globals.setDirectorySize(getApplicationContext(), FileUtils.getDirectorySize());
                                                      ((TextView) findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, formatMegaBytes(getDirectorySize(getApplicationContext()))));
+
+                                                     stopAlarmReceiver();
                                                  }
 
 
@@ -396,6 +400,17 @@ public class MainActivity extends Activity {
                                                                            }
         );
 
+        mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+    }
+
+    private void stopAlarmReceiver(){
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, 0);
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        alarmManager.cancel(pendingIntent);
+    }
+
+    private void startAlarmReceiver() {
         /**
          * AlarmManager...wakes every 15 sec.
          */
@@ -404,8 +419,6 @@ public class MainActivity extends Activity {
         PendingIntent pending = PendingIntent.getBroadcast(this, 0, intent,
                 PendingIntent.FLAG_CANCEL_CURRENT);
         manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), Globals.GPS_REPEAT_TIME, pending);
-
-        mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
     }
 
     public void missionCompleted()
