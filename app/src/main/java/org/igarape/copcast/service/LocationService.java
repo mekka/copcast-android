@@ -48,10 +48,10 @@ public class LocationService extends Service implements
 
         mNotificationManager.cancel(mId);
 
-        if (mLocationClient.isConnected()) {
+        if (null != mLocationClient && mLocationClient.isConnected()) {
             mLocationClient.removeLocationUpdates(this);
+            mLocationClient.disconnect();
         }
-        mLocationClient.disconnect();
     }
 
     @Override
