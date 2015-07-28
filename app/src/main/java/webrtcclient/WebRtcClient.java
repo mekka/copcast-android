@@ -278,7 +278,7 @@ public class WebRtcClient {
         try {
             IO.Options opts = new IO.Options();
             opts.forceNew = true;
-            opts.query = "auth_token=" + token;
+            opts.query = "token=" + token;
             client = IO.socket(host, opts);
         } catch (URISyntaxException e) {
             e.printStackTrace();
