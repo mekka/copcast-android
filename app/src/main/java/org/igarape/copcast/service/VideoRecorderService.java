@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
@@ -13,8 +14,10 @@ import android.os.AsyncTask;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
@@ -119,7 +122,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                         android.text.format.DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime()) +
                         ".mp4");
 
-        mediaRecorder.setOrientationHint(90);
+        mediaRecorder.setOrientationHint(getScreenOrientation());
         mediaRecorder.setMaxDuration(MAX_DURATION_MS);
         mediaRecorder.setMaxFileSize(MAX_SIZE_BYTES);
         mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
@@ -216,6 +219,34 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             // inform the user that recording has started
             //setCaptureButtonText("Stop");
         }
+    }
+
+    private int getScreenOrientation() {
+        int rotation = windowManager.getDefaultDisplay().getRotation();
+        int orientation;
+        // if the device's natural orientation is portrait:
+        switch(rotation) {
+            case Surface.ROTATION_0:
+                orientation = 90;
+                break;
+            case Surface.ROTATION_90:
+                orientation = 0;
+                break;
+            case Surface.ROTATION_180:
+                orientation =
+                        270;
+                break;
+            case Surface.ROTATION_270:
+                orientation =
+                        180;
+                break;
+            default:
+                Log.e(TAG, "Unknown screen orientation. Defaulting to " +
+                        "portrait.");
+                orientation = 0;
+                break;
+        }
+        return orientation;
     }
 
 }

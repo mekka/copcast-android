@@ -45,6 +45,7 @@
             </intent-filter>
         </activity>
         <activity
+            android:screenOrientation="fullSensor"
             android:name=".views.MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"></activity>
         <activity

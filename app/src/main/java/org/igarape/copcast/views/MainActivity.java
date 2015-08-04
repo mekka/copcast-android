@@ -100,6 +100,7 @@ public class MainActivity extends Activity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 Globals.setToggling(true);
+                //When toogling, the stopped service will start the other one
                 if (isChecked) {
                     HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.STREAMING, Globals.getUserLogin(MainActivity.this));
 
@@ -107,9 +108,6 @@ public class MainActivity extends Activity {
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     stopService(intentAux);
 
-//                    intentAux = new Intent(MainActivity.this, StreamService.class);
-//                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                    startService(intentAux);
 
                 } else {
                     HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this));
@@ -117,10 +115,6 @@ public class MainActivity extends Activity {
                     Intent intentAux = new Intent(MainActivity.this, StreamService.class);
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     stopService(intentAux);
-
-//                    intentAux = new Intent(MainActivity.this, VideoRecorderService.class);
-//                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                    startService(intentAux);
 
                 }
             }
