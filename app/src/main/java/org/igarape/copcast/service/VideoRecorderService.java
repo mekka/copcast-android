@@ -18,6 +18,7 @@ import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import org.igarape.copcast.R;
 import org.igarape.copcast.utils.FileUtils;
@@ -144,7 +145,10 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     @Override
     public void onDestroy() {
         releaseMediaRecorder();
-        windowManager.removeView(surfaceView);
+        if(null != windowManager && null != surfaceView){
+            windowManager.removeView(surfaceView);
+            Log.d(TAG, "onDestroy with windowManager=["+windowManager+" and surfaceView=["+surfaceView+"]");
+        }
 
         NotificationManager mNotificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
