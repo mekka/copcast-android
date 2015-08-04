@@ -6,8 +6,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
-import android.graphics.Point;
-import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.opengl.GLSurfaceView;
 import android.os.IBinder;
@@ -20,10 +18,7 @@ import android.view.WindowManager;
 import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.utils.HttpResponseCallback;
-import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.views.MainActivity;
-import org.json.JSONException;
 import org.webrtc.MediaStream;
 import org.webrtc.VideoRenderer;
 import org.webrtc.VideoRendererGui;
@@ -46,6 +41,8 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
     private static final int LOCAL_WIDTH_CONNECTING = 100;
     private static final int LOCAL_HEIGHT_CONNECTING = 100;
     private VideoRendererGui.ScalingType scalingType = VideoRendererGui.ScalingType.SCALE_ASPECT_FILL;
+    private WindowManager mWindowManager;
+    private GLSurfaceView mSurfaceView;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -84,8 +81,8 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
         mNotificationManager.notify(mId, mBuilder.build());
 
         // Create new SurfaceView, set its size to 1x1, move it to the top left corner and set this service as a callback
-        WindowManager windowManager = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
-        GLSurfaceView surfaceView = new GLSurfaceView(this);
+        mWindowManager = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
+        mSurfaceView = new GLSurfaceView(this);
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 1, 1,
                 WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
@@ -93,8 +90,8 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
                 PixelFormat.TRANSLUCENT
         );
         layoutParams.gravity = Gravity.LEFT | Gravity.TOP;
-        windowManager.addView(surfaceView, layoutParams);
-        VideoRendererGui.setView(surfaceView, new Runnable() {
+        mWindowManager.addView(mSurfaceView, layoutParams);
+        VideoRendererGui.setView(mSurfaceView, new Runnable() {
             @Override
             public void run() {
                 init();
@@ -102,7 +99,7 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
 
 
         });
-        surfaceView.getHolder().addCallback(this);
+        mSurfaceView.getHolder().addCallback(this);
 
         localRender = VideoRendererGui.create(
                 LOCAL_X_CONNECTING, LOCAL_Y_CONNECTING,
@@ -149,37 +146,9 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         mNotificationManager.cancel(mId);
-        NetworkUtils.delete(this.getApplicationContext(), "/streams", new HttpResponseCallback() {
-            @Override
-            public void unauthorized() {
+        VideoRendererGui.remove(localRender);
+        mWindowManager.removeView(mSurfaceView);
 
-            }
-
-            @Override
-            public void failure(int statusCode) {
-
-            }
-
-            @Override
-            public void noConnection() {
-
-            }
-
-            @Override
-            public void badConnection() {
-
-            }
-
-            @Override
-            public void badRequest() {
-
-            }
-
-            @Override
-            public void badResponse() {
-
-            }
-        });
         if (Globals.isToggling()){
             Intent intentAux = new Intent(this, VideoRecorderService.class);
             intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
