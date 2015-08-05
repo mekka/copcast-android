@@ -555,6 +555,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         killServices();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
         Globals.clear(MainActivity.this);
         super.onDestroy();
     }
@@ -633,7 +634,6 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onStop() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
         super.onStop();
 
         //Log.d("state","onStop");
