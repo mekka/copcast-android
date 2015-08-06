@@ -141,13 +141,13 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
     public void onDestroy() {
         if(client != null) {
             client.onDestroy();
-            if (localRender != null) {
-                VideoRendererGui.remove(localRender);
-            }
-            if (mSurfaceView != null) {
-                mSurfaceView.getHolder().removeCallback(this);
-                mWindowManager.removeView(mSurfaceView);
-            }
+//            if (localRender != null) {
+//                VideoRendererGui.remove(localRender);
+//            }
+//            if (mSurfaceView != null) {
+//                mSurfaceView.getHolder().removeCallback(this);
+//                mWindowManager.removeView(mSurfaceView);
+//            }
 
         }
         NotificationManager mNotificationManager =
@@ -157,11 +157,10 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
 
 
         if (Globals.isToggling()){
+            Globals.setToggling(false);
             Intent intentAux = new Intent(this, VideoRecorderService.class);
             intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startService(intentAux);
-
-            Globals.setToggling(false);
         }
         super.onDestroy();
     }
