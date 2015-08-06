@@ -3,7 +3,9 @@ package org.igarape.copcast.views;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.AsyncTask;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
@@ -14,6 +16,7 @@ import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.splunk.mint.Mint;
 
 import org.igarape.copcast.R;
+import org.igarape.copcast.utils.BatteryUtils;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 
@@ -58,6 +61,12 @@ public class SplashScreenActivity extends Activity {
             Globals.setAccessToken(this, null);
             new BackgroundSplashTask().execute();
         }
+    }
+
+    private void queryBatteryStatus(){
+        IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        Intent batteryStatus = context.registerReceiver(null, iFilter);
+        BatteryUtils.getSingletonInstance().updateValues(batteryStatus);
     }
 
     private boolean checkPlayServices() {
@@ -131,6 +140,7 @@ public class SplashScreenActivity extends Activity {
 
             // do not worry about this Thread.sleep
             // this is an async task, it will not disrupt the UI
+            queryBatteryStatus();
             Globals.setDirectorySize(getApplicationContext(),FileUtils.getDirectorySize());
             try {
                 Thread.sleep(SPLASH_SHOW_TIME);

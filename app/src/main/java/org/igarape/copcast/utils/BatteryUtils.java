@@ -35,7 +35,8 @@ public class BatteryUtils {
     }
 
     public static boolean shouldUpload(){
-        return (null != batteryPercentage ? batteryPercentage > BATTERY_PERCENTAGE_LIMIT:true);
+        return (null != batteryPercentage ? batteryPercentage > BATTERY_PERCENTAGE_LIMIT:true) || plugged == 1;
+        //TODO garantir que o valor do plugged eh realmente 1 quando recarregando
     }
 
     public static void updateValues(Intent batteryStatus){

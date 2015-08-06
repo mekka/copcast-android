@@ -560,7 +560,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         killServices();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
         Globals.clear(MainActivity.this);
         super.onDestroy();
     }
@@ -637,7 +636,6 @@ public class MainActivity extends Activity {
         filter.addAction(GcmIntentService.STOP_STREAMING_ACTION);
         filter.addAction(BatteryReceiver.BATTERY_LOW_MESSAGE);
         filter.addAction(BatteryReceiver.BATTERY_OKAY_MESSAGE);
-        LocalBroadcastManager.getInstance(this).registerReceiver((receiver), filter);
     }
 
     @Override
