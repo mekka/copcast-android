@@ -66,6 +66,12 @@
                 <category android:name="org.igarape.copcast" />
             </intent-filter>
         </receiver>
+        <receiver android:name=".receiver.BatteryReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.ACTION_BATTERY_LOW"/>
+                <action android:name="android.intent.action.ACTION_BATTERY_OKAY"/>
+            </intent-filter>
+        </receiver>
         <service android:name=".service.GcmIntentService" />
         <meta-data
             android:name="com.google.android.gms.version"

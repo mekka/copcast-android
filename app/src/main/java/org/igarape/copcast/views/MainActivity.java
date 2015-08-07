@@ -40,6 +40,7 @@ import android.widget.Toast;
 
 import org.igarape.copcast.R;
 import org.igarape.copcast.receiver.AlarmReceiver;
+import org.igarape.copcast.receiver.BatteryReceiver;
 import org.igarape.copcast.service.GcmIntentService;
 import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.service.StreamService;
@@ -65,10 +66,6 @@ import static org.igarape.copcast.utils.Globals.getDirectorySize;
 public class MainActivity extends Activity {
 
     private static final String TAG = MainActivity.class.getName();
-    public static SurfaceView mSurfaceView;
-    public static SurfaceHolder mSurfaceHolder;
-    public static Camera mCamera;
-    public static boolean mPreviewRunning;
     private BroadcastReceiver receiver;
     private Button mStarMissionButton;
     private Button mEndMissionButton;
@@ -127,7 +124,15 @@ public class MainActivity extends Activity {
         receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if (intent.getAction().equals(UploadService.UPLOAD_PROGRESS_ACTION)) {
+                if (intent.getAction().equals(BatteryReceiver.BATTERY_LOW_MESSAGE)) {
+                    Log.d(TAG,"onReceive BATTERY_LOW_MESSAGE");
+                    stopUploading();
+                    stopAlarmReceiver();
+                } else if (intent.getAction().equals(BatteryReceiver.BATTERY_OKAY_MESSAGE)) {
+                    //TODO check if it's already running. if not, start startAlarmReceiver()
+                    Log.d(TAG,"onReceive BATTERY_OKAY_MESSAGE");
+                }
+                else if (intent.getAction().equals(UploadService.UPLOAD_PROGRESS_ACTION)) {
                     updateProgressBar();
                 } else if (intent.getAction().equals(GcmIntentService.START_STREAMING_ACTION)) {
                     if (isMissionStarted()) {
@@ -555,7 +560,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         killServices();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
         Globals.clear(MainActivity.this);
         super.onDestroy();
     }
@@ -619,6 +623,7 @@ public class MainActivity extends Activity {
         stopService(new Intent(MainActivity.this, LocationService.class));
         stopService(new Intent(MainActivity.this, VideoRecorderService.class));
         stopService(new Intent(MainActivity.this, UploadService.class));
+        stopAlarmReceiver();
     }
 
     @Override
@@ -629,7 +634,8 @@ public class MainActivity extends Activity {
         filter.addAction(UploadService.COMPLETED_UPLOAD_ACTION);
         filter.addAction(GcmIntentService.START_STREAMING_ACTION);
         filter.addAction(GcmIntentService.STOP_STREAMING_ACTION);
-        LocalBroadcastManager.getInstance(this).registerReceiver((receiver), filter);
+        filter.addAction(BatteryReceiver.BATTERY_LOW_MESSAGE);
+        filter.addAction(BatteryReceiver.BATTERY_OKAY_MESSAGE);
     }
 
     @Override
