@@ -39,6 +39,7 @@ public class WebRtcClient {
     private VideoSource videoSource;
     private RtcListener mListener;
     private Socket client;
+    private VideoCapturer videoCapturer;
 
     /**
      * Implement this interface to be notified of events.
@@ -209,6 +210,7 @@ public class WebRtcClient {
 
         }
 
+
         @Override
         public void onIceGatheringChange(PeerConnection.IceGatheringState iceGatheringState) {}
 
@@ -319,13 +321,30 @@ public class WebRtcClient {
      * Call this method in Activity.onDestroy()
      */
     public void onDestroy() {
-        for (Peer peer : peers.values()) {
-            peer.pc.dispose();
+        if (!peers.values().isEmpty()) {
+            for (Peer peer : peers.values()) {
+                peer.pc.dispose();
+            }
+        } else {
+            localMS.dispose();
         }
-        if (videoSource != null) {
-            videoSource.stop();
+        try {
+            if (videoSource != null) {
+                videoSource.stop();
+            }
+        }catch (Exception e){
+            Log.e(TAG, "ondestroy", e);
         }
-        factory.dispose();
+        try{
+            videoSource.dispose();
+        }catch (Exception e){
+            Log.e(TAG, "ondestroy", e);
+        }
+        try{
+            factory.dispose();
+        }catch (Exception e){
+            Log.e(TAG, "ondestroy", e);
+        }
         client.disconnect();
         client.close();
     }

@@ -11,6 +11,7 @@ import android.opengl.GLSurfaceView;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.WindowManager;
