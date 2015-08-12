@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
@@ -287,72 +288,82 @@ public class UploadService extends Service {
     }
 
     private void uploadVideo(final File nextVideo, final String userLogin) {
-        if (!ServiceUtils.isMyServiceRunning(UploadService.class, getApplicationContext())) {
-            return;
-        }
-        if (!NetworkUtils.canUpload(getApplicationContext(), this.intent)) {
-            sendCancelToUI();
-            this.stopSelf();
-            return;
-        }
-        if (nextVideo.exists()) {
-            List<NameValuePair> params = new ArrayList<NameValuePair>();
-
-            params.add(new BasicNameValuePair("date", df.format(new Date(nextVideo.lastModified()))));
-
-            Log.d(TAG, "uploadVideo - started");
-
-            NetworkUtils.post(getApplicationContext(), "/videos/" + userLogin, params, nextVideo, new HttpResponseCallback() {
-
-                @Override
-                public void unauthorized() {
-                    Log.e(TAG, "unauthorized");
+        final Intent intent = this.intent;
+        final Service thisService = this;
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... args) {
+                if(!ServiceUtils.isMyServiceRunning(UploadService.class, getApplicationContext())) {
+                    return null;
                 }
 
-                @Override
-                public void failure(int statusCode) {
-                    Log.d(TAG, "uploadVideo - failur");
-                    if (!videos.isEmpty()) {
-                        //uploadVideo(videos.remove(0), userLogin);
-                    } else {
-                        //uploadUserData();
-                    }
+                if(!NetworkUtils.canUpload(getApplicationContext(), intent)){
+                    sendCancelToUI();
+                    thisService.stopSelf();
+                    return null;
                 }
 
-                @Override
-                public void success(JSONObject response) {
-                    Log.d(TAG, "uploadVideo - success");
+                if(nextVideo.exists())  {
+                    List<NameValuePair> params = new ArrayList<NameValuePair>();
 
-                    sendUpdateToUI(nextVideo.length());
-                    nextVideo.delete();
-                    if (!videos.isEmpty()) {
-                        //uploadVideo(videos.remove(0), userLogin);
-                    } else {
-                        //uploadUserData();
-                    }
-                }
+                    params.add(new BasicNameValuePair("date", df.format(new Date(nextVideo.lastModified()))));
 
-                @Override
-                public void noConnection() {
-                    Log.e(TAG, "noConnection");
-                }
+                    Log.d(TAG, "uploadVideo - started");
 
-                @Override
-                public void badConnection() {
-                    Log.e(TAG, "badConnection");
-                }
+                    NetworkUtils.post(getApplicationContext(), false, "/videos/" + userLogin, params, nextVideo, new HttpResponseCallback() {
 
-                @Override
-                public void badRequest() {
-                    Log.e(TAG, "badRequest");
-                }
+                        @Override
+                        public void unauthorized() {
+                            Log.e(TAG, "unauthorized");
+                        }
 
-                @Override
-                public void badResponse() {
-                    Log.e(TAG, "badResponse");
+                        @Override
+                        public void failure(int statusCode) {
+                            Log.d(TAG, "uploadVideo - failur");
+//                            if (!videos.isEmpty()) {
+//                                //uploadVideo(videos.remove(0), userLogin);
+//                            } else {
+//                                //uploadUserData();
+//                            }
+                        }
+
+                        @Override
+                        public void success(JSONObject response) {
+                            Log.d(TAG, "uploadVideo - success");
+
+                            sendUpdateToUI(nextVideo.length());
+                            nextVideo.delete();
+//                            if (!videos.isEmpty()) {
+//                                //uploadVideo(videos.remove(0), userLogin);
+//                            } else {
+//                                //uploadUserData();
+//                            }
+                        }
+
+                        @Override
+                        public void noConnection() {
+                            Log.e(TAG, "noConnection");
+                        }
+
+                        @Override
+                        public void badConnection() {
+                            Log.e(TAG, "badConnection");
+                        }
+
+                        @Override
+                        public void badRequest() {
+                            Log.e(TAG, "badRequest");
+                        }
+
+                        @Override
+                        public void badResponse() {
+                            Log.e(TAG, "badResponse");
+                        }
+                    });
                 }
-            });
-        }
+                return null;
+            }
+        }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
     }
 
     private void sendCancelToUI() {
