@@ -127,26 +127,37 @@ public class UploadService extends Service {
             this.stopSelf();
             return;
         }
-        String userLogin = users.remove(0);
 
-        String path = FileUtils.getPath(userLogin);
+        //updload userdata locations, histories and videos
+        while (!users.isEmpty()) {
+            String userLogin = users.remove(0);
 
-        uploadLocations(userLogin);
-        uploadHistories(userLogin);
+            String path = FileUtils.getPath(userLogin);
 
+            uploadLocations(userLogin);
+            uploadHistories(userLogin);
+            uploadVideos(userLogin, path);
+        }
+    }
+
+    private void uploadVideos(String userLogin, String path)
+    {
         File dir = new File(path);
         File[] files = dir.listFiles(filter);
+        File nextVideo = null;
         if (files != null && files.length > 0) {
             videos = new ArrayList<File>(Arrays.asList(files));
-            if (!videos.isEmpty()) {
-                File nextVideo = videos.remove(0);
+            while (!videos.isEmpty()) {
+                //for (File nextVideo:)  uploadVideo(videos.remove(0), userLogin);
+
+                nextVideo = videos.remove(0);
                 uploadVideo(nextVideo, userLogin);
-            } else {
-                uploadUserData();
             }
-        } else {
-            uploadUserData();
+
         }
+
+        return;
+
     }
 
     private void uploadLocations(String userLogin) {
@@ -288,6 +299,9 @@ public class UploadService extends Service {
             List<NameValuePair> params = new ArrayList<NameValuePair>();
 
             params.add(new BasicNameValuePair("date", df.format(new Date(nextVideo.lastModified()))));
+
+            Log.d(TAG, "uploadVideo - started");
+
             NetworkUtils.post(getApplicationContext(), "/videos/" + userLogin, params, nextVideo, new HttpResponseCallback() {
 
                 @Override
@@ -297,21 +311,24 @@ public class UploadService extends Service {
 
                 @Override
                 public void failure(int statusCode) {
+                    Log.d(TAG, "uploadVideo - failur");
                     if (!videos.isEmpty()) {
-                        uploadVideo(videos.remove(0), userLogin);
+                        //uploadVideo(videos.remove(0), userLogin);
                     } else {
-                        uploadUserData();
+                        //uploadUserData();
                     }
                 }
 
                 @Override
                 public void success(JSONObject response) {
+                    Log.d(TAG, "uploadVideo - success");
+
                     sendUpdateToUI(nextVideo.length());
                     nextVideo.delete();
                     if (!videos.isEmpty()) {
-                        uploadVideo(videos.remove(0), userLogin);
+                        //uploadVideo(videos.remove(0), userLogin);
                     } else {
-                        uploadUserData();
+                        //uploadUserData();
                     }
                 }
 
