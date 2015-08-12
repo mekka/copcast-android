@@ -311,7 +311,7 @@ public class UploadService extends Service {
 
                 @Override
                 public void failure(int statusCode) {
-                    Log.d(TAG, "uploadVideo - failure");
+                    Log.d(TAG, "uploadVideo - failur");
                     if (!videos.isEmpty()) {
                         //uploadVideo(videos.remove(0), userLogin);
                     } else {
