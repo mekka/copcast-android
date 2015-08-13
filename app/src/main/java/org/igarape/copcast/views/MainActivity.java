@@ -84,6 +84,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        NetworkUtils.setToken(Globals.getAccessToken(getApplicationContext()));
         mStreamSwitch = (Switch) findViewById(R.id.streamSwitch);
         mStarMissionButton = (Button) findViewById(R.id.startMissionButton);
         mEndMissionButton = (Button) findViewById(R.id.endMissionButton);

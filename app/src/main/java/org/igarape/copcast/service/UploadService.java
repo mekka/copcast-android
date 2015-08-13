@@ -12,6 +12,10 @@ import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+
+import org.apache.http.Header;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.igarape.copcast.R;
@@ -28,8 +32,10 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -128,37 +134,26 @@ public class UploadService extends Service {
             this.stopSelf();
             return;
         }
+        String userLogin = users.remove(0);
 
-        //updload userdata locations, histories and videos
-        while (!users.isEmpty()) {
-            String userLogin = users.remove(0);
+        String path = FileUtils.getPath(userLogin);
 
-            String path = FileUtils.getPath(userLogin);
+        uploadLocations(userLogin);
+        uploadHistories(userLogin);
 
-            uploadLocations(userLogin);
-            uploadHistories(userLogin);
-            uploadVideos(userLogin, path);
-        }
-    }
-
-    private void uploadVideos(String userLogin, String path)
-    {
         File dir = new File(path);
         File[] files = dir.listFiles(filter);
-        File nextVideo = null;
         if (files != null && files.length > 0) {
             videos = new ArrayList<File>(Arrays.asList(files));
-            while (!videos.isEmpty()) {
-                //for (File nextVideo:)  uploadVideo(videos.remove(0), userLogin);
-
-                nextVideo = videos.remove(0);
+            if (!videos.isEmpty()) {
+                File nextVideo = videos.remove(0);
                 uploadVideo(nextVideo, userLogin);
+            } else {
+                uploadUserData();
             }
-
+        } else {
+            uploadUserData();
         }
-
-        return;
-
     }
 
     private void uploadLocations(String userLogin) {
@@ -290,80 +285,113 @@ public class UploadService extends Service {
     private void uploadVideo(final File nextVideo, final String userLogin) {
         final Intent intent = this.intent;
         final Service thisService = this;
-        new AsyncTask<Void, Void, Void>() {
-            @Override
-            protected Void doInBackground(Void... args) {
-                if(!ServiceUtils.isMyServiceRunning(UploadService.class, getApplicationContext())) {
-                    return null;
+
+        if(!ServiceUtils.isMyServiceRunning(UploadService.class, getApplicationContext())) {
+            return ;
+        }
+
+        if(!NetworkUtils.canUpload(getApplicationContext(), intent)){
+            sendCancelToUI();
+            thisService.stopSelf();
+            return ;
+        }
+
+        if(nextVideo.exists())  {
+//            List<NameValuePair> params = new ArrayList<NameValuePair>();
+//
+//            params.add(new BasicNameValuePair("date", df.format(new Date(nextVideo.lastModified()))));
+
+            Log.d(TAG, "uploadVideo - started");
+            RequestParams params = new RequestParams();
+            params.put("date", df.format(new Date(nextVideo.lastModified())));
+            try {
+                params.put("video", nextVideo);
+            } catch (FileNotFoundException e) {
+                Log.e(TAG, "put video in params", e);
+                if (!videos.isEmpty()) {
+                    uploadVideo(videos.remove(0), userLogin);
+                } else {
+                    uploadUserData();
                 }
-
-                if(!NetworkUtils.canUpload(getApplicationContext(), intent)){
-                    sendCancelToUI();
-                    thisService.stopSelf();
-                    return null;
-                }
-
-                if(nextVideo.exists())  {
-                    List<NameValuePair> params = new ArrayList<NameValuePair>();
-
-                    params.add(new BasicNameValuePair("date", df.format(new Date(nextVideo.lastModified()))));
-
-                    Log.d(TAG, "uploadVideo - started");
-
-                    NetworkUtils.post(getApplicationContext(), false, "/videos/" + userLogin, params, nextVideo, new HttpResponseCallback() {
-
-                        @Override
-                        public void unauthorized() {
-                            Log.e(TAG, "unauthorized");
-                        }
-
-                        @Override
-                        public void failure(int statusCode) {
-                            Log.d(TAG, "uploadVideo - failur");
-//                            if (!videos.isEmpty()) {
-//                                //uploadVideo(videos.remove(0), userLogin);
-//                            } else {
-//                                //uploadUserData();
-//                            }
-                        }
-
-                        @Override
-                        public void success(JSONObject response) {
-                            Log.d(TAG, "uploadVideo - success");
-
-                            sendUpdateToUI(nextVideo.length());
-                            nextVideo.delete();
-//                            if (!videos.isEmpty()) {
-//                                //uploadVideo(videos.remove(0), userLogin);
-//                            } else {
-//                                //uploadUserData();
-//                            }
-                        }
-
-                        @Override
-                        public void noConnection() {
-                            Log.e(TAG, "noConnection");
-                        }
-
-                        @Override
-                        public void badConnection() {
-                            Log.e(TAG, "badConnection");
-                        }
-
-                        @Override
-                        public void badRequest() {
-                            Log.e(TAG, "badRequest");
-                        }
-
-                        @Override
-                        public void badResponse() {
-                            Log.e(TAG, "badResponse");
-                        }
-                    });
-                }
-                return null;
             }
-        }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+            NetworkUtils.post("/videos/" + userLogin,params, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                    sendUpdateToUI(nextVideo.length());
+                    nextVideo.delete();
+                    if (!videos.isEmpty()) {
+                        uploadVideo(videos.remove(0), userLogin);
+                    } else {
+                        uploadUserData();
+                    }
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                    try {
+                        Log.e(TAG,  new String(responseBody, "UTF-8"), error);
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                    if (!videos.isEmpty()) {
+                        uploadVideo(videos.remove(0), userLogin);
+                    } else {
+                        uploadUserData();
+                    }
+                }
+            });
+//            NetworkUtils.post(getApplicationContext(), false, "/videos/" + userLogin, params, nextVideo, new HttpResponseCallback() {
+//
+//                @Override
+//                public void unauthorized() {
+//                    Log.e(TAG, "unauthorized");
+//                }
+//
+//                @Override
+//                public void failure(int statusCode) {
+//                    Log.d(TAG, "uploadVideo - failur");
+////                            if (!videos.isEmpty()) {
+////                                //uploadVideo(videos.remove(0), userLogin);
+////                            } else {
+////                                //uploadUserData();
+////                            }
+//                }
+//
+//                @Override
+//                public void success(JSONObject response) {
+//                    Log.d(TAG, "uploadVideo - success");
+//
+//                    sendUpdateToUI(nextVideo.length());
+//                    nextVideo.delete();
+////                            if (!videos.isEmpty()) {
+////                                //uploadVideo(videos.remove(0), userLogin);
+////                            } else {
+////                                //uploadUserData();
+////                            }
+//                }
+//
+//                @Override
+//                public void noConnection() {
+//                    Log.e(TAG, "noConnection");
+//                }
+//
+//                @Override
+//                public void badConnection() {
+//                    Log.e(TAG, "badConnection");
+//                }
+//
+//                @Override
+//                public void badRequest() {
+//                    Log.e(TAG, "badRequest");
+//                }
+//
+//                @Override
+//                public void badResponse() {
+//                    Log.e(TAG, "badResponse");
+//                }
+//            });
+        }
+
     }
 
     private void sendCancelToUI() {

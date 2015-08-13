@@ -40,5 +40,6 @@ dependencies {
     //mew versions can be consulted here: http://repo1.maven.org/maven2/io/pristine/libjingle/
     compile 'io.pristine:libjingle:9643@aar'
     compile 'com.github.nkzawa:socket.io-client:0.5.2'
+    compile 'com.loopj.android:android-async-http:1.4.8'
 
 }

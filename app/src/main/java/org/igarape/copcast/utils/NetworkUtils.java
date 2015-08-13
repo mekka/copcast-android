@@ -10,6 +10,10 @@ import android.os.BatteryManager;
 import android.os.Build;
 import android.util.Log;
 
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+
 import org.apache.http.NameValuePair;
 import org.igarape.copcast.BuildConfig;
 import org.json.JSONException;
@@ -43,6 +47,7 @@ public class NetworkUtils {
     private static final String TAG = NetworkUtils.class.getName();
     private static int CONNECTION_TIMEOUT = 15000;
     private static int DATA_RETRIEVAL_TIMEOUT = 5000;
+    private static AsyncHttpClient client;
 
     private static String getQuery(List<NameValuePair> params) throws UnsupportedEncodingException {
         StringBuilder result = new StringBuilder();
@@ -60,6 +65,16 @@ public class NetworkUtils {
         }
 
         return result.toString();
+    }
+
+    static {
+        client = new AsyncHttpClient();
+        client.setURLEncodingEnabled(true);
+        //client.setTimeout(DEFAULT_TIMEOUT);
+        client.setMaxConnections(5);
+
+        client.addHeader("Content-Type", "multipart/form-data; boundary=" + "===" + System.currentTimeMillis() + "===");
+        client.addHeader("Accept-Encoding", "gzip,deflate");
     }
 
     /**
@@ -309,6 +324,14 @@ public class NetworkUtils {
 
     enum Method {
         POST, DELETE, GET;
+    }
+
+    public static void post(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+        client.post(BuildConfig.serverUrl+url, params, responseHandler);
+    }
+
+    public static void setToken(String token) {
+        client.addHeader("Authorization", token);
     }
 
     public enum Response {BYTEARRAY, JSON}
