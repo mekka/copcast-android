@@ -52,6 +52,7 @@ import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.HistoryUtils;
 import org.igarape.copcast.utils.HttpResponseCallback;
 import org.igarape.copcast.utils.NetworkUtils;
+import org.igarape.copcast.utils.ServiceUtils;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
@@ -488,6 +489,11 @@ public class MainActivity extends Activity {
     private void updateProgressBar() {
         ((ProgressBar) findViewById(R.id.progressBar)).setProgress(Globals.getDirectoryUploadedSize(getApplicationContext()).intValue());
         ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes(Globals.getDirectoryUploadedSize(getApplicationContext())), formatMegaBytes(getDirectorySize(getApplicationContext()))));
+        if (ServiceUtils.isMyServiceRunning(UploadService.class, getApplicationContext())) {
+            Intent intent = new Intent(this, UploadService.class);
+            intent.
+            startService(intent);
+        }
     }
 
     private void stopUploading() {

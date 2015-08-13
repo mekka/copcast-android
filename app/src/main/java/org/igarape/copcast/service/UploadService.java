@@ -1,8 +1,10 @@
 package org.igarape.copcast.service;
 
+import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -50,7 +52,7 @@ import static org.igarape.copcast.utils.Globals.getDirectoryUploadedSize;
 /**
  * Created by bruno on 11/14/14.
  */
-public class UploadService extends Service {
+public class UploadService extends IntentService {
     private static final String TAG = UploadService.class.getName();
     public static final String UPLOAD_PROGRESS_ACTION = "org.igarape.copcast.UPLOAD_PROGRESS";
     public static final String FILE_SIZE = "FILE_SIZE";
@@ -63,10 +65,34 @@ public class UploadService extends Service {
     private DateFormat df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
     private LocalBroadcastManager broadcaster;
     private Intent intent;
+    private String userLogin;
+
+    /**
+     * Creates an IntentService.  Invoked by your subclass's constructor.
+     *
+     * @param name Used to name the worker thread, important only for debugging.
+     */
+    public UploadService(String name) {
+        super(name);
+    }
+
+    public UploadService() {
+        super(TAG);
+    }
 
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    @Override
+    protected void onHandleIntent(Intent intent) {
+        this.intent = intent;
+        if (!videos.isEmpty()) {
+            uploadVideo(videos.remove(0));
+        } else {
+            uploadUserData();
+        }
     }
 
     @Override
@@ -114,7 +140,11 @@ public class UploadService extends Service {
 
     public void sendUpdateToUI(Long size) {
         Intent intent = new Intent(UPLOAD_PROGRESS_ACTION);
-        if (size != null) {
+        if (size == null) {
+            return;
+        } else if (size == null) {
+            broadcaster.sendBroadcast(intent);
+        } else {
             Globals.setDirectoryUploadedSize(getApplicationContext(),getDirectoryUploadedSize(getApplicationContext()) + size);
             broadcaster.sendBroadcast(intent);
         }
@@ -134,7 +164,7 @@ public class UploadService extends Service {
             this.stopSelf();
             return;
         }
-        String userLogin = users.remove(0);
+        userLogin = users.remove(0);
 
         String path = FileUtils.getPath(userLogin);
 
@@ -147,7 +177,7 @@ public class UploadService extends Service {
             videos = new ArrayList<File>(Arrays.asList(files));
             if (!videos.isEmpty()) {
                 File nextVideo = videos.remove(0);
-                uploadVideo(nextVideo, userLogin);
+                uploadVideo(nextVideo);
             } else {
                 uploadUserData();
             }
@@ -282,7 +312,7 @@ public class UploadService extends Service {
         }
     }
 
-    private void uploadVideo(final File nextVideo, final String userLogin) {
+    private void uploadVideo(final File nextVideo) {
         final Intent intent = this.intent;
         final Service thisService = this;
 
@@ -297,10 +327,6 @@ public class UploadService extends Service {
         }
 
         if(nextVideo.exists())  {
-//            List<NameValuePair> params = new ArrayList<NameValuePair>();
-//
-//            params.add(new BasicNameValuePair("date", df.format(new Date(nextVideo.lastModified()))));
-
             Log.d(TAG, "uploadVideo - started");
             RequestParams params = new RequestParams();
             params.put("date", df.format(new Date(nextVideo.lastModified())));
@@ -309,7 +335,7 @@ public class UploadService extends Service {
             } catch (FileNotFoundException e) {
                 Log.e(TAG, "put video in params", e);
                 if (!videos.isEmpty()) {
-                    uploadVideo(videos.remove(0), userLogin);
+                    uploadVideo(videos.remove(0));
                 } else {
                     uploadUserData();
                 }
@@ -319,77 +345,13 @@ public class UploadService extends Service {
                 public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                     sendUpdateToUI(nextVideo.length());
                     nextVideo.delete();
-                    if (!videos.isEmpty()) {
-                        uploadVideo(videos.remove(0), userLogin);
-                    } else {
-                        uploadUserData();
-                    }
                 }
 
                 @Override
                 public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                    try {
-                        Log.e(TAG,  new String(responseBody, "UTF-8"), error);
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    }
-                    if (!videos.isEmpty()) {
-                        uploadVideo(videos.remove(0), userLogin);
-                    } else {
-                        uploadUserData();
-                    }
+                    sendUpdateToUI((long) 0);
                 }
             });
-//            NetworkUtils.post(getApplicationContext(), false, "/videos/" + userLogin, params, nextVideo, new HttpResponseCallback() {
-//
-//                @Override
-//                public void unauthorized() {
-//                    Log.e(TAG, "unauthorized");
-//                }
-//
-//                @Override
-//                public void failure(int statusCode) {
-//                    Log.d(TAG, "uploadVideo - failur");
-////                            if (!videos.isEmpty()) {
-////                                //uploadVideo(videos.remove(0), userLogin);
-////                            } else {
-////                                //uploadUserData();
-////                            }
-//                }
-//
-//                @Override
-//                public void success(JSONObject response) {
-//                    Log.d(TAG, "uploadVideo - success");
-//
-//                    sendUpdateToUI(nextVideo.length());
-//                    nextVideo.delete();
-////                            if (!videos.isEmpty()) {
-////                                //uploadVideo(videos.remove(0), userLogin);
-////                            } else {
-////                                //uploadUserData();
-////                            }
-//                }
-//
-//                @Override
-//                public void noConnection() {
-//                    Log.e(TAG, "noConnection");
-//                }
-//
-//                @Override
-//                public void badConnection() {
-//                    Log.e(TAG, "badConnection");
-//                }
-//
-//                @Override
-//                public void badRequest() {
-//                    Log.e(TAG, "badRequest");
-//                }
-//
-//                @Override
-//                public void badResponse() {
-//                    Log.e(TAG, "badResponse");
-//                }
-//            });
         }
 
     }
