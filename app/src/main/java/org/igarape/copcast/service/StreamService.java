@@ -11,6 +11,7 @@ import android.opengl.GLSurfaceView;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.WindowManager;
@@ -133,7 +134,12 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-
+        if (Globals.isToggling()){
+            Globals.setToggling(false);
+            Intent intentAux = new Intent(this, VideoRecorderService.class);
+            intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startService(intentAux);
+        }
     }
 
 
@@ -145,7 +151,6 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
                 VideoRendererGui.remove(localRender);
             }
             if (mSurfaceView != null) {
-                mSurfaceView.getHolder().removeCallback(this);
                 mWindowManager.removeView(mSurfaceView);
             }
 
@@ -155,14 +160,6 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
 
         mNotificationManager.cancel(mId);
 
-
-        if (Globals.isToggling()){
-            Intent intentAux = new Intent(this, VideoRecorderService.class);
-            intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startService(intentAux);
-
-            Globals.setToggling(false);
-        }
         super.onDestroy();
     }
 

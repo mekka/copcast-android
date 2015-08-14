@@ -10,6 +10,10 @@ import android.os.BatteryManager;
 import android.os.Build;
 import android.util.Log;
 
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+
 import org.apache.http.NameValuePair;
 import org.igarape.copcast.BuildConfig;
 import org.json.JSONException;
@@ -43,6 +47,7 @@ public class NetworkUtils {
     private static final String TAG = NetworkUtils.class.getName();
     private static int CONNECTION_TIMEOUT = 15000;
     private static int DATA_RETRIEVAL_TIMEOUT = 5000;
+    private static AsyncHttpClient client;
 
     private static String getQuery(List<NameValuePair> params) throws UnsupportedEncodingException {
         StringBuilder result = new StringBuilder();
@@ -60,6 +65,16 @@ public class NetworkUtils {
         }
 
         return result.toString();
+    }
+
+    static {
+        client = new AsyncHttpClient();
+        client.setURLEncodingEnabled(true);
+        //client.setTimeout(DEFAULT_TIMEOUT);
+        client.setMaxConnections(5);
+
+        client.addHeader("Content-Type", "multipart/form-data; boundary=" + "===" + System.currentTimeMillis() + "===");
+        client.addHeader("Accept-Encoding", "gzip,deflate");
     }
 
     /**
@@ -84,11 +99,11 @@ public class NetworkUtils {
     }
 
     public static void get(Context context, String url, HttpResponseCallback callback) {
-        get( context,  url,  Response.JSON,  callback);
+        get(context, url, Response.JSON, callback);
     }
 
     public static void get(Context context, String url, Response type, HttpResponseCallback callback) {
-        executeRequest(Method.GET, context, null, null, url,type, callback);
+        executeRequest(Method.GET, context, null, null, url, type, callback);
     }
 
 
@@ -127,31 +142,41 @@ public class NetworkUtils {
         return isCharging && (isWiFi || !BuildConfig.requireWifiUpload);
     }
 
-    public static void post(final Context context, final String url, final List<NameValuePair> params, final File file, final HttpResponseCallback callback) {
-        new AsyncTask<Void, Void, Void>() {
+    public static void post(final Context context, boolean async, final String url, final List<NameValuePair> params, final File file, final HttpResponseCallback callback) {
+        if (async) {
+            new AsyncTask<Void, Void, Void>() {
 
-            @Override
-            protected Void doInBackground(Void... unused) {
-                try {
-                    MultipartUtility request = new MultipartUtility(BuildConfig.serverUrl + url, "UTF-8", Globals.getAccessToken(context));
-                    String token = Globals.getAccessToken(context);
-                    if (token != null) {
-                        request.addHeaderField("Authorization", token);
-                    }
-                    for (NameValuePair pair : params) {
-                        request.addFormField(pair.getName(), pair.getValue());
-                    }
-                    request.addFilePart("video", file);
-
-                    request.finish();  //send the video to the server
-
-                    callback.success(new JSONObject());
-                } catch (IOException e) {
-                    callback.failure(500);
+                @Override
+                protected Void doInBackground(Void... unused) {
+                    postMultipart(context, url, params, file, callback);
+                    return null;
                 }
-                return null;
+
+
+            }.execute();
+        } else {
+            postMultipart(context, url, params, file, callback);
+        }
+    }
+
+    private static void postMultipart(Context context,  String url,  List<NameValuePair> params,  File file,  HttpResponseCallback callback) {
+        try {
+            MultipartUtility request = new MultipartUtility(BuildConfig.serverUrl + url, "UTF-8", Globals.getAccessToken(context));
+            String token = Globals.getAccessToken(context);
+            if (token != null) {
+                request.addHeaderField("Authorization", token);
             }
-        }.execute();
+            for (NameValuePair pair : params) {
+                request.addFormField(pair.getName(), pair.getValue());
+            }
+            request.addFilePart("video", file);
+
+            request.finish();  //send the video to the server
+
+            callback.success(new JSONObject());
+        } catch (IOException e) {
+            callback.failure(500);
+        }
     }
 
     public static void delete(final Context context, final String url, final HttpResponseCallback callback) {
@@ -299,6 +324,14 @@ public class NetworkUtils {
 
     enum Method {
         POST, DELETE, GET;
+    }
+
+    public static void post(String url, RequestParams params, AsyncHttpResponseHandler responseHandler) {
+        client.post(BuildConfig.serverUrl+url, params, responseHandler);
+    }
+
+    public static void setToken(String token) {
+        client.addHeader("Authorization", token);
     }
 
     public enum Response {BYTEARRAY, JSON}

@@ -101,21 +101,33 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         new MediaPrepareTask().execute(null, null, null);
     }
 
+    public static Camera getCameraInstance(){
+        Camera c = null;
+        try {
+            c = Camera.open(); // attempt to get a Camera instance
+        }
+        catch (Exception e){
+            // Camera is not available (in use or does not exist)
+        }
+        return c; // returns null if camera is unavailable
+    }
 
     private boolean prepareMediaEncoder() {
 
-        camera = Camera.open();
+        camera = getCameraInstance();
+        if (camera == null){
+            Log.e(TAG, "Camera returned null");
+            stopSelf();
+            return false;
+        }
         mediaRecorder = new MediaRecorder();
         camera.unlock();
-
 
         mediaRecorder.setPreviewDisplay(this.surfaceHolder.getSurface());
         mediaRecorder.setCamera(camera);
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
         mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_LOW));
-
-        //mediaRecorder.setVideoSize(320, 240);
 
         mediaRecorder.setOutputFile(
                 FileUtils.getPath(Globals.getUserLogin(getBaseContext())) +
@@ -158,13 +170,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
         mNotificationManager.cancel(mId);
 
-        if (Globals.isToggling()){
-            Intent intentAux = new Intent(this, StreamService.class);
-            intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startService(intentAux);
 
-            Globals.setToggling(false);
-        }
     }
 
     @Override
@@ -173,6 +179,13 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+        if (Globals.isToggling()){
+            Globals.setToggling(false);
+
+            Intent intentAux = new Intent(this, StreamService.class);
+            intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startService(intentAux);
+        }
     }
 
     @Override
@@ -187,12 +200,19 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 mediaRecorder.reset();
                 mediaRecorder.release();
                 mediaRecorder = null;
-                //tem que ter???
-                camera.lock();
-                camera.release();
             }
         } catch (IllegalStateException i) {
             Log.e(TAG,"IllegalStateException on prepareMediaEncoder", i);
+        }
+        try {
+            if (camera != null) {
+                camera.stopPreview();
+                camera.lock();
+                camera.release();
+            }
+        } catch (Exception e){
+            Log.e(TAG, "releasing camera", e);
+            //
         }
     }
 
