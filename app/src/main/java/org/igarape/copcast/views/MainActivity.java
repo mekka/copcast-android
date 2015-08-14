@@ -38,6 +38,7 @@ import android.widget.Toast;
 
 import org.igarape.copcast.R;
 import org.igarape.copcast.receiver.AlarmReceiver;
+import org.igarape.copcast.receiver.BatteryReceiver;
 import org.igarape.copcast.service.GcmIntentService;
 import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.service.StreamService;
@@ -123,7 +124,14 @@ public class MainActivity extends Activity {
         receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
+                if (intent.getAction().equals(BatteryReceiver.BATTERY_LOW_MESSAGE)) {
+                    stopUploading();
+                    stopAlarmReceiver();
+                } else if (intent.getAction().equals(BatteryReceiver.BATTERY_OKAY_MESSAGE)) {
+                    //TODO check if it's already running. if not, start startAlarmReceiver()
+
+                }
+                else if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
                     updateProgressBar();
                     uploadManager.runUpload();
                 } else if (intent.getAction().equals(GcmIntentService.START_STREAMING_ACTION)) {
@@ -617,6 +625,7 @@ public class MainActivity extends Activity {
         stopService(new Intent(MainActivity.this, LocationService.class));
         stopService(new Intent(MainActivity.this, VideoRecorderService.class));
         stopService(new Intent(MainActivity.this, UploadService.class));
+        stopAlarmReceiver();
     }
 
     @Override
@@ -627,6 +636,8 @@ public class MainActivity extends Activity {
         filter.addAction(UploadManager.COMPLETED_UPLOAD_ACTION);
         filter.addAction(GcmIntentService.START_STREAMING_ACTION);
         filter.addAction(GcmIntentService.STOP_STREAMING_ACTION);
+        filter.addAction(BatteryReceiver.BATTERY_LOW_MESSAGE);
+        filter.addAction(BatteryReceiver.BATTERY_OKAY_MESSAGE);
         LocalBroadcastManager.getInstance(this).registerReceiver((receiver), filter);
     }
 

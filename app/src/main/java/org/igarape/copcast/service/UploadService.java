@@ -243,7 +243,7 @@ public class UploadService extends Service {
 
             Log.d(TAG, "uploadVideo - started");
 
-            NetworkUtils.post(getApplicationContext(), "/videos/" + userLogin, params, nextVideo, new HttpResponseCallback() {
+            NetworkUtils.post(getApplicationContext(),true, "/videos/" + userLogin, params, nextVideo, new HttpResponseCallback() {
 
                 @Override
                 public void unauthorized() {
