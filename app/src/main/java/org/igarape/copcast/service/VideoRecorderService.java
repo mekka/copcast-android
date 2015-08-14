@@ -46,7 +46,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     private boolean isRecording;
     protected SurfaceHolder surfaceHolder;
     public static final int MAX_DURATION_MS = 300000;
-    public static final long MAX_SIZE_BYTES = 7500000;
+    public static final long MAX_SIZE_BYTES = 500000;
     private int mId = 1;
 
     @Override
@@ -134,7 +134,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                         android.text.format.DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime()) +
                         ".mp4");
 
-        mediaRecorder.setOrientationHint(getScreenOrientation());
+        mediaRecorder.setOrientationHint(getScreenOrientation(Globals.getRotation()));
         mediaRecorder.setMaxDuration(MAX_DURATION_MS);
         mediaRecorder.setMaxFileSize(MAX_SIZE_BYTES);
         mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
@@ -204,16 +204,23 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         } catch (IllegalStateException i) {
             Log.e(TAG,"IllegalStateException on prepareMediaEncoder", i);
         }
-        try {
-            if (camera != null) {
+
+        if (camera != null) {
+            try {
                 camera.stopPreview();
+            } catch (Exception e){
+                Log.e(TAG, "releasing camera", e);
+                //
+            }
+            try {
                 camera.lock();
                 camera.release();
+            } catch (Exception e){
+                Log.e(TAG, "releasing camera", e);
+                //
             }
-        } catch (Exception e){
-            Log.e(TAG, "releasing camera", e);
-            //
         }
+
     }
 
     class MediaPrepareTask extends AsyncTask<Void, Void, Boolean> {
@@ -241,8 +248,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         }
     }
 
-    private int getScreenOrientation() {
-        int rotation = windowManager.getDefaultDisplay().getRotation();
+    private int getScreenOrientation(int rotation) {
         int orientation;
         // if the device's natural orientation is portrait:
         switch(rotation) {
@@ -266,6 +272,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 orientation = 0;
                 break;
         }
+        Log.d(TAG, "orientation: "+orientation);
         return orientation;
     }
 
