@@ -37,6 +37,7 @@ public class Globals {
     private static Boolean toggling = false;
     private static Location lastKnownLocation = null;
     public static final long GPS_REPEAT_TIME = 1000 * 15; // 15 seconds
+    private static int rotation;
 
     public synchronized static String getAccessToken(Context context) {
         if (accessToken == null) {
@@ -208,5 +209,13 @@ public class Globals {
 
     public static Boolean isToggling(){
         return toggling;
+    }
+
+    public static void setRotation(int rotation) {
+        Globals.rotation = rotation;
+    }
+
+    public static int getRotation() {
+        return rotation;
     }
 }

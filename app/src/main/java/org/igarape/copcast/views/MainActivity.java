@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -645,12 +646,20 @@ public class MainActivity extends Activity {
         //Log.d("state","onStop");
     }
 
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        Globals.setRotation(getWindowManager().getDefaultDisplay().getRotation());
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
         if (Globals.getAccessToken(getApplicationContext()) == null) {
             logout();
         }
+        Globals.setRotation(getWindowManager().getDefaultDisplay().getRotation());
         updateProgressBar();
         WifiManager wifi = (WifiManager)getSystemService(Context.WIFI_SERVICE);
         if (!wifi.isWifiEnabled()){
