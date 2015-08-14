@@ -46,7 +46,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     private boolean isRecording;
     protected SurfaceHolder surfaceHolder;
     public static final int MAX_DURATION_MS = 300000;
-    public static final long MAX_SIZE_BYTES = 500000;
+    public static final long MAX_SIZE_BYTES = 7500000;
     private int mId = 1;
 
     @Override
