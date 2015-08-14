@@ -134,7 +134,16 @@ public class MainActivity extends Activity {
                 }
                 else if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
                     updateProgressBar();
-                    uploadManager.runUpload();
+                    if (uploadManager != null) {
+                        new android.os.Handler().postDelayed(
+                                new Runnable() {
+                                    public void run() {
+                                        uploadManager.runUpload();
+                                    }
+                                },
+                                60000);
+
+                    }
                 } else if (intent.getAction().equals(GcmIntentService.START_STREAMING_ACTION)) {
                     if (isMissionStarted()) {
                         mStreamSwitch.setChecked(true);
