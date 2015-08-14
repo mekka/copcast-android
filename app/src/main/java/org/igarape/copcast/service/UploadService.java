@@ -19,6 +19,7 @@ import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.HttpResponseCallback;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.ServiceUtils;
+import org.igarape.copcast.utils.UploadManager;
 import org.igarape.copcast.views.MainActivity;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -45,14 +46,9 @@ import static org.igarape.copcast.utils.Globals.getDirectoryUploadedSize;
  */
 public class UploadService extends Service {
     private static final String TAG = UploadService.class.getName();
-    public static final String UPLOAD_PROGRESS_ACTION = "org.igarape.copcast.UPLOAD_PROGRESS";
-    public static final String FILE_SIZE = "FILE_SIZE";
-    public static final String CANCEL_UPLOAD_ACTION = "org.igarape.copcast.CANCEL_UPLOAD";
-    public static final String COMPLETED_UPLOAD_ACTION = "org.igarape.copcast.COMPLETED_UPLOAD";
+
     private int mId = 3;
-    private List<String> users;
-    private final GenericExtFilter filter = new GenericExtFilter(".mp4");
-    private ArrayList<File> videos;
+
     private DateFormat df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
     private LocalBroadcastManager broadcaster;
     private Intent intent;
@@ -70,94 +66,39 @@ public class UploadService extends Service {
             return START_STICKY;
         }
 
-        final Intent resultIntent = new Intent(this, MainActivity.class);
-        final Context context = getApplicationContext();
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
-                .setContentTitle(getString(R.string.notification_upload_title))
-                .setContentText(getString(R.string.notification_upload_description))
-                .setOngoing(true)
-                .setSmallIcon(R.drawable.ic_launcher);
+        String userLogin = intent.getStringExtra("userLogin");
+        File nextVideo = (File) intent.getExtras().get("nextVideo");
 
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-        stackBuilder.addParentStack(MainActivity.class);
-        stackBuilder.addNextIntent(resultIntent);
-
-        PendingIntent resultPendingIntent =
-                stackBuilder.getPendingIntent(
-                        0,
-                        PendingIntent.FLAG_NO_CREATE
-                );
-        mBuilder.setContentIntent(resultPendingIntent);
-        NotificationManager mNotificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        // mId allows you to update the notification later on.
-        mNotificationManager.notify(mId, mBuilder.build());
-
-        users = new ArrayList<String>();
-        Collections.addAll(users, FileUtils.getUserFolders());
+//        final Intent resultIntent = new Intent(this, MainActivity.class);
+//        final Context context = getApplicationContext();
+//        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
+//                .setContentTitle(getString(R.string.notification_upload_title))
+//                .setContentText(getString(R.string.notification_upload_description))
+//                .setOngoing(true)
+//                .setSmallIcon(R.drawable.ic_launcher);
+//
+//        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
+//        stackBuilder.addParentStack(MainActivity.class);
+//        stackBuilder.addNextIntent(resultIntent);
+//
+//        PendingIntent resultPendingIntent =
+//                stackBuilder.getPendingIntent(
+//                        0,
+//                        PendingIntent.FLAG_NO_CREATE
+//                );
+//        mBuilder.setContentIntent(resultPendingIntent);
+//        NotificationManager mNotificationManager =
+//                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+//        // mId allows you to update the notification later on.
+//        mNotificationManager.notify(mId, mBuilder.build());
 
         broadcaster = LocalBroadcastManager.getInstance(this);
 
-        if (!users.isEmpty()) {
-            uploadUserData();
-        }
+        uploadHistories(userLogin);
+        uploadLocations(userLogin);
+        uploadVideo(nextVideo, userLogin);
 
         return START_STICKY;
-    }
-
-    public void sendUpdateToUI(Long size) {
-        Intent intent = new Intent(UPLOAD_PROGRESS_ACTION);
-        if (size != null) {
-            Globals.setDirectoryUploadedSize(getApplicationContext(),getDirectoryUploadedSize(getApplicationContext()) + size);
-            broadcaster.sendBroadcast(intent);
-        }
-    }
-
-    private void uploadUserData() {
-        if (!ServiceUtils.isMyServiceRunning(UploadService.class, getApplicationContext())) {
-            return;
-        }
-        if (!NetworkUtils.canUpload(getApplicationContext(), this.intent)) {
-            sendCancelToUI();
-            this.stopSelf();
-            return;
-        }
-        if (users.isEmpty()) {
-            sendCompletedToUI();
-            this.stopSelf();
-            return;
-        }
-
-        //updload userdata locations, histories and videos
-        while (!users.isEmpty()) {
-            String userLogin = users.remove(0);
-
-            String path = FileUtils.getPath(userLogin);
-
-            uploadLocations(userLogin);
-            uploadHistories(userLogin);
-            uploadVideos(userLogin, path);
-        }
-    }
-
-    private void uploadVideos(String userLogin, String path)
-    {
-        File dir = new File(path);
-        File[] files = dir.listFiles(filter);
-        File nextVideo = null;
-        if (files != null && files.length > 0) {
-            videos = new ArrayList<File>(Arrays.asList(files));
-            while (!videos.isEmpty()) {
-                //for (File nextVideo:)  uploadVideo(videos.remove(0), userLogin);
-
-                nextVideo = videos.remove(0);
-                uploadVideo(nextVideo, userLogin);
-            }
-
-        }
-
-        return;
-
     }
 
     private void uploadLocations(String userLogin) {
@@ -291,7 +232,7 @@ public class UploadService extends Service {
             return;
         }
         if (!NetworkUtils.canUpload(getApplicationContext(), this.intent)) {
-            sendCancelToUI();
+            UploadManager.sendCancelToUI(broadcaster);
             this.stopSelf();
             return;
         }
@@ -312,24 +253,15 @@ public class UploadService extends Service {
                 @Override
                 public void failure(int statusCode) {
                     Log.d(TAG, "uploadVideo - failur");
-                    if (!videos.isEmpty()) {
-                        //uploadVideo(videos.remove(0), userLogin);
-                    } else {
-                        //uploadUserData();
-                    }
+                    UploadManager.sendUpdateToUI(getApplicationContext(),broadcaster, (long) 0);
                 }
 
                 @Override
                 public void success(JSONObject response) {
                     Log.d(TAG, "uploadVideo - success");
-
-                    sendUpdateToUI(nextVideo.length());
+                    UploadManager.sendUpdateToUI(getApplicationContext(), broadcaster, nextVideo.length());
                     nextVideo.delete();
-                    if (!videos.isEmpty()) {
-                        //uploadVideo(videos.remove(0), userLogin);
-                    } else {
-                        //uploadUserData();
-                    }
+
                 }
 
                 @Override
@@ -355,38 +287,16 @@ public class UploadService extends Service {
         }
     }
 
-    private void sendCancelToUI() {
-        Intent intent = new Intent(CANCEL_UPLOAD_ACTION);
-
-        broadcaster.sendBroadcast(intent);
-    }
-
-    private void sendCompletedToUI() {
-        Intent intent = new Intent(COMPLETED_UPLOAD_ACTION);
-
-        broadcaster.sendBroadcast(intent);
-    }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        NotificationManager mNotificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        mNotificationManager.cancel(mId);
+//        NotificationManager mNotificationManager =
+//                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+//
+//        mNotificationManager.cancel(mId);
     }
 
-    class GenericExtFilter implements FilenameFilter {
 
-        private String ext;
-
-        public GenericExtFilter(String ext) {
-            this.ext = ext;
-        }
-
-        public boolean accept(File dir, String name) {
-            return (name.endsWith(ext));
-        }
-    }
 
 }

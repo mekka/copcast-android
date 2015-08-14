@@ -14,7 +14,6 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
 import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
@@ -23,7 +22,6 @@ import android.os.CountDownTimer;
 import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -51,11 +49,8 @@ import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.HistoryUtils;
 import org.igarape.copcast.utils.HttpResponseCallback;
 import org.igarape.copcast.utils.NetworkUtils;
-import org.json.JSONObject;
+import org.igarape.copcast.utils.UploadManager;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
 import static org.igarape.copcast.utils.FileUtils.formatMegaBytes;
@@ -81,6 +76,7 @@ public class MainActivity extends Activity {
     private CompoundButton.OnCheckedChangeListener mStreamListener;
 
     private MediaPlayer mySongclick;
+    private UploadManager uploadManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,8 +123,9 @@ public class MainActivity extends Activity {
         receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if (intent.getAction().equals(UploadService.UPLOAD_PROGRESS_ACTION)) {
+                if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
                     updateProgressBar();
+                    uploadManager.runUpload();
                 } else if (intent.getAction().equals(GcmIntentService.START_STREAMING_ACTION)) {
                     if (isMissionStarted()) {
                         mStreamSwitch.setChecked(true);
@@ -145,10 +142,12 @@ public class MainActivity extends Activity {
                     Intent intentAux = new Intent(MainActivity.this, UploadService.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     stopService(intentAux);
-                    if (intent.getAction().equals(UploadService.CANCEL_UPLOAD_ACTION)) {
+                    if (intent.getAction().equals(UploadManager.CANCEL_UPLOAD_ACTION)) {
                         Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
+                        uploadManager = null;
                     } else {
                         Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
+                        uploadManager = null;
                     }
                 }
             }
@@ -327,9 +326,8 @@ public class MainActivity extends Activity {
                                                                                   findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
                                                                                   findViewById(R.id.streamLayout).setVisibility(View.GONE);
 
-                                                                                  Intent intent = new Intent(MainActivity.this, UploadService.class);
-                                                                                  intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                                                  startService(intent);
+                                                                                  uploadManager = new UploadManager(getApplicationContext());
+                                                                                  uploadManager.runUpload();
 
                                                                                   HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this));
                                                                                   updateProgressBar();
@@ -624,9 +622,9 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        IntentFilter filter = new IntentFilter(UploadService.UPLOAD_PROGRESS_ACTION);
-        filter.addAction(UploadService.CANCEL_UPLOAD_ACTION);
-        filter.addAction(UploadService.COMPLETED_UPLOAD_ACTION);
+        IntentFilter filter = new IntentFilter(UploadManager.UPLOAD_PROGRESS_ACTION);
+        filter.addAction(UploadManager.CANCEL_UPLOAD_ACTION);
+        filter.addAction(UploadManager.COMPLETED_UPLOAD_ACTION);
         filter.addAction(GcmIntentService.START_STREAMING_ACTION);
         filter.addAction(GcmIntentService.STOP_STREAMING_ACTION);
         LocalBroadcastManager.getInstance(this).registerReceiver((receiver), filter);
