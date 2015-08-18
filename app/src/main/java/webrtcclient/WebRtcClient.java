@@ -326,27 +326,33 @@ public class WebRtcClient {
                 peer.pc.dispose();
             }
         } else {
-            localMS.dispose();
+            if (localMS != null){
+                localMS.dispose();
+            }
         }
         try {
             if (videoSource != null) {
                 videoSource.stop();
+                videoSource.dispose();
             }
         }catch (Exception e){
             Log.e(TAG, "ondestroy", e);
         }
         try{
-            videoSource.dispose();
+            if (factory != null) {
+                factory.dispose();
+            }
         }catch (Exception e){
             Log.e(TAG, "ondestroy", e);
         }
         try{
-            factory.dispose();
+            if (client !=null && client.connected()) {
+                client.disconnect();
+                client.close();
+            }
         }catch (Exception e){
-            Log.e(TAG, "ondestroy", e);
+            Log.e(TAG, "client.disconnect", e);
         }
-        client.disconnect();
-        client.close();
     }
 
     private int findEndPoint() {
