@@ -23,6 +23,7 @@ import android.os.CountDownTimer;
 import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -134,16 +135,7 @@ public class MainActivity extends Activity {
                 }
                 else if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
                     updateProgressBar();
-                    if (uploadManager != null) {
-                        new android.os.Handler().postDelayed(
-                                new Runnable() {
-                                    public void run() {
-                                        uploadManager.runUpload();
-                                    }
-                                },
-                                60000);
-
-                    }
+                    runUpload();
                 } else if (intent.getAction().equals(GcmIntentService.START_STREAMING_ACTION)) {
                     if (isMissionStarted()) {
                         mStreamSwitch.setChecked(true);
@@ -345,7 +337,8 @@ public class MainActivity extends Activity {
                                                                                   findViewById(R.id.streamLayout).setVisibility(View.GONE);
 
                                                                                   uploadManager = new UploadManager(getApplicationContext());
-                                                                                  uploadManager.runUpload();
+                                                                                  //uploadManager.runUpload();
+                                                                                  runUpload();
 
                                                                                   HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this));
                                                                                   updateProgressBar();
@@ -411,6 +404,21 @@ public class MainActivity extends Activity {
         );
 
         mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+    }
+
+    private void runUpload() {
+        if (uploadManager != null) {
+            new android.os.Handler().postDelayed(
+                    new Runnable() {
+                        public void run() {
+                            uploadManager.runUpload();
+                            Log.i(TAG, "Roda runUpload");
+                        }
+                    },
+                    1000 * 60 * 5);
+        }
+
+
     }
 
     private void stopAlarmReceiver(){
@@ -585,7 +593,7 @@ public class MainActivity extends Activity {
         alertDialog.setMessage(res.getString(R.string.confirmation_msg));
 
         alertDialog.setPositiveButton(res.getText(R.string.confirmation_button_positive), new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog,int which) {
+            public void onClick(DialogInterface dialog, int which) {
                 MainActivity.this.finish();
             }
         });

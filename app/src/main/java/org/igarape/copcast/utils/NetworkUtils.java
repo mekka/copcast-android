@@ -138,7 +138,7 @@ public class NetworkUtils {
                 }
 
 
-            }.execute();
+            }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
         } else {
             postMultipart(context, url, params, file, callback);
         }

@@ -24,8 +24,6 @@ public class UploadManager {
     public static final String COMPLETED_UPLOAD_ACTION = "org.igarape.copcast.COMPLETED_UPLOAD";
     private final LocalBroadcastManager broadcaster;
     private List<String> users = null;
-    private final GenericExtFilter filter = new GenericExtFilter(".mp4");
-    private ArrayList<File> videos;
 
     private Context context;
     private String userLogin;
@@ -42,29 +40,25 @@ public class UploadManager {
     }
 
     public void runUpload() {
-        if ((users == null || users.isEmpty()) && (videos == null || videos.isEmpty())){
+        if ((users == null || users.isEmpty())
+                //&& (videos == null || videos.isEmpty())
+                ){
             sendCompletedToUI(broadcaster);
             return;
         }
-        if (userLogin == null || videos == null || videos.isEmpty()){
+        if (userLogin == null
+                // || videos == null || videos.isEmpty()
+                ){
             userLogin = users.remove(0);
             userPath = FileUtils.getPath(userLogin);
 
-            File dir = new File(userPath);
-            File[] files = dir.listFiles(filter);
 
-            if (files != null && files.length > 0) {
-                videos = new ArrayList<File>(Arrays.asList(files));
-            }
         }
 
-        File nextVideo = null;
-        if (!videos.isEmpty()){
-            nextVideo = videos.remove(0);
-        }
+
 
         Intent intent = new Intent(context, UploadService.class);
-        intent.putExtra("nextVideo", nextVideo);
+
         intent.putExtra("userLogin", userLogin);
 
         context.startService(intent);
@@ -92,16 +86,5 @@ public class UploadManager {
         }
     }
 
-    class GenericExtFilter implements FilenameFilter {
 
-        private String ext;
-
-        public GenericExtFilter(String ext) {
-            this.ext = ext;
-        }
-
-        public boolean accept(File dir, String name) {
-            return (name.endsWith(ext));
-        }
-    }
 }
