@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="org.igarape.copcast">
 
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
@@ -12,32 +13,34 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <uses-sdk tools:overrideLibrary="com.alexbbb.uploadservice"/>
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="true" />
 
-
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-
     <uses-permission android:name="com.example.gcm.permission.C2D_MESSAGE" />
 
-
     <application
-        android:name=".CopCastApplication"
+
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
-        android:largeHeap="true"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme">
+        android:largeHeap="true"
+        android:theme="@style/AppTheme"
+        android:name="android.support.multidex.MultiDexApplication">
+
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
         <activity
             android:name=".views.SplashScreenActivity"
-            android:theme="@android:style/Theme.Holo.NoActionBar.Fullscreen">
+            android:theme="@android:style/Theme.Holo.NoActionBar.Fullscreen" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -45,37 +48,54 @@
             </intent-filter>
         </activity>
         <activity
-            android:screenOrientation="fullSensor"
             android:name=".views.MainActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"></activity>
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:screenOrientation="fullSensor" />
         <activity
             android:name=".views.LoginActivity"
-            android:theme="@android:style/Theme.Holo.NoActionBar.Fullscreen"></activity>
-        <!--<service android:name=".service.RecorderService" />-->
+            android:theme="@android:style/Theme.Holo.NoActionBar.Fullscreen" />
+        <!-- <service android:name=".service.RecorderService" /> -->
         <service android:name=".service.VideoRecorderService" />
         <service android:name=".service.LocationService" />
-        <service android:name=".service.UploadService" />
+        <!-- <service android:name=".service.UploadService" /> -->
         <service android:name=".service.StreamService" />
-        <receiver android:name=".receiver.AlarmReceiver"/>
+        <service
+            tools:replace="android:exported"
+            android:name="com.alexbbb.uploadservice.UploadService"
+            android:enabled="true"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="org.igarape.copcast.uploadservice.action.upload"/>
+            </intent-filter>
+        </service>
 
+        <receiver android:name=".receiver.AlarmReceiver" />
         <receiver
             android:name=".receiver.GcmBroadcastReceiver"
-            android:permission="com.google.android.c2dm.permission.SEND">
+            android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+
                 <category android:name="org.igarape.copcast" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".receiver.BatteryReceiver">
+        <receiver android:name=".receiver.BatteryReceiver" >
             <intent-filter>
-                <action android:name="android.intent.action.ACTION_BATTERY_LOW"/>
-                <action android:name="android.intent.action.ACTION_BATTERY_OKAY"/>
+                <action android:name="android.intent.action.ACTION_BATTERY_LOW" />
+                <action android:name="android.intent.action.ACTION_BATTERY_OKAY" />
             </intent-filter>
         </receiver>
+
         <service android:name=".service.GcmIntentService" />
+
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
+
+        <activity
+            android:name=".views.UploadVideoActivity"
+            android:label="@string/title_activity_upload_video" >
+        </activity>
     </application>
 
 </manifest>

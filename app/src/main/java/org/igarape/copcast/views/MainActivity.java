@@ -58,6 +58,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.igarape.copcast.utils.FileUtils.formatMegaBytes;
 import static org.igarape.copcast.utils.Globals.getDirectorySize;
+import static org.igarape.copcast.utils.Globals.getUserLogin;
 
 
 public class MainActivity extends Activity {
@@ -328,25 +329,32 @@ public class MainActivity extends Activity {
         );
 
 
-        ((Button) findViewById(R.id.uploadButton)).setOnClickListener(new View.OnClickListener() {
-                                                                          @Override
-                                                                          public void onClick(View view) {
-                                                                              if (NetworkUtils.canUpload(getApplicationContext(), getIntent())) {
-                                                                                  findViewById(R.id.uploadLayout).setVisibility(View.GONE);
-                                                                                  findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
-                                                                                  findViewById(R.id.streamLayout).setVisibility(View.GONE);
+        ((Button) findViewById(R.id.uploadButton))
+                .setOnClickListener(new View.OnClickListener() {
+          @Override
+          public void onClick(View view) {
+            Intent i = new Intent(getApplicationContext(), UploadVideoActivity.class);
 
-                                                                                  uploadManager = new UploadManager(getApplicationContext());
-                                                                                  //uploadManager.runUpload();
-                                                                                  runUpload();
+            i.putExtra("userLogin", Globals.getUserLogin(getApplicationContext()));
 
-                                                                                  HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this));
-                                                                                  updateProgressBar();
-                                                                              } else {
-                                                                                  Toast.makeText(getApplicationContext(), getString(R.string.upload_disabled), Toast.LENGTH_LONG).show();
-                                                                              }
-                                                                          }
-                                                                      }
+            startActivity(i);
+
+//                                                                              if (NetworkUtils.canUpload(getApplicationContext(), getIntent())) {
+//                                                                                  findViewById(R.id.uploadLayout).setVisibility(View.GONE);
+//                                                                                  findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
+//                                                                                  findViewById(R.id.streamLayout).setVisibility(View.GONE);
+//
+//                                                                                  uploadManager = new UploadManager(getApplicationContext());
+//                                                                                  //uploadManager.runUpload();
+//                                                                                  runUpload();
+//
+//                                                                                  HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this));
+//                                                                                  updateProgressBar();
+//                                                                              } else {
+//                                                                                  Toast.makeText(getApplicationContext(), getString(R.string.upload_disabled), Toast.LENGTH_LONG).show();
+//                                                                              }
+              }
+          }
         );
 
         ((ImageView) findViewById(R.id.uploadCancelButton)).setOnClickListener(new View.OnClickListener() {
