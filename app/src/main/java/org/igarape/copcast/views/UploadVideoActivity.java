@@ -22,10 +22,11 @@ import android.content.Intent;
         import android.widget.ProgressBar;
         import android.widget.Toast;
 
-        import com.alexbbb.uploadservice.UploadRequest;
-        import com.alexbbb.uploadservice.AbstractUploadServiceReceiver;
-        import com.alexbbb.uploadservice.ContentType;
-        import com.alexbbb.uploadservice.UploadService;
+
+import com.alexbbb.uploadservice.AbstractUploadServiceReceiver;
+import com.alexbbb.uploadservice.ContentType;
+import com.alexbbb.uploadservice.UploadRequest;
+import com.alexbbb.uploadservice.UploadService;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
