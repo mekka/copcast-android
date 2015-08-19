@@ -23,6 +23,7 @@ import android.os.CountDownTimer;
 import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -57,6 +58,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.igarape.copcast.utils.FileUtils.formatMegaBytes;
 import static org.igarape.copcast.utils.Globals.getDirectorySize;
+import static org.igarape.copcast.utils.Globals.getUserLogin;
 
 
 public class MainActivity extends Activity {
@@ -134,16 +136,7 @@ public class MainActivity extends Activity {
                 }
                 else if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
                     updateProgressBar();
-                    if (uploadManager != null) {
-                        new android.os.Handler().postDelayed(
-                                new Runnable() {
-                                    public void run() {
-                                        uploadManager.runUpload();
-                                    }
-                                },
-                                60000);
-
-                    }
+                    runUpload();
                 } else if (intent.getAction().equals(GcmIntentService.START_STREAMING_ACTION)) {
                     if (isMissionStarted()) {
                         mStreamSwitch.setChecked(true);
@@ -336,24 +329,32 @@ public class MainActivity extends Activity {
         );
 
 
-        ((Button) findViewById(R.id.uploadButton)).setOnClickListener(new View.OnClickListener() {
-                                                                          @Override
-                                                                          public void onClick(View view) {
-                                                                              if (NetworkUtils.canUpload(getApplicationContext(), getIntent())) {
-                                                                                  findViewById(R.id.uploadLayout).setVisibility(View.GONE);
-                                                                                  findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
-                                                                                  findViewById(R.id.streamLayout).setVisibility(View.GONE);
+        ((Button) findViewById(R.id.uploadButton))
+                .setOnClickListener(new View.OnClickListener() {
+          @Override
+          public void onClick(View view) {
+            Intent i = new Intent(getApplicationContext(), UploadVideoActivity.class);
 
-                                                                                  uploadManager = new UploadManager(getApplicationContext());
-                                                                                  uploadManager.runUpload();
+            i.putExtra("userLogin", Globals.getUserLogin(getApplicationContext()));
 
-                                                                                  HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this));
-                                                                                  updateProgressBar();
-                                                                              } else {
-                                                                                  Toast.makeText(getApplicationContext(), getString(R.string.upload_disabled), Toast.LENGTH_LONG).show();
-                                                                              }
-                                                                          }
-                                                                      }
+            startActivity(i);
+
+//                                                                              if (NetworkUtils.canUpload(getApplicationContext(), getIntent())) {
+//                                                                                  findViewById(R.id.uploadLayout).setVisibility(View.GONE);
+//                                                                                  findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
+//                                                                                  findViewById(R.id.streamLayout).setVisibility(View.GONE);
+//
+//                                                                                  uploadManager = new UploadManager(getApplicationContext());
+//                                                                                  //uploadManager.runUpload();
+//                                                                                  runUpload();
+//
+//                                                                                  HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this));
+//                                                                                  updateProgressBar();
+//                                                                              } else {
+//                                                                                  Toast.makeText(getApplicationContext(), getString(R.string.upload_disabled), Toast.LENGTH_LONG).show();
+//                                                                              }
+              }
+          }
         );
 
         ((ImageView) findViewById(R.id.uploadCancelButton)).setOnClickListener(new View.OnClickListener() {
@@ -411,6 +412,21 @@ public class MainActivity extends Activity {
         );
 
         mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+    }
+
+    private void runUpload() {
+        if (uploadManager != null) {
+            new android.os.Handler().postDelayed(
+                    new Runnable() {
+                        public void run() {
+                            uploadManager.runUpload();
+                            Log.i(TAG, "Roda runUpload");
+                        }
+                    },
+                    1000 * 60 * 5);
+        }
+
+
     }
 
     private void stopAlarmReceiver(){
@@ -585,7 +601,7 @@ public class MainActivity extends Activity {
         alertDialog.setMessage(res.getString(R.string.confirmation_msg));
 
         alertDialog.setPositiveButton(res.getText(R.string.confirmation_button_positive), new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog,int which) {
+            public void onClick(DialogInterface dialog, int which) {
                 MainActivity.this.finish();
             }
         });

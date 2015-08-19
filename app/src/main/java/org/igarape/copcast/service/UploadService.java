@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+
 import static org.igarape.copcast.utils.Globals.getDirectoryUploadedSize;
 
 /**
@@ -52,6 +53,8 @@ public class UploadService extends Service {
     private DateFormat df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
     private LocalBroadcastManager broadcaster;
     private Intent intent;
+    private final GenericExtFilter filter = new GenericExtFilter(".mp4");
+    int numVideos = 1;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -67,7 +70,7 @@ public class UploadService extends Service {
         }
 
         String userLogin = intent.getStringExtra("userLogin");
-        File nextVideo = (File) intent.getExtras().get("nextVideo");
+        //File nextVideo = (File) intent.getExtras().get("nextVideo");
 
 //        final Intent resultIntent = new Intent(this, MainActivity.class);
 //        final Context context = getApplicationContext();
@@ -94,11 +97,66 @@ public class UploadService extends Service {
 
         broadcaster = LocalBroadcastManager.getInstance(this);
 
-        uploadHistories(userLogin);
-        uploadLocations(userLogin);
-        uploadVideo(nextVideo, userLogin);
+        uploadUserData(userLogin);
+
 
         return START_STICKY;
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        Log.i(TAG, "Low Memory");
+    }
+
+    private void uploadUserData(String userLogin) {
+        if (!ServiceUtils.isMyServiceRunning(UploadService.class, getApplicationContext())) {
+            return;
+        }
+        if (!NetworkUtils.canUpload(getApplicationContext(), this.intent)) {
+            UploadManager.sendCancelToUI(broadcaster);
+            this.stopSelf();
+            return;
+        }
+
+        boolean nextVideo = true;
+        //updload userdata locations, histories and videos
+        while (nextVideo) {
+
+            String path = FileUtils.getPath(userLogin);
+
+            uploadLocations(userLogin);
+            uploadHistories(userLogin);
+            nextVideo = uploadVideos(userLogin, path);
+        }
+    }
+
+    private boolean uploadVideos(String userLogin, String path)
+    {
+        File dir = new File(path);
+        File[] files = dir.listFiles(filter);
+        File nextVideo = null;
+        int cont=1;
+        ArrayList<File> videos = null;
+
+
+        //File dir = new File(userPath);
+        //File[] files = dir.listFiles(filter);
+
+        if (files != null && files.length > 0) {
+            videos = new ArrayList<File>(Arrays.asList(files));
+            while (!videos.isEmpty() && cont<=numVideos){
+                //for (File nextVideo:)  uploadVideo(videos.remove(0), userLogin);
+
+                nextVideo = videos.remove(0);
+                uploadVideo(nextVideo, userLogin, cont);
+                cont++;
+            }
+
+        }
+
+        return (cont<numVideos) ;
+
     }
 
     private void uploadLocations(String userLogin) {
@@ -227,15 +285,7 @@ public class UploadService extends Service {
         }
     }
 
-    private void uploadVideo(final File nextVideo, final String userLogin) {
-        if (!ServiceUtils.isMyServiceRunning(UploadService.class, getApplicationContext())) {
-            return;
-        }
-        if (!NetworkUtils.canUpload(getApplicationContext(), this.intent)) {
-            UploadManager.sendCancelToUI(broadcaster);
-            this.stopSelf();
-            return;
-        }
+    private void uploadVideo(final File nextVideo, final String userLogin, final int cont) {
         if (nextVideo.exists()) {
             List<NameValuePair> params = new ArrayList<NameValuePair>();
 
@@ -253,13 +303,19 @@ public class UploadService extends Service {
                 @Override
                 public void failure(int statusCode) {
                     Log.d(TAG, "uploadVideo - failur");
-                    UploadManager.sendUpdateToUI(getApplicationContext(),broadcaster, (long) 0);
+                    if (cont == numVideos)
+                    {
+                      UploadManager.sendUpdateToUI(getApplicationContext(),broadcaster, (long) 0);
+                    }
                 }
 
                 @Override
                 public void success(JSONObject response) {
                     Log.d(TAG, "uploadVideo - success");
-                    UploadManager.sendUpdateToUI(getApplicationContext(), broadcaster, nextVideo.length());
+                    if (cont == numVideos)
+                    {
+                        UploadManager.sendUpdateToUI(getApplicationContext(), broadcaster, nextVideo.length());
+                    }
                     nextVideo.delete();
 
                 }
@@ -291,12 +347,24 @@ public class UploadService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        Log.i(TAG, " On Destroy");
 //        NotificationManager mNotificationManager =
 //                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 //
 //        mNotificationManager.cancel(mId);
     }
 
+    class GenericExtFilter implements FilenameFilter {
 
+        private String ext;
+
+        public GenericExtFilter(String ext) {
+            this.ext = ext;
+        }
+
+        public boolean accept(File dir, String name) {
+            return (name.endsWith(ext));
+        }
+    }
 
 }
