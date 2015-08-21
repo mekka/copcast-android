@@ -33,6 +33,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
 import org.igarape.copcast.utils.FileUtils;
+import org.igarape.copcast.utils.Globals;
 
 
 /**
@@ -51,12 +52,13 @@ public class UploadVideoActivity extends Activity {
     private Button cancelUploadButton;
     private String serverUrl;
     private String fileToUpload;
+    private String fileToUploadPath;
     private List< NameValuePair > parameterName;
     private int numVideos=1;
 
     private final GenericExtFilter filter = new GenericExtFilter(".mp4");
     private DateFormat df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
-
+    File nextVideo;
 
     private final AbstractUploadServiceReceiver uploadReceiver = new AbstractUploadServiceReceiver() {
 
@@ -87,6 +89,8 @@ public class UploadVideoActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // todo: get userlogin
+        String userLogin = "asalgado";
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload_video);
 
@@ -94,13 +98,18 @@ public class UploadVideoActivity extends Activity {
         // using this library
         UploadService.NAMESPACE = "org.igarape.copcast";
 
+
+        uploadButton = (Button) findViewById(R.id.uploadButton);
+        cancelUploadButton = (Button) findViewById(R.id.cancelUploadButton);
+
         //old service
-        String userLogin = (String) savedInstanceState.getSerializable("userLogin");
+        //String userLogin = (String) savedInstanceState.getSerializable("userLogin");
+
         String path = FileUtils.getPath(userLogin);
 
         File dir = new File(path);
         File[] files = dir.listFiles(filter);
-        File nextVideo = null;
+        nextVideo = null;
         int cont=1;
         ArrayList<File> videos = null;
 
@@ -114,17 +123,15 @@ public class UploadVideoActivity extends Activity {
                 //uploadVideo(nextVideo, userLogin, cont);
                 //cont++;
 
-                String url = "/videos/";
+                String url = "/videos/" + userLogin;
 
 
                 progressBar = (ProgressBar) findViewById(R.id.uploadProgress);
                 serverUrl = BuildConfig.serverUrl + url;
-                fileToUpload = nextVideo.getAbsolutePath();
+                fileToUpload = nextVideo.getName();
+                fileToUploadPath = nextVideo.getAbsolutePath();
                 parameterName = new ArrayList<NameValuePair>();
                 parameterName.add(new BasicNameValuePair("date", df.format(new Date(nextVideo.lastModified()))));
-
-                uploadButton = (Button) findViewById(R.id.uploadButton);
-                cancelUploadButton = (Button) findViewById(R.id.cancelUploadButton);
 
             }
 
@@ -205,13 +212,22 @@ public class UploadVideoActivity extends Activity {
 
     private void onUploadButtonClick() {
         final String serverUrlString = serverUrl;
-        final String fileToUploadPath = fileToUpload;
-        final String paramNameString = parameterName.get(0).getName();
+        final String paramNameString = "video";
 
         if (!userInputIsValid(serverUrlString, fileToUploadPath))
             return;
 
         final UploadRequest request = new UploadRequest(this, UUID.randomUUID().toString(), serverUrlString);
+
+        String token = Globals.getAccessToken(getApplicationContext());
+
+        if (token != null) {
+            request.addHeader("Authorization", token);
+        }
+
+        request.addParameter(parameterName.get(0).getName(), parameterName.get(0).getValue());
+        //request.addParameter("filename", fileToUpload);
+
 
         request.addFileToUpload(fileToUploadPath, paramNameString, fileToUpload, ContentType.VIDEO_MPEG);
 

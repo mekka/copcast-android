@@ -87,6 +87,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         mStreamSwitch = (Switch) findViewById(R.id.streamSwitch);
         mStarMissionButton = (Button) findViewById(R.id.startMissionButton);
         mEndMissionButton = (Button) findViewById(R.id.endMissionButton);
@@ -123,6 +124,8 @@ public class MainActivity extends Activity {
         ActionBar ab = getActionBar(); //needs  import android.app.ActionBar;
         ab.setTitle(Globals.getUserName(getApplicationContext()));
         ab.setSubtitle(Globals.getUserLogin(this));
+        FileUtils.init(getApplicationContext());
+
 
         receiver = new BroadcastReceiver() {
             @Override

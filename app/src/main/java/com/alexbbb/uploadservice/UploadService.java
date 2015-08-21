@@ -192,6 +192,8 @@ public class UploadService extends IntentService {
                              final ArrayList<NameValue> requestParameters, final String customUserAgent)
                                                                                                         throws IOException {
 
+
+
         final String boundary = getBoundary();
         final byte[] boundaryBytes = getBoundaryBytes(boundary);
 
