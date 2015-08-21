@@ -38,7 +38,7 @@ dependencies {
     compile "commons-io:commons-io:+"
     compile 'com.splunk.mint:mint:4.2'
     //mew versions can be consulted here: http://repo1.maven.org/maven2/io/pristine/libjingle/
-    compile 'io.pristine:libjingle:9643@aar'
+    compile 'io.pristine:libjingle:9730@aar'
     compile 'com.github.nkzawa:socket.io-client:0.5.2'
 
 }
