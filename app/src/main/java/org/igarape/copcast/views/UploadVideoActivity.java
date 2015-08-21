@@ -54,11 +54,11 @@ public class UploadVideoActivity extends Activity {
     private String fileToUpload;
     private String fileToUploadPath;
     private List< NameValuePair > parameterName;
-    private int numVideos=1;
+    private int numVideos=10;
 
     private final GenericExtFilter filter = new GenericExtFilter(".mp4");
     private DateFormat df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
-    File nextVideo;
+
 
     private final AbstractUploadServiceReceiver uploadReceiver = new AbstractUploadServiceReceiver() {
 
@@ -109,7 +109,7 @@ public class UploadVideoActivity extends Activity {
 
         File dir = new File(path);
         File[] files = dir.listFiles(filter);
-        nextVideo = null;
+        File nextVideo = null;
         int cont=1;
         ArrayList<File> videos = null;
 
@@ -210,6 +210,28 @@ public class UploadVideoActivity extends Activity {
         return true;
     }
 
+    ArrayList<File> getVideos(String userLogin)
+    {
+        String path = FileUtils.getPath(userLogin);
+
+        File dir = new File(path);
+        File[] files = dir.listFiles(filter);
+        File nextVideo = null;
+        int cont=1;
+        ArrayList<File> videos = null;
+
+        if (files != null && files.length > 0) {
+            videos = new ArrayList<File>(Arrays.asList(files));
+
+            return videos;
+
+        }
+
+        return null;
+
+    }
+
+
     private void onUploadButtonClick() {
         final String serverUrlString = serverUrl;
         final String paramNameString = "video";
@@ -229,7 +251,29 @@ public class UploadVideoActivity extends Activity {
         //request.addParameter("filename", fileToUpload);
 
 
-        request.addFileToUpload(fileToUploadPath, paramNameString, fileToUpload, ContentType.VIDEO_MPEG);
+
+        //retry videos
+        String userLogin = "asalgado";
+        ArrayList<File> videos = getVideos(userLogin);
+        int cont = 1;
+
+        while (!videos.isEmpty() && cont<=numVideos)
+        {
+            File nextVideo = null;
+            nextVideo = videos.remove(0);
+            //uploadVideo(nextVideo, userLogin, cont);
+            cont++;
+
+            String url = "/videos/" + userLogin;
+
+            fileToUpload = nextVideo.getName();
+            fileToUploadPath = nextVideo.getAbsolutePath();
+            parameterName = new ArrayList<NameValuePair>();
+            parameterName.add(new BasicNameValuePair("date", df.format(new Date(nextVideo.lastModified()))));
+
+            request.addFileToUpload(fileToUploadPath, paramNameString, fileToUpload, ContentType.VIDEO_MPEG);
+
+        }
 
         request.setNotificationConfig(R.drawable.ic_launcher, getString(R.string.app_name),
                 getString(R.string.uploading), getString(R.string.upload_completed),
@@ -241,7 +285,7 @@ public class UploadVideoActivity extends Activity {
         // set the intent to perform when the user taps on the upload notification.
         // currently tested only with intents that launches an activity
         // if you comment this line, no action will be performed when the user taps on the notification
-        request.setNotificationClickIntent(new Intent(this, MainActivity.class));
+        request.setNotificationClickIntent(new Intent(this, UploadVideoActivity.class));
 
         // set the maximum number of automatic upload retries on error
         request.setMaxRetries(2);
