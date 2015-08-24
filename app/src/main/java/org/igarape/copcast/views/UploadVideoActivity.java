@@ -7,6 +7,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -86,6 +87,32 @@ public class UploadVideoActivity extends Activity {
             Log.i(TAG, message);
         }
     };
+
+    //get the users and start upload the files
+    private void startUploadAllUsers()
+    {
+        List<String> users = null;
+        String userLogin;
+
+        users = new ArrayList<String>();
+
+        Collections.addAll(users, FileUtils.getUserFolders());
+
+        if (users == null || users.isEmpty() ){
+            Log.i(TAG, "Users does not have file to upload");
+            return;
+        }
+        Integer cont=1;
+        while(!users.isEmpty()) {
+            userLogin = users.remove(0);
+            sendOneUser(userLogin);
+
+            cont++;
+            Log.i(TAG, "Usuario = " + cont.toString());
+
+        }
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -233,29 +260,26 @@ public class UploadVideoActivity extends Activity {
 
 
     private void onUploadButtonClick() {
-        final String serverUrlString = serverUrl;
-        final String paramNameString = "video";
+        startUploadAllUsers();
+    }
+
+    private void sendOneUser(String userLogin) {
+       //String userLogin = "asalgado";
+        String paramNameString = "video";
+        String url = "/videos/" + userLogin;
+
+        String serverUrlString = BuildConfig.serverUrl + url;
 
         if (!userInputIsValid(serverUrlString, fileToUploadPath))
             return;
 
-        final UploadRequest request = new UploadRequest(this, UUID.randomUUID().toString(), serverUrlString);
-
         String token = Globals.getAccessToken(getApplicationContext());
-
-        if (token != null) {
-            request.addHeader("Authorization", token);
-        }
-
-        request.addParameter(parameterName.get(0).getName(), parameterName.get(0).getValue());
-        //request.addParameter("filename", fileToUpload);
-
-
+        String paramName = parameterName.get(0).getName();
+        String paramValue = parameterName.get(0).getValue();
 
         //retry videos
-        String userLogin = "asalgado";
         ArrayList<File> videos = getVideos(userLogin);
-        int cont = 1;
+        Integer cont = 1;
 
         while (!videos.isEmpty() && cont<=numVideos)
         {
@@ -264,16 +288,46 @@ public class UploadVideoActivity extends Activity {
             //uploadVideo(nextVideo, userLogin, cont);
             cont++;
 
-            String url = "/videos/" + userLogin;
-
             fileToUpload = nextVideo.getName();
             fileToUploadPath = nextVideo.getAbsolutePath();
             parameterName = new ArrayList<NameValuePair>();
             parameterName.add(new BasicNameValuePair("date", df.format(new Date(nextVideo.lastModified()))));
 
-            request.addFileToUpload(fileToUploadPath, paramNameString, fileToUpload, ContentType.VIDEO_MPEG);
+            sendOneFile(serverUrlString,
+                     token,
+                     paramName,
+                     paramValue,
+                     userLogin,
+                     paramNameString );
 
+
+            cont++;
+            Log.i(TAG, "Videos Quantidade = " + cont.toString());
+            Log.i(TAG, "Videos Nome = " + serverUrlString);
         }
+    }
+
+
+    private void sendOneFile(String serverUrlString,
+                            String token,
+                            String paramName,
+                            String paramValue,
+                            String userLogin,
+                            String paramNameString ) {
+
+        final UploadRequest request = new UploadRequest(this, UUID.randomUUID().toString(), serverUrlString);
+
+        if (token != null) {
+            request.addHeader("Authorization", token);
+        }
+
+        // add param Date
+        request.addParameter(paramName, paramValue);
+
+        String url = "/videos/" + userLogin;
+
+        request.addFileToUpload(fileToUploadPath, paramNameString, fileToUpload, ContentType.VIDEO_MPEG);
+
 
         request.setNotificationConfig(R.drawable.ic_launcher, getString(R.string.app_name),
                 getString(R.string.uploading), getString(R.string.upload_completed),
@@ -293,7 +347,7 @@ public class UploadVideoActivity extends Activity {
         try {
             UploadService.startUpload(request);
         } catch (Exception exc) {
-            Toast.makeText(this, "Malformed upload request. " + exc.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+            Log.i(TAG, "Malformed upload request. " + exc.getLocalizedMessage());
         }
     }
 
