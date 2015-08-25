@@ -168,7 +168,7 @@ public class UploadRequest {
      * 
      * @return
      */
-    protected String getUploadId() {
+    public String getUploadId() {
         return uploadId;
     }
 

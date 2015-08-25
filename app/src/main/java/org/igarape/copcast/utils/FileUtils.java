@@ -75,6 +75,8 @@ public class FileUtils {
 
     private static String getUserPath(String userLogin) {
         String userPath = path + userLogin + File.separator;
+        //String userPath = path;
+
 
         File f = new File(userPath);
         if (!f.exists()) {
@@ -98,10 +100,20 @@ public class FileUtils {
     }
 
     public static File getAlbumStorageDir(String albumName, Context context) {
-        File file = new File(context.getFilesDir(), albumName);
+
+        //internal storage todo: remove after test
+        /*File file = new File(context.getFilesDir(), albumName);
         if (!file.exists() && !file.mkdirs()) {
             Log.e(TAG, "Directory '" + albumName + "' not created");
         }
+        */
+        // Get the directory for the user's public pictures directory.
+        File file = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DCIM), albumName);
+        if (!file.mkdirs()) {
+            Log.e(TAG, "Directory not created");
+        }
+
         return file;
     }
 

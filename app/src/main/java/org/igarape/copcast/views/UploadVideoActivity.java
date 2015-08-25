@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -56,6 +57,7 @@ public class UploadVideoActivity extends Activity {
     private String fileToUploadPath;
     private List< NameValuePair > parameterName;
     private int numVideos=10;
+    private HashMap<String, String> totFiles = new HashMap<String, String>();  //files to upload
 
     private final GenericExtFilter filter = new GenericExtFilter(".mp4");
     private DateFormat df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
@@ -84,9 +86,38 @@ public class UploadVideoActivity extends Activity {
 
             String message = "Upload with ID " + uploadId + " is completed: " + serverResponseCode + ", "
                     + serverResponseMessage;
+
+            if ( (serverResponseCode == 201 ||
+                    serverResponseCode == 200 ) &&
+                    (serverResponseMessage.toLowerCase().equals("created")))
+            {
+                //delete video
+                deleteFile(uploadId);
+
+            }
             Log.i(TAG, message);
         }
+
+        /*
+            Delete the file after upload it to the server
+         */
+        private boolean deleteFile(String uploadId)
+        {
+            String selectedFilePath = totFiles.get(uploadId);
+            boolean deleted= false;
+
+            if(selectedFilePath.length() > 0) {
+                File file = new File(selectedFilePath);
+                deleted = file.delete();
+            }
+
+            return deleted;
+
+        }
+
     };
+
+
 
     //get the users and start upload the files
     private void startUploadAllUsers()
@@ -153,7 +184,6 @@ public class UploadVideoActivity extends Activity {
                 String url = "/videos/" + userLogin;
 
 
-                progressBar = (ProgressBar) findViewById(R.id.uploadProgress);
                 serverUrl = BuildConfig.serverUrl + url;
                 fileToUpload = nextVideo.getName();
                 fileToUploadPath = nextVideo.getAbsolutePath();
@@ -164,6 +194,7 @@ public class UploadVideoActivity extends Activity {
 
         }
 
+        progressBar = (ProgressBar) findViewById(R.id.uploadProgress);
 
 
 
@@ -263,6 +294,7 @@ public class UploadVideoActivity extends Activity {
         startUploadAllUsers();
     }
 
+    // upload all the videos from one user
     private void sendOneUser(String userLogin) {
        //String userLogin = "asalgado";
         String paramNameString = "video";
@@ -346,6 +378,10 @@ public class UploadVideoActivity extends Activity {
 
         try {
             UploadService.startUpload(request);
+
+            //add the file to hashmap to be deleted after upload
+            totFiles.put(request.getUploadId(), fileToUploadPath);
+
         } catch (Exception exc) {
             Log.i(TAG, "Malformed upload request. " + exc.getLocalizedMessage());
         }
