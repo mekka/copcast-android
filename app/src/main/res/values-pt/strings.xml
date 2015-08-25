@@ -61,15 +61,15 @@
         
     <string name="login_in"> Conectando </string>
         
-    <string name="server_error"> Não é possível fazer para entrar em contato com servidor </string>
+    <string name="server_error"> Não é possível entrar em contato com servidor </string>
         
-    <string name="connection_error"> Erro contatando o servidor. Por favor, verifique sua conexão. </string>
+    <string name="connection_error"> Erro contactando o servidor. Por favor, verifique sua conexão. </string>
         
     <string name="bad_request_error"> Erro de conexão. Por favor, contate o administrador. </string>
         
     <string name="welcome"> Bem-vindo. </string>
         
-    <string name="welcome_desc"> Toque abaixo para iniciar a gravação e registro de localização. </string>
+    <string name="welcome_desc"> Toque abaixo para iniciar a gravação e capturar sua localização. </string>
         
     <string name="pause_recording">Pausar Gravação</string>
         
