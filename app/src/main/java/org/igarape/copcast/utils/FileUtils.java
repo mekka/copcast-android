@@ -101,17 +101,23 @@ public class FileUtils {
 
     public static File getAlbumStorageDir(String albumName, Context context) {
 
-        //internal storage todo: remove after test
-        /*File file = new File(context.getFilesDir(), albumName);
-        if (!file.exists() && !file.mkdirs()) {
-            Log.e(TAG, "Directory '" + albumName + "' not created");
+        boolean testVisible = false;
+        File file = null;
+
+        if (!testVisible) {
+            //internal storage todo: remove after test
+            file = new File(context.getFilesDir(), albumName);
+            if (!file.exists() && !file.mkdirs()) {
+                Log.e(TAG, "Directory '" + albumName + "' not created");
+            }
         }
-        */
-        // Get the directory for the user's public pictures directory.
-        File file = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DCIM), albumName);
-        if (!file.mkdirs()) {
-            Log.e(TAG, "Directory not created");
+        else {
+            // Get the directory for the user's public pictures directory.
+            file = new File(Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DCIM), albumName);
+            if (!file.mkdirs()) {
+                Log.e(TAG, "Directory not created");
+            }
         }
 
         return file;

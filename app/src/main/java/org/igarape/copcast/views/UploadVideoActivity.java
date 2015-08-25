@@ -39,9 +39,8 @@ import org.igarape.copcast.utils.Globals;
 
 
 /**
- * Activity that demonstrates how to use Android Upload Service.
- *
- * @author Alex Gotev
+ * Upload the video from app to server
+ * @author Alex Salgado based on the library android-upload-service
  *
  */
 //public class MainActivity extends ActionBarActivity {
@@ -56,7 +55,7 @@ public class UploadVideoActivity extends Activity {
     private String fileToUpload;
     private String fileToUploadPath;
     private List< NameValuePair > parameterName;
-    private int numVideos=10;
+    private int numVideos=1000;  //max num to upload per user
     private HashMap<String, String> totFiles = new HashMap<String, String>();  //files to upload
 
     private final GenericExtFilter filter = new GenericExtFilter(".mp4");
@@ -136,7 +135,8 @@ public class UploadVideoActivity extends Activity {
         Integer cont=1;
         while(!users.isEmpty()) {
             userLogin = users.remove(0);
-            sendOneUser(userLogin);
+            if (!userLogin.toLowerCase().equals("null"))
+                sendOneUser(userLogin);
 
             cont++;
             Log.i(TAG, "Usuario = " + cont.toString());
@@ -148,7 +148,9 @@ public class UploadVideoActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // todo: get userlogin
-        String userLogin = "asalgado";
+        // String userLogin = "asalgado"
+        String userLogin = Globals.getUserLogin(getApplicationContext());
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload_video);
 
@@ -284,8 +286,8 @@ public class UploadVideoActivity extends Activity {
             return videos;
 
         }
-
-        return null;
+        else
+            return null;
 
     }
 
@@ -302,28 +304,33 @@ public class UploadVideoActivity extends Activity {
 
         String serverUrlString = BuildConfig.serverUrl + url;
 
+        /*
         if (!userInputIsValid(serverUrlString, fileToUploadPath))
             return;
+        */
 
-        String token = Globals.getAccessToken(getApplicationContext());
-        String paramName = parameterName.get(0).getName();
-        String paramValue = parameterName.get(0).getValue();
+        serverUrl = BuildConfig.serverUrl + url;
 
         //retry videos
         ArrayList<File> videos = getVideos(userLogin);
         Integer cont = 1;
 
-        while (!videos.isEmpty() && cont<=numVideos)
+        while (videos != null && !videos.isEmpty() && cont<=numVideos)
         {
             File nextVideo = null;
             nextVideo = videos.remove(0);
             //uploadVideo(nextVideo, userLogin, cont);
             cont++;
 
+            String token = Globals.getAccessToken(getApplicationContext());
+
             fileToUpload = nextVideo.getName();
             fileToUploadPath = nextVideo.getAbsolutePath();
             parameterName = new ArrayList<NameValuePair>();
             parameterName.add(new BasicNameValuePair("date", df.format(new Date(nextVideo.lastModified()))));
+
+            String paramName = parameterName.get(0).getName();
+            String paramValue = parameterName.get(0).getValue();
 
             sendOneFile(serverUrlString,
                      token,
