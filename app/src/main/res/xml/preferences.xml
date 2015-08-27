@@ -3,7 +3,7 @@
     <EditTextPreference
         android:key="server_url"
         android:title="@string/pref_server_url"
-        android:defaultValue="@string/SERVER_URL_DEFAULT"/>
+        android:defaultValue="@string/SERVER_URL_DEFAULT" />
 
     <CheckBoxPreference
         android:key="upload_wifi_only"

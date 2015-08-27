@@ -130,4 +130,5 @@
     <string name="pref_upload_wifi_only">User somente wifi</string>
     <string name="pref_upload_wifi_only_desc">Não permite que o aplicativo use dados 3G quando envia os videos para o servidor</string>
     <string name="pref_server_url">URL do Servidor</string>
+    <string name="serverurl_disabled_logged">Não é possíel alterar a URL do servidor enquanto estiver conectado.</string>
 </resources>

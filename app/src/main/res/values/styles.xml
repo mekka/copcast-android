@@ -5,6 +5,8 @@
         <item name="android:windowBackground">@color/bg_dark_block</item>
         <item name="android:textColor">@color/text_dark_block</item>
         <item name="android:buttonStyle">@style/button_default</item>
+        <item name="colorAccent">@color/summary_color</item>
+        <item name="android:textColorSecondary">@color/summary_color</item>
     </style>
 
     <style name="button_default">
