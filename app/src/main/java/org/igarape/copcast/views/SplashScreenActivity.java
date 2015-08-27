@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Toast;
 
@@ -117,6 +118,8 @@ public class SplashScreenActivity extends Activity {
         @Override
         protected String doInBackground(Void... arg0) {
             String msg = null;
+
+            PreferenceManager.setDefaultValues(getApplicationContext(), R.xml.preferences, false);
 
             // I have just given a sleep for this thread
             // if you want to load database, make

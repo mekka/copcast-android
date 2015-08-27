@@ -50,8 +50,9 @@
             android:name=".views.MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"/>
         <activity
-            android:name=".views.LoginActivity"
-            android:theme="@android:style/Theme.Holo.NoActionBar.Fullscreen"/>
+            android:name=".views.LoginActivity"/>
+        <activity
+            android:name=".views.SettingsActivity" />
         <!--<service android:name=".service.RecorderService" />-->
         <service android:name=".service.VideoRecorderService" />
         <service android:name=".service.LocationService" />
