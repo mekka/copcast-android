@@ -81,7 +81,14 @@ public class LoginActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        return item.getItemId() == R.id.action_settings || super.onOptionsItemSelected(item);
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                Intent i = new Intent(this, SettingsActivity.class);
+                startActivity(i);
+                break;
+        }
+
+        return true;
     }
 
     public void makeLoginRequest(View view) {
