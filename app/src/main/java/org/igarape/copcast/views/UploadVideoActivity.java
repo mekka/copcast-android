@@ -40,7 +40,7 @@ import org.igarape.copcast.utils.Globals;
 
 /**
  * Upload the video from app to server
- * @author Alex Salgado based on the library android-upload-service
+ * @author Alex Salgado based on the github library android-upload-service
  *
  */
 //public class MainActivity extends ActionBarActivity {
@@ -107,6 +107,11 @@ public class UploadVideoActivity extends Activity {
 
             if(selectedFilePath.length() > 0) {
                 File file = new File(selectedFilePath);
+
+                Log.i(TAG, "uploadReceiver-Total Upload-size Time: " + df.format(new Date()));
+                Log.i(TAG, "uploadReceiver-Total Upload-size Size: " + file.length());
+                Log.i(TAG, "uploadReceiver-Total Upload-size Name: " + file.getName());
+
                 deleted = file.delete();
             }
 
@@ -314,10 +319,12 @@ public class UploadVideoActivity extends Activity {
         //retry videos
         ArrayList<File> videos = getVideos(userLogin);
         Integer cont = 1;
+        long totFileSize = 0;
 
         while (videos != null && !videos.isEmpty() && cont<=numVideos)
         {
             File nextVideo = null;
+
             nextVideo = videos.remove(0);
             //uploadVideo(nextVideo, userLogin, cont);
             cont++;
@@ -332,6 +339,11 @@ public class UploadVideoActivity extends Activity {
             String paramName = parameterName.get(0).getName();
             String paramValue = parameterName.get(0).getValue();
 
+            totFileSize+= nextVideo.length();
+
+            Log.i(TAG, "Upload-file size:" + nextVideo.length() );
+            Log.i(TAG, "Upload-file name:" + nextVideo.getName() );
+
             sendOneFile(serverUrlString,
                      token,
                      paramName,
@@ -344,6 +356,12 @@ public class UploadVideoActivity extends Activity {
             Log.i(TAG, "Videos Quantidade = " + cont.toString());
             Log.i(TAG, "Videos Nome = " + serverUrlString);
         }
+
+        Log.i(TAG, "total Upload-file size:" + totFileSize );
+        Log.i(TAG, "total Upload-file User: " + userLogin);
+        Log.i(TAG, "total Upload-file files sent = " + cont.toString());
+
+
     }
 
 
