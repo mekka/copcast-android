@@ -117,7 +117,7 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
         PeerConnectionParameters params = new PeerConnectionParameters(
                 true, false, profile.videoFrameWidth, profile.videoFrameHeight, 15, 1, VIDEO_CODEC_VP9, true, 1, AUDIO_CODEC_OPUS, true);
 
-        client = new WebRtcClient(this, BuildConfig.serverUrl, params, VideoRendererGui.getEGLContext(), Globals.getAccessTokenStraight(getApplicationContext()));
+        client = new WebRtcClient(this, Globals.getServerUrl(getApplicationContext()), params, VideoRendererGui.getEGLContext(), Globals.getAccessTokenStraight(getApplicationContext()));
 
 
     }

@@ -19,16 +19,16 @@ android {
 
     productFlavors {
         local {
-            buildConfigField "String", "serverUrl", "\"http://192.168.1.72:3000\""
-            buildConfigField "Boolean", "requireWifiUpload", "true"
+            resValue "string", "SERVER_URL_DEFAULT", "\"http://192.168.1.72:3000\""
+            resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "true"
         }
         general {
-            buildConfigField "String", "serverUrl", "\"http://mogi-api.igarape.org\""
-            buildConfigField "Boolean", "requireWifiUpload", "true"
+            resValue "string", "SERVER_URL_DEFAULT", "\"http://mogi-api.igarape.org\""
+            resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "true"
         }
         capeTown {
-            buildConfigField "String", "serverUrl", "\"http://api.mogidocs.co.za\""
-            buildConfigField "Boolean", "requireWifiUpload", "false"
+            resValue "string", "SERVER_URL_DEFAULT", "\"http://api.mogidocs.co.za\""
+            resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "false"
         }
     }
 

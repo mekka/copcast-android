@@ -6,6 +6,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Location;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import org.igarape.copcast.BuildConfig;
@@ -27,7 +28,8 @@ public class Globals {
     private static final String PREF_USER_LOGIN = "PREF_USER_LOGIN";
     public static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
-    public static final String SERVER_URL = BuildConfig.serverUrl;
+    private static final String SERVER_URL = "server_url";
+    private static final String REQUIRE_WIFI_ONLY = "upload_wifi_only";
     private static String accessToken = null;
     private static String userLogin = null;
     private static String userName = null;
@@ -217,5 +219,15 @@ public class Globals {
 
     public static int getRotation() {
         return rotation;
+    }
+
+    public static String getServerUrl(Context context){
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPref.getString(SERVER_URL, "");
+    }
+
+    public static Boolean isWifiOnly(Context context){
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPref.getBoolean(REQUIRE_WIFI_ONLY, true);
     }
 }

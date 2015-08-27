@@ -124,7 +124,7 @@ public class NetworkUtils {
         boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
                 status == BatteryManager.BATTERY_STATUS_FULL;
 
-        return isCharging && (isWiFi || !BuildConfig.requireWifiUpload);
+        return isCharging && (isWiFi || !Globals.isWifiOnly(context));
     }
 
     public static void post(final Context context, final String url, final List<NameValuePair> params, final File file, final HttpResponseCallback callback) {
@@ -133,7 +133,7 @@ public class NetworkUtils {
             @Override
             protected Void doInBackground(Void... unused) {
                 try {
-                    MultipartUtility request = new MultipartUtility(BuildConfig.serverUrl + url, "UTF-8", Globals.getAccessToken(context));
+                    MultipartUtility request = new MultipartUtility(Globals.getServerUrl(context)+ url, "UTF-8", Globals.getAccessToken(context));
                     String token = Globals.getAccessToken(context);
                     if (token != null) {
                         request.addHeaderField("Authorization", token);
@@ -178,7 +178,7 @@ public class NetworkUtils {
                 HttpURLConnection urlConnection = null;
 
                 try {
-                    URL urlToRequest = new URL(Globals.SERVER_URL + url);
+                    URL urlToRequest = new URL(Globals.getServerUrl(context) + url);
                     urlConnection = (HttpURLConnection) urlToRequest.openConnection();
 
                     if (method.equals(Method.POST)) {
