@@ -20,7 +20,10 @@ import android.os.PowerManager;
 import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.Builder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+
+import org.igarape.copcast.utils.UploadManager;
 
 /**
  * Service to upload files as a multi-part form data in background using HTTP POST with notification center progress
@@ -243,7 +246,7 @@ public class UploadService extends IntentService {
             }
             final String serverResponseMessage = getResponseBodyAsString(responseStream);
 
-            broadcastCompleted(uploadId, serverResponseCode, serverResponseMessage);
+            UploadManager.sendUpdateToUI(getApplicationContext(), LocalBroadcastManager.getInstance(getApplicationContext()),totalFileBytes);
 
         } finally {
             closeOutputStream(requestStream);
@@ -469,7 +472,7 @@ public class UploadService extends IntentService {
         else
             updateNotificationError();
 
-        final Intent intent = new Intent(getActionBroadcast());
+        final Intent intent = new Intent(UploadManager.UPLOAD_PROGRESS_ACTION);
         intent.putExtra(UPLOAD_ID, uploadId);
         intent.putExtra(STATUS, STATUS_COMPLETED);
         intent.putExtra(SERVER_RESPONSE_CODE, responseCode);
