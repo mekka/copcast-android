@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Toast;
@@ -113,7 +114,7 @@ public class SplashScreenActivity extends Activity {
         @Override
         protected String doInBackground(Void... arg0) {
             String msg = null;
-
+            Looper.prepare();
             PreferenceManager.setDefaultValues(getApplicationContext(), R.xml.preferences, false);
 
             // I have just given a sleep for this thread

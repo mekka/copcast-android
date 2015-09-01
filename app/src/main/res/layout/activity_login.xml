@@ -65,7 +65,6 @@
         android:layout_below="@+id/txtLoginPassword"
         android:layout_alignParentEnd="false"
         android:layout_alignParentRight="false"
-        android:onClick="makeLoginRequest"
         android:gravity="center"
         android:layout_centerInParent="true" />
 

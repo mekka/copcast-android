@@ -238,13 +238,10 @@ public class UploadService extends IntentService {
             final int serverResponseCode = conn.getResponseCode();
 
             if (serverResponseCode / 100 == 2) {
-                responseStream = conn.getInputStream();
+                UploadManager.sendUpdateToUI(getApplicationContext(), LocalBroadcastManager.getInstance(getApplicationContext()), totalFileBytes);
             } else { // getErrorStream if the response code is not 2xx
-                responseStream = conn.getErrorStream();
+                UploadManager.sendFailedToUI(LocalBroadcastManager.getInstance(getApplicationContext()));
             }
-            final String serverResponseMessage = getResponseBodyAsString(responseStream);
-
-            UploadManager.sendUpdateToUI(getApplicationContext(), LocalBroadcastManager.getInstance(getApplicationContext()), totalFileBytes);
 
         } finally {
             closeOutputStream(requestStream);

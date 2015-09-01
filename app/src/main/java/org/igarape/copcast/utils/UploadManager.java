@@ -38,7 +38,9 @@ public class UploadManager {
     public static final String UPLOAD_PROGRESS_ACTION = "org.igarape.copcast.UPLOAD_PROGRESS";
     public static final String CANCEL_UPLOAD_ACTION = "org.igarape.copcast.CANCEL_UPLOAD";
     public static final String COMPLETED_UPLOAD_ACTION = "org.igarape.copcast.COMPLETED_UPLOAD";
+    public static final String UPLOAD_FAILED_ACTION = "org.igarape.copcast.UPLOAD_FAILED_ACTION";
     private static final String TAG = UploadManager.class.getName();
+
     private final LocalBroadcastManager broadcaster;
     private List<String> users = null;
     private final GenericExtFilter filter = new GenericExtFilter(".mp4");
@@ -48,6 +50,7 @@ public class UploadManager {
     private Context context;
     private String userLogin;
     private String userPath;
+    private File nextVideo;
 
     public UploadManager(Context applicationContext) {
         this.context = applicationContext;
@@ -86,7 +89,7 @@ public class UploadManager {
             }
         }
 
-        File nextVideo = null;
+        nextVideo = null;
         if (videos != null && !videos.isEmpty()){
             nextVideo = videos.remove(0);
             uploadVideo(nextVideo);
@@ -273,6 +276,17 @@ public class UploadManager {
         if (size != null) {
             Globals.setDirectoryUploadedSize(context, getDirectoryUploadedSize(context) + size);
             broadcaster.sendBroadcast(intent);
+        }
+    }
+
+    public static void sendFailedToUI(LocalBroadcastManager broadcaster) {
+        Intent intent = new Intent(UPLOAD_FAILED_ACTION);
+        broadcaster.sendBroadcast(intent);
+    }
+
+    public void deleteVideoFile() {
+        if (nextVideo != null){
+            nextVideo.delete();
         }
     }
 

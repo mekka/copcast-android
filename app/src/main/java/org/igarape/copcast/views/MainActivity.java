@@ -128,9 +128,15 @@ public class MainActivity extends Activity {
                 } else if (intent.getAction().equals(BatteryReceiver.BATTERY_OKAY_MESSAGE)) {
                     //TODO check if it's already running. if not, start startAlarmReceiver()
                 }
+                else if (intent.getAction().equals(UploadManager.UPLOAD_FAILED_ACTION)) {
+                    if (uploadManager != null) {
+                        uploadManager.runUpload();
+                    }
+                }
                 else if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
                     updateProgressBar();
                     if (uploadManager != null) {
+                        uploadManager.deleteVideoFile();
                         uploadManager.runUpload();
                     }
               
@@ -634,6 +640,7 @@ public class MainActivity extends Activity {
         super.onStart();
         IntentFilter filter = new IntentFilter(UploadManager.UPLOAD_PROGRESS_ACTION);
         filter.addAction(UploadManager.CANCEL_UPLOAD_ACTION);
+        filter.addAction(UploadManager.UPLOAD_FAILED_ACTION);
         filter.addAction(UploadManager.COMPLETED_UPLOAD_ACTION);
         filter.addAction(CopcastGcmListenerService.START_STREAMING_ACTION);
         filter.addAction(CopcastGcmListenerService.STOP_STREAMING_ACTION);
