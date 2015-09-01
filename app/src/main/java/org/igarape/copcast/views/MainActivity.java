@@ -127,7 +127,6 @@ public class MainActivity extends Activity {
                     stopAlarmReceiver();
                 } else if (intent.getAction().equals(BatteryReceiver.BATTERY_OKAY_MESSAGE)) {
                     //TODO check if it's already running. if not, start startAlarmReceiver()
-
                 }
                 else if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
                     updateProgressBar();
@@ -151,12 +150,11 @@ public class MainActivity extends Activity {
                     Intent intentAux = new Intent(MainActivity.this, UploadService.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     stopService(intentAux);
+                    uploadManager = null;
                     if (intent.getAction().equals(UploadManager.CANCEL_UPLOAD_ACTION)) {
                         Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
-                        uploadManager = null;
                     } else {
                         Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
-                        uploadManager = null;
                     }
                 }
             }

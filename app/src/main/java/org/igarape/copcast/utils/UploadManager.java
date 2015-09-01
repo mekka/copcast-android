@@ -89,15 +89,14 @@ public class UploadManager {
         File nextVideo = null;
         if (videos != null && !videos.isEmpty()){
             nextVideo = videos.remove(0);
+            uploadVideo(nextVideo);
+        } else {
+            runUpload();
         }
-//
-//        Intent intent = new Intent(context, UploadService.class);
-//        intent.putExtra("nextVideo", nextVideo);
-//        intent.putExtra("userLogin", userLogin);
-//
-//        context.startService(intent);
 
-//**********//
+    }
+
+    private void uploadVideo(File nextVideo) {
         final UploadRequest request = new UploadRequest(context, UUID.randomUUID().toString(), Globals.getServerUrl(context)+"/videos/"+userLogin);
 
         request.addHeader("Authorization", Globals.getAccessToken(context));
@@ -128,8 +127,8 @@ public class UploadManager {
         } catch (Exception exc) {
             Log.i(TAG, "Malformed upload request. " + exc.getLocalizedMessage());
         }
-
     }
+
     private void uploadLocations(String userLogin) {
         final File file = new File(FileUtils.getLocationsFilePath(userLogin));
         if (!file.exists()) {

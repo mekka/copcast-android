@@ -1,17 +1,5 @@
 package com.alexbbb.uploadservice;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-
 import android.annotation.SuppressLint;
 import android.app.IntentService;
 import android.app.NotificationManager;
@@ -25,10 +13,22 @@ import android.util.Log;
 
 import org.igarape.copcast.utils.UploadManager;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+
 /**
  * Service to upload files as a multi-part form data in background using HTTP POST with notification center progress
  * display.
- * 
+ *
  * @author alexbbb (Alex Gotev)
  * @author eliasnaur
  */
@@ -86,10 +86,10 @@ public class UploadService extends IntentService {
 
     /**
      * Utility method that creates the intent that starts the background file upload service.
-     * 
+     *
      * @param task object containing the upload request
      * @throws IllegalArgumentException if one or more arguments passed are invalid
-     * @throws MalformedURLException if the server URL is not valid
+     * @throws MalformedURLException    if the server URL is not valid
      */
     public static void startUpload(final UploadRequest task) throws IllegalArgumentException, MalformedURLException {
 
@@ -172,8 +172,8 @@ public class UploadService extends IntentService {
                             broadcastError(uploadId, exc);
                         } else {
                             Log.w(getClass().getName(), "Error in uploadId " + uploadId + " on attempt " + attempts
-                                    + ". Waiting " + errorDelay / 1000 + "s before next attempt",
-                                  exc);
+                                            + ". Waiting " + errorDelay / 1000 + "s before next attempt",
+                                    exc);
                             SystemClock.sleep(errorDelay);
 
                             errorDelay *= 10;
@@ -188,13 +188,11 @@ public class UploadService extends IntentService {
     }
 
     @SuppressLint("NewApi")
-    private
-            void
-            handleFileUpload(final String uploadId, final String url, final String method,
-                             final ArrayList<FileToUpload> filesToUpload, final ArrayList<NameValue> requestHeaders,
-                             final ArrayList<NameValue> requestParameters, final String customUserAgent)
-                                                                                                        throws IOException {
-
+    private void
+    handleFileUpload(final String uploadId, final String url, final String method,
+                     final ArrayList<FileToUpload> filesToUpload, final ArrayList<NameValue> requestHeaders,
+                     final ArrayList<NameValue> requestParameters, final String customUserAgent)
+            throws IOException {
 
 
         final String boundary = getBoundary();
@@ -246,7 +244,7 @@ public class UploadService extends IntentService {
             }
             final String serverResponseMessage = getResponseBodyAsString(responseStream);
 
-            UploadManager.sendUpdateToUI(getApplicationContext(), LocalBroadcastManager.getInstance(getApplicationContext()),totalFileBytes);
+            UploadManager.sendUpdateToUI(getApplicationContext(), LocalBroadcastManager.getInstance(getApplicationContext()), totalFileBytes);
 
         } finally {
             closeOutputStream(requestStream);
@@ -339,10 +337,9 @@ public class UploadService extends IntentService {
         }
     }
 
-    private
-            long
-            getRequestParametersBytes(final ArrayList<NameValue> requestParameters, final long boundaryBytesLength)
-                                                                                                                   throws UnsupportedEncodingException {
+    private long
+    getRequestParametersBytes(final ArrayList<NameValue> requestParameters, final long boundaryBytesLength)
+            throws UnsupportedEncodingException {
         long parametersBytes = 0;
 
         if (!requestParameters.isEmpty()) {
@@ -356,13 +353,12 @@ public class UploadService extends IntentService {
         return parametersBytes;
     }
 
-    private
-            void
-            uploadFiles(final String uploadId, final OutputStream requestStream,
-                        final ArrayList<FileToUpload> filesToUpload, final byte[] boundaryBytes)
-                                                                                                throws UnsupportedEncodingException,
-                                                                                                IOException,
-                                                                                                FileNotFoundException {
+    private void
+    uploadFiles(final String uploadId, final OutputStream requestStream,
+                final ArrayList<FileToUpload> filesToUpload, final byte[] boundaryBytes)
+            throws UnsupportedEncodingException,
+            IOException,
+            FileNotFoundException {
 
         final long totalBytes = getTotalBytes(filesToUpload);
         long uploadedBytes = 0;
@@ -401,10 +397,9 @@ public class UploadService extends IntentService {
         return total;
     }
 
-    private
-            long
-            getFileBytes(final ArrayList<FileToUpload> filesToUpload, long boundaryBytesLength)
-                                                                                               throws UnsupportedEncodingException {
+    private long
+    getFileBytes(final ArrayList<FileToUpload> filesToUpload, long boundaryBytesLength)
+            throws UnsupportedEncodingException {
         long total = 0;
 
         for (FileToUpload file : filesToUpload) {
