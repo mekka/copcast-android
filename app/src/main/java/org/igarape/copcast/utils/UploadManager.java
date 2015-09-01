@@ -65,6 +65,14 @@ public class UploadManager {
             return;
         }
         if (userLogin == null || videos == null || videos.isEmpty()){
+            if (userLogin!= null){
+                userPath = FileUtils.getPath(userLogin);
+                File dir = new File(userPath);
+                File[] files = dir.listFiles();
+                if (files != null && files.length == 0){
+                    dir.delete();
+                }
+            }
             userLogin = users.remove(0);
             uploadHistories(userLogin);
             uploadLocations(userLogin);
