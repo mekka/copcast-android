@@ -132,14 +132,7 @@ public class MainActivity extends Activity {
                 else if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
                     updateProgressBar();
                     if (uploadManager != null) {
-                        new android.os.Handler().postDelayed(
-                                new Runnable() {
-                                    public void run() {
-                                        uploadManager.runUpload();
-                                    }
-                                },
-                                60000);
-
+                        uploadManager.runUpload();
                     }
               
                 } else if (intent.getAction().equals(CopcastGcmListenerService.START_STREAMING_ACTION)) {
