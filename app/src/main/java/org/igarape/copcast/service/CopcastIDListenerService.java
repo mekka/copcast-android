@@ -1,6 +1,5 @@
 package org.igarape.copcast.service;
 
-import android.content.Intent;
 import android.os.Bundle;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
@@ -9,10 +8,10 @@ import com.google.android.gms.iid.InstanceIDListenerService;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
+import org.igarape.copcast.R;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.HttpResponseCallback;
 import org.igarape.copcast.utils.NetworkUtils;
-import org.igarape.copcast.R;
 
 import java.io.IOException;
 import java.util.ArrayList;

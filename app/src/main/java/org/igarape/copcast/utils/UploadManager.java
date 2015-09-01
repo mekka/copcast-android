@@ -9,11 +9,17 @@ import com.alexbbb.uploadservice.ContentType;
 import com.alexbbb.uploadservice.UploadRequest;
 import com.alexbbb.uploadservice.UploadService;
 
-import org.igarape.copcast.R;
 import org.igarape.copcast.views.MainActivity;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FilenameFilter;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -60,6 +66,8 @@ public class UploadManager {
         }
         if (userLogin == null || videos == null || videos.isEmpty()){
             userLogin = users.remove(0);
+            uploadHistories(userLogin);
+            uploadLocations(userLogin);
             userPath = FileUtils.getPath(userLogin);
 
             File dir = new File(userPath);
@@ -74,15 +82,15 @@ public class UploadManager {
         if (!videos.isEmpty()){
             nextVideo = videos.remove(0);
         }
-
-        Intent intent = new Intent(context, UploadService.class);
-        intent.putExtra("nextVideo", nextVideo);
-        intent.putExtra("userLogin", userLogin);
-
-        context.startService(intent);
+//
+//        Intent intent = new Intent(context, UploadService.class);
+//        intent.putExtra("nextVideo", nextVideo);
+//        intent.putExtra("userLogin", userLogin);
+//
+//        context.startService(intent);
 
 //**********//
-        final UploadRequest request = new UploadRequest(context, UUID.randomUUID().toString(), Globals.SERVER_URL+"/videos/"+userLogin);
+        final UploadRequest request = new UploadRequest(context, UUID.randomUUID().toString(), Globals.getServerUrl(context)+"/videos/"+userLogin);
 
         request.addHeader("Authorization", Globals.getAccessToken(context));
 
@@ -114,7 +122,131 @@ public class UploadManager {
         }
 
     }
+    private void uploadLocations(String userLogin) {
+        final File file = new File(FileUtils.getLocationsFilePath(userLogin));
+        if (!file.exists()) {
+            return;
+        }
+        FileInputStream is = null;
+        try {
+            is = new FileInputStream(file);
 
+            BufferedReader br = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+            JSONArray locations = new JSONArray();
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                JSONObject json = new JSONObject(line);
+                if (json.getString("lat") != null && json.getString("lat").length() > 0) {
+                    locations.put(json);
+                }
+            }
+
+            NetworkUtils.post(context, "/locations/" + userLogin, locations, new HttpResponseCallback() {
+                @Override
+                public void unauthorized() {
+                    Log.e(TAG, "locations unauthorized");
+                }
+
+                @Override
+                public void failure(int statusCode) {
+                    Log.e(TAG, "locations failure - statusCode: " + statusCode);
+                }
+
+                @Override
+                public void success(JSONObject response) {
+                    file.delete();
+                }
+
+                @Override
+                public void noConnection() {
+                    Log.e(TAG, "locations noConnection");
+                }
+
+                @Override
+                public void badConnection() {
+                    Log.e(TAG, "locations badConnection");
+                }
+
+                @Override
+                public void badRequest() {
+                    Log.e(TAG, "locations badRequest");
+                }
+
+                @Override
+                public void badResponse() {
+                    Log.e(TAG, "locations badResponse");
+                }
+            });
+        } catch (java.io.IOException e) {
+            Log.e(TAG, "location file error", e);
+        } catch (JSONException e) {
+            Log.e(TAG, "location file error", e);
+        }
+    }
+
+    private void uploadHistories(String userLogin) {
+        final File file = new File(FileUtils.getHistoriesFilePath(userLogin));
+        if (!file.exists()) {
+            return;
+        }
+        FileInputStream is = null;
+        try {
+            is = new FileInputStream(file);
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+            JSONArray histories = new JSONArray();
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                JSONObject json = new JSONObject(line);
+                if (json.getString("previousState").length() > 0) {
+                    histories.put(json);
+                }
+            }
+
+            NetworkUtils.post(context, "/histories/" + userLogin, histories, new HttpResponseCallback() {
+                @Override
+                public void unauthorized() {
+                    Log.e(TAG, "histories unauthorized");
+                }
+
+                @Override
+                public void failure(int statusCode) {
+                    Log.e(TAG, "histories failure - statusCode: " + statusCode);
+                }
+
+                @Override
+                public void success(JSONObject response) {
+                    file.delete();
+                }
+
+                @Override
+                public void noConnection() {
+                    Log.e(TAG, "histories noConnection");
+                }
+
+                @Override
+                public void badConnection() {
+                    Log.e(TAG, "histories badConnection");
+                }
+
+                @Override
+                public void badRequest() {
+                    Log.e(TAG, "histories badRequest");
+                }
+
+                @Override
+                public void badResponse() {
+                    Log.e(TAG, "histories badResponse");
+                }
+            });
+        } catch (java.io.IOException e) {
+            Log.e(TAG, "location file error", e);
+        } catch (JSONException e) {
+            Log.e(TAG, "location file error", e);
+        }
+    }
 
     public static void sendCancelToUI(LocalBroadcastManager broadcaster) {
         Intent intent = new Intent(CANCEL_UPLOAD_ACTION);

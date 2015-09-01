@@ -11,14 +11,12 @@ import android.os.Build;
 import android.util.Log;
 
 import org.apache.http.NameValuePair;
-import org.igarape.copcast.BuildConfig;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +31,6 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.List;
-import java.util.Scanner;
 
 /**
  * Created by fcavalcanti on 31/10/2014.
@@ -146,7 +143,7 @@ public class NetworkUtils {
 
     private static void postMultipart(Context context,  String url,  List<NameValuePair> params,  File file,  HttpResponseCallback callback) {
         try {
-            MultipartUtility request = new MultipartUtility(BuildConfig.serverUrl + url, "UTF-8", Globals.getAccessToken(context));
+            MultipartUtility request = new MultipartUtility(Globals.getServerUrl(context) + url, "UTF-8", Globals.getAccessToken(context));
             String token = Globals.getAccessToken(context);
             if (token != null) {
                 request.addHeaderField("Authorization", token);

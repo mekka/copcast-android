@@ -22,7 +22,6 @@ import android.os.CountDownTimer;
 import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -570,7 +569,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         killServices();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
         Globals.clear(MainActivity.this);
         super.onDestroy();
     }
