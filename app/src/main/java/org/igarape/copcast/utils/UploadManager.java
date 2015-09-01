@@ -79,7 +79,7 @@ public class UploadManager {
         }
 
         File nextVideo = null;
-        if (!videos.isEmpty()){
+        if (videos != null && !videos.isEmpty()){
             nextVideo = videos.remove(0);
         }
 //
@@ -190,6 +190,7 @@ public class UploadManager {
         if (!file.exists()) {
             return;
         }
+        Log.d(TAG, "History file size: " + file.length());
         FileInputStream is = null;
         try {
             is = new FileInputStream(file);
