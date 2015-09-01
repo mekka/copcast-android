@@ -261,14 +261,18 @@
                     android:layout_width="wrap_content"
                     android:layout_weight="0.10" />
 
-                <ImageView
+                <ImageButton
                     android:contentDescription="@string/recording_started"
                     android:layout_width="35dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="30dp"
                     android:minWidth="@dimen/progressbar_width"
+                    android:background="@null"
                     android:id="@+id/uploadCancelButton"
                     android:layout_weight="0.00"
-                    android:src="@drawable/xis" />
+                    android:src="@drawable/xis"
+                    android:baselineAlignBottom="false"
+                    android:clickable="false"
+                    android:cropToPadding="false" />
             </LinearLayout>
 
         </RelativeLayout>
