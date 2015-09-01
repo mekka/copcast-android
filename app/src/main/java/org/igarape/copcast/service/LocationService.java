@@ -11,12 +11,14 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesClient;
-import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.common.api.Api;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 
 import org.igarape.copcast.R;
 import org.igarape.copcast.utils.Globals;
@@ -27,18 +29,14 @@ import org.igarape.copcast.views.MainActivity;
 /**
  * Created by bruno on 5/11/2014.
  */
-public class LocationService extends Service implements
-        GooglePlayServicesClient.ConnectionCallbacks,
-        GooglePlayServicesClient.OnConnectionFailedListener,
-        LocationListener {
+public class LocationService extends Service implements LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+    private static final String TAG = LocationService.class.getName();
     // A request to connect to Location Services
     private LocationRequest mLocationRequest;
 
-    // Stores the current instantiation of the location client in this object
-    private LocationClient mLocationClient;
-
     private int mId = 2;
     private Handler handler;
+    private GoogleApiClient mGoogleApiClient;
 
     @Override
     public void onDestroy() {
@@ -48,9 +46,9 @@ public class LocationService extends Service implements
 
         mNotificationManager.cancel(mId);
 
-        if (null != mLocationClient && mLocationClient.isConnected()) {
-            mLocationClient.removeLocationUpdates(this);
-            mLocationClient.disconnect();
+        if (mGoogleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(
+                    mGoogleApiClient, this);
         }
     }
 
@@ -59,21 +57,6 @@ public class LocationService extends Service implements
         return null;
     }
 
-
-    @Override
-    public void onConnected(Bundle bundle) {
-        mLocationClient.requestLocationUpdates(mLocationRequest, this);
-    }
-
-    @Override
-    public void onDisconnected() {
-
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
-    }
 
     @Override
     public void onLocationChanged(Location location) {
@@ -115,8 +98,19 @@ public class LocationService extends Service implements
         // mId allows you to update the notification later on.
         mNotificationManager.notify(mId, mBuilder.build());
 
-        // Create a new global location parameters object
-        mLocationRequest = LocationRequest.create();
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API).build();
+        mGoogleApiClient.connect();
+
+
+        return START_STICKY;
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        mLocationRequest =  new LocationRequest();
 
         /*
          * Set the update interval
@@ -129,13 +123,21 @@ public class LocationService extends Service implements
         // Set the interval ceiling to one minute
         mLocationRequest.setFastestInterval(LocationUtils.FAST_INTERVAL_CEILING_IN_MILLISECONDS);
 
-        /*
-         * Create a new location client, using the enclosing class to
-         * handle callbacks.
-         */
-        mLocationClient = new LocationClient(this, this, this);
-        mLocationClient.connect();
-        return START_STICKY;
+        mLocationRequest.setSmallestDisplacement(LocationUtils.SMALLEST_DISPLACEMENT);
+
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
+
     }
 
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.e(TAG, "couldn't connect to google play services");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.e(TAG, "couldn't connect to google play services");
+    }
 }

@@ -7,12 +7,14 @@ import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.google.android.gms.iid.InstanceID;
 import com.splunk.mint.Mint;
 
 import org.igarape.copcast.R;
@@ -28,7 +30,6 @@ public class SplashScreenActivity extends Activity {
     public static String TAG = SplashScreenActivity.class.getName();
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
     private Context context;
-    private GoogleCloudMessaging gcm;
     private String regid = null;  //testing
 
     @Override
@@ -56,7 +57,7 @@ public class SplashScreenActivity extends Activity {
         super.onResume();
         context = getApplicationContext();
         if (checkPlayServices()) {
-            gcm = GoogleCloudMessaging.getInstance(this);
+
             regid = Globals.getRegistrationId(context);
             Globals.setAccessToken(this, null);
             new BackgroundSplashTask().execute();
@@ -117,21 +118,9 @@ public class SplashScreenActivity extends Activity {
         @Override
         protected String doInBackground(Void... arg0) {
             String msg = null;
-            try {
-                if (gcm == null) {
-                    gcm = GoogleCloudMessaging.getInstance(context);
-                }
-                if (regid.isEmpty()) {
-                    regid = gcm.register(Globals.SENDER_ID);
-                    msg = "Device registered, registration ID=" + regid;
-                    Globals.storeRegistrationId(context, regid);
-                }
-            } catch (IOException ex) {
-                msg = "Error :" + ex.getMessage();
-                // If there is an error, don't just keep trying to register.
-                // Require the user to click a button again, or perform
-                // exponential back-off.
-            }
+
+            PreferenceManager.setDefaultValues(getApplicationContext(), R.xml.preferences, false);
+
             // I have just given a sleep for this thread
             // if you want to load database, make
             // network calls, load images

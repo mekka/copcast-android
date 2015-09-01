@@ -128,7 +128,13 @@ public class FileUtils {
     }
 
     public static long getDirectorySize() {
-        return org.apache.commons.io.FileUtils.sizeOfDirectory(new File(path));
+        Log.d(TAG, " file path name "+path);
+        File directory = new File(path);
+        if (directory.exists()){
+            return org.apache.commons.io.FileUtils.sizeOfDirectory(directory);
+        } else {
+           return (long) 0;
+        }
     }
 
     public static String formatMegaBytes(Long size) {

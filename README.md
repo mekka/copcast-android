@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/igarape/copcast-android.svg?branch=master)](https://travis-ci.org/igarape/copcast-android)
+
 =======
 CopCast Android Client
 ============

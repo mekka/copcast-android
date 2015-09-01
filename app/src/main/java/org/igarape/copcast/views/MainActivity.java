@@ -15,7 +15,6 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
-import android.hardware.Camera;
 import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -27,8 +26,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -43,7 +40,7 @@ import com.alexbbb.uploadservice.UploadService;
 import org.igarape.copcast.R;
 import org.igarape.copcast.receiver.AlarmReceiver;
 import org.igarape.copcast.receiver.BatteryReceiver;
-import org.igarape.copcast.service.GcmIntentService;
+import org.igarape.copcast.service.CopcastGcmListenerService;
 import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.service.StreamService;
 import org.igarape.copcast.service.VideoRecorderService;
@@ -64,11 +61,7 @@ import static org.igarape.copcast.utils.Globals.getDirectorySize;
 public class MainActivity extends Activity {
 
     private static final String TAG = MainActivity.class.getName();
-    public static SurfaceView mSurfaceView;
-    public static SurfaceHolder mSurfaceHolder;
-    public static Camera mCamera;
-    public static boolean mPreviewRunning;
-    private BroadcastReceiver receiver;
+    private BroadcastReceiver broadcastReceiver;
     private Button mStarMissionButton;
     private Button mEndMissionButton;
     private Button mPauseRecordingButton;
@@ -126,8 +119,8 @@ public class MainActivity extends Activity {
         ab.setSubtitle(Globals.getUserLogin(this));
         FileUtils.init(getApplicationContext());
 
-
-        receiver = new BroadcastReceiver() {
+        broadcastReceiver
+                = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(BatteryReceiver.BATTERY_LOW_MESSAGE)) {
@@ -149,11 +142,12 @@ public class MainActivity extends Activity {
                                 60000);
 
                     }
-                } else if (intent.getAction().equals(GcmIntentService.START_STREAMING_ACTION)) {
+              
+                } else if (intent.getAction().equals(CopcastGcmListenerService.START_STREAMING_ACTION)) {
                     if (isMissionStarted()) {
                         mStreamSwitch.setChecked(true);
                     }
-                } else if (intent.getAction().equals(GcmIntentService.STOP_STREAMING_ACTION)) {
+                } else if (intent.getAction().equals(CopcastGcmListenerService.STOP_STREAMING_ACTION)) {
                     if (isMissionStarted()) {
                         mStreamSwitch.setChecked(false);
                     }
@@ -616,6 +610,8 @@ public class MainActivity extends Activity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            Intent i = new Intent(this, SettingsActivity.class);
+            startActivity(i);
             return true;
         } else if (id == R.id.action_logout) {
             logout();
@@ -649,17 +645,17 @@ public class MainActivity extends Activity {
         IntentFilter filter = new IntentFilter(UploadManager.UPLOAD_PROGRESS_ACTION);
         filter.addAction(UploadManager.CANCEL_UPLOAD_ACTION);
         filter.addAction(UploadManager.COMPLETED_UPLOAD_ACTION);
-        filter.addAction(GcmIntentService.START_STREAMING_ACTION);
-        filter.addAction(GcmIntentService.STOP_STREAMING_ACTION);
+        filter.addAction(CopcastGcmListenerService.START_STREAMING_ACTION);
+        filter.addAction(CopcastGcmListenerService.STOP_STREAMING_ACTION);
         filter.addAction(BatteryReceiver.BATTERY_LOW_MESSAGE);
         filter.addAction(BatteryReceiver.BATTERY_OKAY_MESSAGE);
-        LocalBroadcastManager.getInstance(this).registerReceiver((receiver), filter);
+        LocalBroadcastManager.getInstance(this).registerReceiver((broadcastReceiver), filter);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
         //Log.d("state","onStop");
     }
 

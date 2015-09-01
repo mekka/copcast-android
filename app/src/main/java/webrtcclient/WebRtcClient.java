@@ -312,7 +312,7 @@ public class WebRtcClient {
         iceServers.add(new PeerConnection.IceServer("stun:stun.voxgratia.org"));
         iceServers.add(new PeerConnection.IceServer("stun:stun.xten.com"));
 
-        pcConstraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"));
+        //pcConstraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"));
         pcConstraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"));
         pcConstraints.optional.add(new MediaConstraints.KeyValuePair("DtlsSrtpKeyAgreement", "true"));
     }
@@ -323,16 +323,20 @@ public class WebRtcClient {
     public void onDestroy() {
         if (!peers.values().isEmpty()) {
             for (Peer peer : peers.values()) {
+                Log.d(TAG, "peer.pc.dispose();");
                 peer.pc.dispose();
             }
         } else {
             if (localMS != null){
+                Log.d(TAG, "peer.pc.dispose();");
                 localMS.dispose();
             }
         }
         try {
             if (videoSource != null) {
+                Log.d(TAG, "peer.pc.dispose();");
                 videoSource.stop();
+                Log.d(TAG, "peer.pc.dispose();");
                 videoSource.dispose();
             }
         }catch (Exception e){
@@ -340,6 +344,7 @@ public class WebRtcClient {
         }
         try{
             if (factory != null) {
+                Log.d(TAG, "peer.pc.dispose();");
                 factory.dispose();
             }
         }catch (Exception e){
@@ -347,7 +352,9 @@ public class WebRtcClient {
         }
         try{
             if (client !=null && client.connected()) {
+                Log.d(TAG, "peer.pc.dispose();");
                 client.disconnect();
+                Log.d(TAG, "peer.pc.dispose();");
                 client.close();
             }
         }catch (Exception e){
@@ -392,8 +399,8 @@ public class WebRtcClient {
             localMS.addTrack(factory.createVideoTrack("ARDAMSv0", videoSource));
         }
 
-        AudioSource audioSource = factory.createAudioSource(new MediaConstraints());
-        localMS.addTrack(factory.createAudioTrack("ARDAMSa0", audioSource));
+//        AudioSource audioSource = factory.createAudioSource(new MediaConstraints());
+//        localMS.addTrack(factory.createAudioTrack("ARDAMSa0", audioSource));
 
         mListener.onLocalStream(localMS);
     }

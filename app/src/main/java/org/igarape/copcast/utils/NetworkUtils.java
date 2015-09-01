@@ -84,11 +84,11 @@ public class NetworkUtils {
     }
 
     public static void get(Context context, String url, HttpResponseCallback callback) {
-        get(context, url, Response.JSON, callback);
+        get( context,  url,  Response.JSON,  callback);
     }
 
     public static void get(Context context, String url, Response type, HttpResponseCallback callback) {
-        executeRequest(Method.GET, context, null, null, url, type, callback);
+        executeRequest(Method.GET, context, null, null, url,type, callback);
     }
 
 
@@ -124,7 +124,7 @@ public class NetworkUtils {
         boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
                 status == BatteryManager.BATTERY_STATUS_FULL;
 
-        return isCharging && (isWiFi || !BuildConfig.requireWifiUpload);
+        return isCharging && (isWiFi || !Globals.isWifiOnly(context));
     }
 
     public static void post(final Context context, boolean async, final String url, final List<NameValuePair> params, final File file, final HttpResponseCallback callback) {
@@ -188,7 +188,7 @@ public class NetworkUtils {
                 HttpURLConnection urlConnection = null;
 
                 try {
-                    URL urlToRequest = new URL(Globals.SERVER_URL + url);
+                    URL urlToRequest = new URL(Globals.getServerUrl(context) + url);
                     urlConnection = (HttpURLConnection) urlToRequest.openConnection();
 
                     if (method.equals(Method.POST)) {

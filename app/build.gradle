@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-
+apply plugin: 'com.google.gms.google-services'
 android {
     signingConfigs {
         config {
@@ -10,11 +10,12 @@ android {
         }
     }
     compileSdkVersion 21
-    buildToolsVersion "21.1.1"
+    buildToolsVersion "21.0.1"
+
     defaultConfig {
         applicationId "org.igarape.copcast"
         minSdkVersion 16
-        targetSdkVersion 20
+        targetSdkVersion 21
         versionCode 2
         versionName "1.1"
         // Enabling multidex support.
@@ -28,20 +29,17 @@ android {
     }
     productFlavors {
         local {
-            buildConfigField "String", "serverUrl", "\"http://192.168.1.72:3000\""
-            buildConfigField "Boolean", "requireWifiUpload", "true"
+            resValue "string", "SERVER_URL_DEFAULT", "\"http://192.168.1.72:3000\""
+            resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "true"
         }
         general {
-            buildConfigField "String", "serverUrl", "\"http://mogi-api.igarape.org\""
-            buildConfigField "Boolean", "requireWifiUpload", "true"
-            minSdkVersion 16
-            applicationId 'org.igarape.copcast'
+            resValue "string", "SERVER_URL_DEFAULT", "\"http://mogi-api.igarape.org\""
+            resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "true"
             signingConfig signingConfigs.config
-            targetSdkVersion 20
         }
         capeTown {
-            buildConfigField "String", "serverUrl", "\"http://api.mogidocs.co.za\""
-            buildConfigField "Boolean", "requireWifiUpload", "false"
+            resValue "string", "SERVER_URL_DEFAULT", "\"http://api.mogidocs.co.za\""
+            resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "false"
         }
     }
     dexOptions {
@@ -50,12 +48,13 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:multidex:1.0.0'
-    compile 'com.google.android.gms:play-services:6.1.+'
-    compile 'commons-io:commons-io:+'
+    compile 'com.google.android.gms:play-services:7.8.0'
+
+    compile "commons-io:commons-io:2.4"
+    compile 'com.android.support:multidex:1.0.1'
     compile 'com.splunk.mint:mint:4.2'
     //mew versions can be consulted here: http://repo1.maven.org/maven2/io/pristine/libjingle/
-    compile 'io.pristine:libjingle:9643@aar'
+    compile 'io.pristine:libjingle:9730@aar'
     compile 'com.github.nkzawa:socket.io-client:0.5.2'
-    compile 'com.loopj.android:android-async-http:1.4.8'
+
 }

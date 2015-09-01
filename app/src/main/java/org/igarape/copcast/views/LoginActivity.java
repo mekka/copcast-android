@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -13,6 +14,9 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.google.android.gms.iid.InstanceID;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -24,6 +28,7 @@ import org.igarape.copcast.utils.HttpResponseCallback;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,91 +81,122 @@ public class LoginActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        return item.getItemId() == R.id.action_settings || super.onOptionsItemSelected(item);
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                Intent i = new Intent(this, SettingsActivity.class);
+                startActivity(i);
+                break;
+        }
+
+        return true;
     }
 
     public void makeLoginRequest(View view) {
         pDialog = ProgressDialog.show(this, getString(R.string.login_in), getString(R.string.please_hold), true);
 
-        final String regId = Globals.getRegistrationId(getApplicationContext());
-        List<NameValuePair> params = new ArrayList<NameValuePair>();
-        params.add(new BasicNameValuePair("username", txtId.getText().toString()));
-        params.add(new BasicNameValuePair("password", txtPwd.getText().toString()));
-        params.add(new BasicNameValuePair("scope", "client"));
-        params.add(new BasicNameValuePair("gcm_registration", regId));
+        final String loginField = txtId.getText().toString();
+        final String passwordField = txtPwd.getText().toString();
 
-        post(this, "/token", params, new HttpResponseCallback() {
+        new AsyncTask() {
             @Override
-            public void success(JSONObject response) {
-                Log.d(TAG, "@JSONRESPONSE=[" + response + "]");
-                String token = null;
+            protected Object doInBackground(Object[] args) {
+                List<NameValuePair> params = new ArrayList<NameValuePair>();
+
+                params.add(new BasicNameValuePair("username", loginField));
+
+                params.add(new BasicNameValuePair("password", passwordField));
+                params.add(new BasicNameValuePair("scope", "client"));
+
+                InstanceID instanceID = InstanceID.getInstance(getApplicationContext());
+                String regId = null;
+
                 try {
-                    token = (String) response.get("token");
-                    Globals.setUserName(getApplicationContext(), (String) response.get("userName"));
-                } catch (JSONException e) {
-                    Log.e(TAG, "error on login", e);
+                    Bundle bundle = new Bundle();
+                    bundle.putString("login", loginField);
+                    regId = instanceID.getToken(getString(R.string.gcm_defaultSenderId),
+                            GoogleCloudMessaging.INSTANCE_ID_SCOPE, bundle);
+                    Globals.storeRegistrationId(getApplicationContext(), regId);
+                } catch (IOException e) {
+                    Log.e(TAG, "error getting gcm code ", e);
                 }
-                if (pDialog != null) {
-                    pDialog.dismiss();
-                    pDialog = null;
-                }
-                Globals.setAccessToken(getBaseContext(), token);
-                Globals.setUserLogin(getBaseContext(), txtId.getText().toString());
+                params.add(new BasicNameValuePair("gcm_registration", regId));
 
-                HistoryUtils.registerHistory(getApplicationContext(), State.NOT_LOGGED, State.LOGGED, Globals.getUserLogin(LoginActivity.this));
-
-                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                startActivity(intent);
-                LoginActivity.this.finish();
-            }
-
-            @Override
-            public void unauthorized() {
-                showToast(R.string.unauthorized_login);
-            }
-
-            private void showToast(final int message) {
-                runOnUiThread(new Runnable() {
+                post(getApplicationContext(), "/token", params, new HttpResponseCallback() {
                     @Override
-                    public void run() {
-
+                    public void success(JSONObject response) {
+                        Log.d(TAG, "@JSONRESPONSE=[" + response + "]");
+                        String token = null;
+                        try {
+                            token = (String) response.get("token");
+                            Globals.setUserName(getApplicationContext(), (String) response.get("userName"));
+                        } catch (JSONException e) {
+                            Log.e(TAG, "error on login", e);
+                        }
                         if (pDialog != null) {
                             pDialog.dismiss();
                             pDialog = null;
                         }
-                        Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
-                        toast.setGravity(Gravity.TOP, 0, 100);
-                        toast.show();
+                        Globals.setAccessToken(getBaseContext(), token);
+                        Globals.setUserLogin(getBaseContext(), loginField);
 
+                        HistoryUtils.registerHistory(getApplicationContext(), State.NOT_LOGGED, State.LOGGED, Globals.getUserLogin(LoginActivity.this));
+
+                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                        startActivity(intent);
+                        LoginActivity.this.finish();
+                    }
+
+                    @Override
+                    public void unauthorized() {
+                        showToast(R.string.unauthorized_login);
+                    }
+
+                    private void showToast(final int message) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+
+                                if (pDialog != null) {
+                                    pDialog.dismiss();
+                                    pDialog = null;
+                                }
+                                Toast toast = Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG);
+                                toast.setGravity(Gravity.TOP, 0, 100);
+                                toast.show();
+
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void failure(int statusCode) {
+                        showToast(R.string.server_error);
+                    }
+
+                    @Override
+                    public void noConnection() {
+                        showToast(R.string.network_required);
+                    }
+
+                    @Override
+                    public void badConnection() {
+                        showToast(R.string.connection_error);
+                    }
+
+                    @Override
+                    public void badRequest() {
+                        showToast(R.string.bad_request_error);
+                    }
+
+                    @Override
+                    public void badResponse() {
+                        showToast(R.string.bad_request_error);
                     }
                 });
+                return null;
             }
 
-            @Override
-            public void failure(int statusCode) {
-                showToast(R.string.server_error);
-            }
-
-            @Override
-            public void noConnection() {
-                showToast(R.string.network_required);
-            }
-
-            @Override
-            public void badConnection() {
-                showToast(R.string.connection_error);
-            }
-
-            @Override
-            public void badRequest() {
-                showToast(R.string.bad_request_error);
-            }
-
-            @Override
-            public void badResponse() {
-                showToast(R.string.bad_request_error);
-            }
-        });
+        }.execute(null, null, null);
     }
 
     private boolean hasErrors() {
