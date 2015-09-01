@@ -499,7 +499,7 @@ public class MainActivity extends Activity {
         Intent intent = new Intent(MainActivity.this, UploadService.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         stopService(intent);
-
+        uploadManager = null;
         HistoryUtils.registerHistory(getApplicationContext(), State.UPLOADING, State.LOGGED, Globals.getUserLogin(MainActivity.this));
     }
 
