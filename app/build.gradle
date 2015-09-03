@@ -1,6 +1,11 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 android {
+
+    lintOptions {
+        disable 'InvalidPackage','TypographyFractions','TypographyQuotes', 'MissingTranslation'
+    }
+
     signingConfigs {
         config {
             keyAlias 'chave'
