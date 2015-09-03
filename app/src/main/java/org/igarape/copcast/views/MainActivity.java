@@ -316,6 +316,7 @@ public class MainActivity extends Activity {
 
                                                      HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.LOGGED, Globals.getUserLogin(MainActivity.this));
 
+                                                     //reset upload values
                                                      resetStatusUpload();
 
                                                      stopAlarmReceiver();
