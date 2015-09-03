@@ -162,6 +162,7 @@ public class MainActivity extends Activity {
                     } else {
                         Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
                     }
+                    resetStatusUpload();
                 }
             }
         };
@@ -212,10 +213,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        ((ProgressBar) findViewById(R.id.progressBar)).setMax(getDirectorySize(getApplicationContext()).intValue());
-
-        ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, 0, formatMegaBytes(getDirectorySize(getApplicationContext()))));
-        ((TextView) findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, formatMegaBytes(getDirectorySize(getApplicationContext()))));
+        resetStatusUpload();
 
         mStarMissionButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -318,8 +316,7 @@ public class MainActivity extends Activity {
 
                                                      HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.LOGGED, Globals.getUserLogin(MainActivity.this));
 
-                                                     Globals.setDirectorySize(getApplicationContext(), FileUtils.getDirectorySize());
-                                                     ((TextView) findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, formatMegaBytes(getDirectorySize(getApplicationContext()))));
+                                                     resetStatusUpload();
 
                                                      stopAlarmReceiver();
                                                  }
@@ -406,6 +403,15 @@ public class MainActivity extends Activity {
         );
 
         mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+    }
+
+    private void resetStatusUpload() {
+        Globals.setDirectorySize(getApplicationContext(), FileUtils.getDirectorySize());
+
+        ((ProgressBar) findViewById(R.id.progressBar)).setMax(getDirectorySize(getApplicationContext()).intValue());
+
+        ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, 0, formatMegaBytes(getDirectorySize(getApplicationContext()))));
+        ((TextView) findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, formatMegaBytes(getDirectorySize(getApplicationContext()))));
     }
 
     private void stopAlarmReceiver(){
