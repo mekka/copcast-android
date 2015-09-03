@@ -115,6 +115,12 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     private boolean prepareMediaEncoder() {
 
         camera = getCameraInstance();
+        //set camera to continually auto-focus
+        Camera.Parameters params = camera.getParameters();
+        //*EDIT*//params.setFocusMode("continuous-picture");
+        //It is better to use defined constraints as opposed to String, thanks to AbdelHady
+        params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
+        camera.setParameters(params);
         if (camera == null){
             Log.e(TAG, "Camera returned null");
             stopSelf();

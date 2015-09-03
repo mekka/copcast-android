@@ -1,43 +1,58 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 android {
+    signingConfigs {
+        config {
+            keyAlias 'chave'
+            keyPassword 'chave'
+            storeFile file('chave')
+            storePassword 'chave'
+        }
+    }
     compileSdkVersion 21
     buildToolsVersion "21.0.1"
 
     defaultConfig {
         applicationId "org.igarape.copcast"
-        minSdkVersion 16
+        minSdkVersion 17
         targetSdkVersion 21
         versionCode 2
         versionName "1.1"
+        // Enabling multidex support.
+        multiDexEnabled true
+        signingConfig signingConfigs.config
     }
     buildTypes {
         release {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
     productFlavors {
         local {
-            resValue "string", "SERVER_URL_DEFAULT", "\"http://192.168.1.72:3000\""
+            resValue "string", "SERVER_URL_DEFAULT", "\"http://mogi-api.igarape.org\""
+            //resValue "string", "SERVER_URL_DEFAULT", "\"http://192.168.1.72:3000\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "true"
         }
         general {
             resValue "string", "SERVER_URL_DEFAULT", "\"http://mogi-api.igarape.org\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "true"
+            signingConfig signingConfigs.config
         }
         capeTown {
             resValue "string", "SERVER_URL_DEFAULT", "\"http://api.mogidocs.co.za\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "false"
         }
     }
-
+    dexOptions {
+        incremental true
+    }
 }
 
 dependencies {
     compile 'com.google.android.gms:play-services:7.8.0'
 
     compile "commons-io:commons-io:2.4"
+    compile 'com.android.support:multidex:1.0.1'
     compile 'com.splunk.mint:mint:4.2'
     //mew versions can be consulted here: http://repo1.maven.org/maven2/io/pristine/libjingle/
     compile 'io.pristine:libjingle:9730@aar'

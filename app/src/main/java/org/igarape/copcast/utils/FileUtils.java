@@ -9,7 +9,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -75,6 +74,8 @@ public class FileUtils {
 
     private static String getUserPath(String userLogin) {
         String userPath = path + userLogin + File.separator;
+        //String userPath = path;
+
 
         File f = new File(userPath);
         if (!f.exists()) {
@@ -98,10 +99,26 @@ public class FileUtils {
     }
 
     public static File getAlbumStorageDir(String albumName, Context context) {
-        File file = new File(context.getFilesDir(), albumName);
-        if (!file.exists() && !file.mkdirs()) {
-            Log.e(TAG, "Directory '" + albumName + "' not created");
+
+        boolean testVisible = false;
+        File file = null;
+
+        if (!testVisible) {
+            //internal storage todo: remove after test
+            file = new File(context.getFilesDir(), albumName);
+            if (!file.exists() && !file.mkdirs()) {
+                Log.e(TAG, "Directory '" + albumName + "' not created");
+            }
         }
+        else {
+            // Get the directory for the user's public pictures directory.
+            file = new File(Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DCIM), albumName);
+            if (!file.mkdirs()) {
+                Log.e(TAG, "Directory not created");
+            }
+        }
+
         return file;
     }
 

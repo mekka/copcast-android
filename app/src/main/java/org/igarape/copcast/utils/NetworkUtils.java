@@ -11,14 +11,12 @@ import android.os.Build;
 import android.util.Log;
 
 import org.apache.http.NameValuePair;
-import org.igarape.copcast.BuildConfig;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +31,6 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.List;
-import java.util.Scanner;
 
 /**
  * Created by fcavalcanti on 31/10/2014.
@@ -127,31 +124,41 @@ public class NetworkUtils {
         return isCharging && (isWiFi || !Globals.isWifiOnly(context));
     }
 
-    public static void post(final Context context, final String url, final List<NameValuePair> params, final File file, final HttpResponseCallback callback) {
-        new AsyncTask<Void, Void, Void>() {
+    public static void post(final Context context, boolean async, final String url, final List<NameValuePair> params, final File file, final HttpResponseCallback callback) {
+        if (async) {
+            new AsyncTask<Void, Void, Void>() {
 
-            @Override
-            protected Void doInBackground(Void... unused) {
-                try {
-                    MultipartUtility request = new MultipartUtility(Globals.getServerUrl(context)+ url, "UTF-8", Globals.getAccessToken(context));
-                    String token = Globals.getAccessToken(context);
-                    if (token != null) {
-                        request.addHeaderField("Authorization", token);
-                    }
-                    for (NameValuePair pair : params) {
-                        request.addFormField(pair.getName(), pair.getValue());
-                    }
-                    request.addFilePart("video", file);
-
-                    request.finish();  //send the video to the server
-
-                    callback.success(new JSONObject());
-                } catch (IOException e) {
-                    callback.failure(500);
+                @Override
+                protected Void doInBackground(Void... unused) {
+                    postMultipart(context, url, params, file, callback);
+                    return null;
                 }
-                return null;
+
+
+            }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
+        } else {
+            postMultipart(context, url, params, file, callback);
+        }
+    }
+
+    private static void postMultipart(Context context,  String url,  List<NameValuePair> params,  File file,  HttpResponseCallback callback) {
+        try {
+            MultipartUtility request = new MultipartUtility(Globals.getServerUrl(context) + url, "UTF-8", Globals.getAccessToken(context));
+            String token = Globals.getAccessToken(context);
+            if (token != null) {
+                request.addHeaderField("Authorization", token);
             }
-        }.execute();
+            for (NameValuePair pair : params) {
+                request.addFormField(pair.getName(), pair.getValue());
+            }
+            request.addFilePart("video", file);
+
+            request.finish();  //send the video to the server
+
+            callback.success(new JSONObject());
+        } catch (IOException e) {
+            callback.failure(500);
+        }
     }
 
     public static void delete(final Context context, final String url, final HttpResponseCallback callback) {

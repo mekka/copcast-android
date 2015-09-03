@@ -9,8 +9,6 @@ import android.location.Location;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import org.igarape.copcast.BuildConfig;
-
 /**
  * Created by fcavalcanti on 28/10/2014.
  */

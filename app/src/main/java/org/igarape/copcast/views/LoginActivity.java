@@ -12,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -40,6 +41,7 @@ public class LoginActivity extends Activity {
     EditText txtId;
     EditText txtPwd;
     ProgressDialog pDialog;
+    private Button btnLoginOk;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,9 +49,8 @@ public class LoginActivity extends Activity {
         setContentView(R.layout.activity_login);
 
         txtId = (EditText) findViewById(R.id.txtLoginUser);
-        //txtId.setText(Globals.getUserLogin(this));
         txtPwd = (EditText) findViewById(R.id.txtLoginPassword);
-
+        btnLoginOk = (Button) findViewById(R.id.btn_login_ok);
         /**
          * Appears a hack
          * On login_activity I added
@@ -69,6 +70,13 @@ public class LoginActivity extends Activity {
                         }
                     }, 200);
                 }
+            }
+        });
+
+        btnLoginOk.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                makeLoginRequest(v);
             }
         });
     }

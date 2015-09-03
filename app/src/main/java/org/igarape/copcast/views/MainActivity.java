@@ -22,7 +22,6 @@ import android.os.CountDownTimer;
 import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,13 +34,14 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.alexbbb.uploadservice.UploadService;
+
 import org.igarape.copcast.R;
 import org.igarape.copcast.receiver.AlarmReceiver;
 import org.igarape.copcast.receiver.BatteryReceiver;
 import org.igarape.copcast.service.CopcastGcmListenerService;
 import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.service.StreamService;
-import org.igarape.copcast.service.UploadService;
 import org.igarape.copcast.service.VideoRecorderService;
 import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.FileUtils;
@@ -49,6 +49,7 @@ import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.HistoryUtils;
 import org.igarape.copcast.utils.HttpResponseCallback;
 import org.igarape.copcast.utils.NetworkUtils;
+import org.igarape.copcast.utils.UploadManager;
 
 import java.util.concurrent.TimeUnit;
 
@@ -71,11 +72,13 @@ public class MainActivity extends Activity {
     private CompoundButton.OnCheckedChangeListener mStreamListener;
 
     private MediaPlayer mySongclick;
+    private UploadManager uploadManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         mStreamSwitch = (Switch) findViewById(R.id.streamSwitch);
         mStarMissionButton = (Button) findViewById(R.id.startMissionButton);
@@ -113,21 +116,30 @@ public class MainActivity extends Activity {
         ActionBar ab = getActionBar(); //needs  import android.app.ActionBar;
         ab.setTitle(Globals.getUserName(getApplicationContext()));
         ab.setSubtitle(Globals.getUserLogin(this));
+        FileUtils.init(getApplicationContext());
 
         broadcastReceiver
                 = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(BatteryReceiver.BATTERY_LOW_MESSAGE)) {
-                    Log.d(TAG,"onReceive BATTERY_LOW_MESSAGE");
                     stopUploading();
                     stopAlarmReceiver();
                 } else if (intent.getAction().equals(BatteryReceiver.BATTERY_OKAY_MESSAGE)) {
                     //TODO check if it's already running. if not, start startAlarmReceiver()
-                    Log.d(TAG,"onReceive BATTERY_OKAY_MESSAGE");
                 }
-                else if (intent.getAction().equals(UploadService.UPLOAD_PROGRESS_ACTION)) {
+                else if (intent.getAction().equals(UploadManager.UPLOAD_FAILED_ACTION)) {
+                    if (uploadManager != null) {
+                        uploadManager.runUpload();
+                    }
+                }
+                else if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
                     updateProgressBar();
+                    if (uploadManager != null) {
+                        uploadManager.deleteVideoFile();
+                        uploadManager.runUpload();
+                    }
+              
                 } else if (intent.getAction().equals(CopcastGcmListenerService.START_STREAMING_ACTION)) {
                     if (isMissionStarted()) {
                         mStreamSwitch.setChecked(true);
@@ -144,11 +156,13 @@ public class MainActivity extends Activity {
                     Intent intentAux = new Intent(MainActivity.this, UploadService.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     stopService(intentAux);
-                    if (intent.getAction().equals(UploadService.CANCEL_UPLOAD_ACTION)) {
+                    uploadManager = null;
+                    if (intent.getAction().equals(UploadManager.CANCEL_UPLOAD_ACTION)) {
                         Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
                     } else {
                         Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
                     }
+                    resetStatusUpload();
                 }
             }
         };
@@ -199,10 +213,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        ((ProgressBar) findViewById(R.id.progressBar)).setMax(getDirectorySize(getApplicationContext()).intValue());
-
-        ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, 0, formatMegaBytes(getDirectorySize(getApplicationContext()))));
-        ((TextView) findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, formatMegaBytes(getDirectorySize(getApplicationContext()))));
+        resetStatusUpload();
 
         mStarMissionButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -305,8 +316,8 @@ public class MainActivity extends Activity {
 
                                                      HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.LOGGED, Globals.getUserLogin(MainActivity.this));
 
-                                                     Globals.setDirectorySize(getApplicationContext(), FileUtils.getDirectorySize());
-                                                     ((TextView) findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, formatMegaBytes(getDirectorySize(getApplicationContext()))));
+                                                     //reset upload values
+                                                     resetStatusUpload();
 
                                                      stopAlarmReceiver();
                                                  }
@@ -326,9 +337,8 @@ public class MainActivity extends Activity {
                                                                                   findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
                                                                                   findViewById(R.id.streamLayout).setVisibility(View.GONE);
 
-                                                                                  Intent intent = new Intent(MainActivity.this, UploadService.class);
-                                                                                  intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                                                  startService(intent);
+                                                                                  uploadManager = new UploadManager(getApplicationContext());
+                                                                                  uploadManager.runUpload();
 
                                                                                   HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this));
                                                                                   updateProgressBar();
@@ -394,6 +404,15 @@ public class MainActivity extends Activity {
         );
 
         mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+    }
+
+    private void resetStatusUpload() {
+        Globals.setDirectorySize(getApplicationContext(), FileUtils.getDirectorySize());
+
+        ((ProgressBar) findViewById(R.id.progressBar)).setMax(getDirectorySize(getApplicationContext()).intValue());
+
+        ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, 0, formatMegaBytes(getDirectorySize(getApplicationContext()))));
+        ((TextView) findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, formatMegaBytes(getDirectorySize(getApplicationContext()))));
     }
 
     private void stopAlarmReceiver(){
@@ -491,7 +510,7 @@ public class MainActivity extends Activity {
         Intent intent = new Intent(MainActivity.this, UploadService.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         stopService(intent);
-
+        uploadManager = null;
         HistoryUtils.registerHistory(getApplicationContext(), State.UPLOADING, State.LOGGED, Globals.getUserLogin(MainActivity.this));
     }
 
@@ -554,6 +573,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         killServices();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
         Globals.clear(MainActivity.this);
         super.onDestroy();
     }
@@ -567,7 +587,7 @@ public class MainActivity extends Activity {
         alertDialog.setMessage(res.getString(R.string.confirmation_msg));
 
         alertDialog.setPositiveButton(res.getText(R.string.confirmation_button_positive), new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog,int which) {
+            public void onClick(DialogInterface dialog, int which) {
                 MainActivity.this.finish();
             }
         });
@@ -625,9 +645,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        IntentFilter filter = new IntentFilter(UploadService.UPLOAD_PROGRESS_ACTION);
-        filter.addAction(UploadService.CANCEL_UPLOAD_ACTION);
-        filter.addAction(UploadService.COMPLETED_UPLOAD_ACTION);
+        IntentFilter filter = new IntentFilter(UploadManager.UPLOAD_PROGRESS_ACTION);
+        filter.addAction(UploadManager.CANCEL_UPLOAD_ACTION);
+        filter.addAction(UploadManager.UPLOAD_FAILED_ACTION);
+        filter.addAction(UploadManager.COMPLETED_UPLOAD_ACTION);
         filter.addAction(CopcastGcmListenerService.START_STREAMING_ACTION);
         filter.addAction(CopcastGcmListenerService.STOP_STREAMING_ACTION);
         filter.addAction(BatteryReceiver.BATTERY_LOW_MESSAGE);
@@ -638,7 +659,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onStop() {
         super.onStop();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
         //Log.d("state","onStop");
     }
 
