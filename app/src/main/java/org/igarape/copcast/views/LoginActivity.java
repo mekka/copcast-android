@@ -94,7 +94,7 @@ public class LoginActivity extends Activity {
     public void makeLoginRequest(View view) {
         pDialog = ProgressDialog.show(this, getString(R.string.login_in), getString(R.string.please_hold), true);
 
-        final String loginField = txtId.getText().toString();
+        final String loginField = txtId.getText().toString().trim();
         final String passwordField = txtPwd.getText().toString();
 
         new AsyncTask() {
