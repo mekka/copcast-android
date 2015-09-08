@@ -45,7 +45,7 @@ public class LocationService extends Service implements LocationListener, Google
 
         mNotificationManager.cancel(mId);
 
-        if (mGoogleApiClient.isConnected()) {
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
             LocationServices.FusedLocationApi.removeLocationUpdates(
                     mGoogleApiClient, this);
         }
