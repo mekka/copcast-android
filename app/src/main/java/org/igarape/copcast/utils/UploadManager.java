@@ -287,6 +287,7 @@ public class UploadManager {
     public void deleteVideoFile() {
         if (nextVideo != null){
             nextVideo.delete();
+            Log.d(TAG, "next video deleted after upload");
         }
     }
 

@@ -503,14 +503,16 @@ public class MainActivity extends Activity {
     }
 
     private void stopUploading() {
+        resetStatusUpload();
+
         findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
         findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
         findViewById(R.id.streamLayout).setVisibility(View.GONE);
-
         Intent intent = new Intent(MainActivity.this, UploadService.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         stopService(intent);
         uploadManager = null;
+
         HistoryUtils.registerHistory(getApplicationContext(), State.UPLOADING, State.LOGGED, Globals.getUserLogin(MainActivity.this));
     }
 

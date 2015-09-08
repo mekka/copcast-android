@@ -134,7 +134,13 @@ public class UploadService extends IntentService {
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         notification = new NotificationCompat.Builder(this);
         PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+      //  wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+     //   wakeLock.release();
     }
 
     @Override
@@ -155,7 +161,7 @@ public class UploadService extends IntentService {
 
                 lastPublishedProgress = 0;
                 shouldContinue = true;
-                wakeLock.acquire();
+               // wakeLock.acquire();
                 int attempts = 0;
                 int errorDelay = 1000;
                 int maxErrorDelay = 10 * 60 * 1000;
@@ -169,7 +175,7 @@ public class UploadService extends IntentService {
                         break;
                     } catch (Exception exc) {
                         if (attempts > maxRetries || !shouldContinue) {
-                            broadcastError(uploadId, exc);
+                            //broadcastError(uploadId, exc);
                         } else {
                             Log.w(getClass().getName(), "Error in uploadId " + uploadId + " on attempt " + attempts
                                             + ". Waiting " + errorDelay / 1000 + "s before next attempt",
@@ -376,7 +382,7 @@ public class UploadService extends IntentService {
                 while ((bytesRead = stream.read(buffer, 0, buffer.length)) > 0 && shouldContinue) {
                     requestStream.write(buffer, 0, bytesRead);
                     uploadedBytes += bytesRead;
-                    broadcastProgress(uploadId, uploadedBytes, totalBytes);
+                    //broadcastProgress(uploadId, uploadedBytes, totalBytes);
                 }
             } finally {
                 closeInputStream(stream);
@@ -470,7 +476,7 @@ public class UploadService extends IntentService {
         intent.putExtra(SERVER_RESPONSE_CODE, responseCode);
         intent.putExtra(SERVER_RESPONSE_MESSAGE, filteredMessage);
         sendBroadcast(intent);
-        wakeLock.release();
+        //wakeLock.release();
     }
 
     private void broadcastError(final String uploadId, final Exception exception) {
@@ -483,7 +489,7 @@ public class UploadService extends IntentService {
         intent.putExtra(STATUS, STATUS_ERROR);
         intent.putExtra(ERROR_EXCEPTION, exception);
         sendBroadcast(intent);
-        wakeLock.release();
+       // wakeLock.release();
     }
 
     private void createNotification() {
