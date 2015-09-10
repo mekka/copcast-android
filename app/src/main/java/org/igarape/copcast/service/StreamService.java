@@ -19,6 +19,7 @@ import org.igarape.copcast.R;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.views.MainActivity;
 import org.webrtc.MediaStream;
+import org.webrtc.RendererCommon;
 import org.webrtc.VideoRenderer;
 import org.webrtc.VideoRendererGui;
 
@@ -39,7 +40,7 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
     private static final int LOCAL_Y_CONNECTING = 0;
     private static final int LOCAL_WIDTH_CONNECTING = 100;
     private static final int LOCAL_HEIGHT_CONNECTING = 100;
-    private VideoRendererGui.ScalingType scalingType = VideoRendererGui.ScalingType.SCALE_ASPECT_FILL;
+    private RendererCommon.ScalingType scalingType = RendererCommon.ScalingType.SCALE_ASPECT_FILL;
     private WindowManager mWindowManager;
     private GLSurfaceView mSurfaceView;
 

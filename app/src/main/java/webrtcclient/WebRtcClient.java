@@ -9,6 +9,7 @@ import com.github.nkzawa.socketio.client.Socket;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.webrtc.CameraEnumerationAndroid;
 import org.webrtc.DataChannel;
 import org.webrtc.IceCandidate;
 import org.webrtc.MediaConstraints;
@@ -320,44 +321,16 @@ public class WebRtcClient {
      * Call this method in Activity.onDestroy()
      */
     public void onDestroy() {
-        if (!peers.values().isEmpty()) {
-            for (Peer peer : peers.values()) {
-                Log.d(TAG, "peer.pc.dispose();");
-                peer.pc.dispose();
-            }
-        } else {
-            if (localMS != null){
-                Log.d(TAG, "peer.pc.dispose();");
-                localMS.dispose();
-            }
-        }
         try {
-            if (videoSource != null) {
-                Log.d(TAG, "peer.pc.dispose();");
-                videoSource.stop();
-                Log.d(TAG, "peer.pc.dispose();");
-                videoSource.dispose();
-            }
-        }catch (Exception e){
-            Log.e(TAG, "ondestroy", e);
-        }
-        try{
-            if (factory != null) {
-                Log.d(TAG, "peer.pc.dispose();");
-                factory.dispose();
-            }
-        }catch (Exception e){
-            Log.e(TAG, "ondestroy", e);
-        }
-        try{
-            if (client !=null && client.connected()) {
-                Log.d(TAG, "peer.pc.dispose();");
-                client.disconnect();
-                Log.d(TAG, "peer.pc.dispose();");
-                client.close();
-            }
-        }catch (Exception e){
-            Log.e(TAG, "client.disconnect", e);
+//            for (Peer peer : peers.values()) {
+//                peer.pc.dispose();
+//            }
+            videoSource.stop();
+//            factory.dispose();
+            client.disconnect();
+            client.close();
+        } catch(RuntimeException e){
+            e.printStackTrace();
         }
     }
 
@@ -405,7 +378,7 @@ public class WebRtcClient {
     }
 
     private VideoCapturer getVideoCapturer() {
-        String cameraDeviceName = VideoCapturerAndroid.getNameOfBackFacingDevice();
+        String cameraDeviceName = CameraEnumerationAndroid.getNameOfBackFacingDevice();
         return VideoCapturerAndroid.create(cameraDeviceName);
     }
 }
