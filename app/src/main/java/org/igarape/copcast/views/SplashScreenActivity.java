@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Toast;
@@ -114,8 +113,6 @@ public class SplashScreenActivity extends Activity {
         @Override
         protected String doInBackground(Void... arg0) {
             String msg = null;
-            Looper.prepare();
-            PreferenceManager.setDefaultValues(getApplicationContext(), R.xml.preferences, false);
 
             // I have just given a sleep for this thread
             // if you want to load database, make
@@ -127,7 +124,7 @@ public class SplashScreenActivity extends Activity {
             // this is an async task, it will not disrupt the UI
             queryBatteryStatus();
             FileUtils.init(getApplicationContext());
-            Globals.setDirectorySize(getApplicationContext(),FileUtils.getDirectorySize());
+            Globals.setDirectorySize(getApplicationContext(), FileUtils.getDirectorySize());
             try {
                 Thread.sleep(SPLASH_SHOW_TIME);
             } catch (InterruptedException e) {
@@ -139,6 +136,8 @@ public class SplashScreenActivity extends Activity {
         @Override
         protected void onPostExecute(String msg) {
             super.onPostExecute(msg);
+
+            PreferenceManager.setDefaultValues(getApplicationContext(), R.xml.preferences, false);
 
             Intent i = new Intent(SplashScreenActivity.this,
                     LoginActivity.class);
