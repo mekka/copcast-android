@@ -3,6 +3,7 @@ package org.igarape.copcast.receiver;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.util.Log;
 
 import org.igarape.copcast.utils.BatteryUtils;
@@ -21,10 +22,15 @@ public class BatteryReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if(Intent.ACTION_BATTERY_LOW.equalsIgnoreCase(intent.getAction())){
             broadcastBatteryStatus(context, BATTERY_LOW_MESSAGE);
+            BatteryUtils.updateValues(intent);
         }else if(Intent.ACTION_BATTERY_OKAY.equalsIgnoreCase(intent.getAction())){
             broadcastBatteryStatus(context, BATTERY_OKAY_MESSAGE);
+            BatteryUtils.updateValues(intent);
+        } else {
+            //Started from the AlarmReceiver
+            IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+            BatteryUtils.updateValues(context.registerReceiver(null, iFilter));
         }
-        BatteryUtils.getSingletonInstance().updateValues(intent);
     }
 
     private void broadcastBatteryStatus(Context context, String msg){

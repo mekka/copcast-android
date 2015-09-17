@@ -38,7 +38,7 @@ public class FileUtils {
         FileUtils.path = path;
     }
 
-    public static void logLocation(String userLogin, Location location) {
+    public static void logLocation(String userLogin, float batteryPercentage, Location location) {
         try {
             LogToFile(userLogin, LOCATIONS_TXT, LocationUtils.buildJson(location).toString());
         } catch (JSONException e) {
@@ -139,4 +139,6 @@ public class FileUtils {
     public static String formatMegaBytes(Long size) {
         return new DecimalFormat("##.##").format((float) size / 1000000);
     }
+
+
 }

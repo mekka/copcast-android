@@ -62,7 +62,7 @@
         <service android:name=".service.LocationService" />
 
         <service android:name=".service.StreamService" />
-        <receiver android:name=".receiver.AlarmReceiver"/>
+        <receiver android:name=".receiver.AlarmLocationReceiver"/>
         <service
             tools:replace="android:exported"
             android:name="com.alexbbb.uploadservice.UploadService"

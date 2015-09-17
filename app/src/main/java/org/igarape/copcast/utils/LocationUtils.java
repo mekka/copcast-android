@@ -44,36 +44,36 @@ public class LocationUtils {
     private static final String TAG = LocationUtils.class.getName();
     public static final float SMALLEST_DISPLACEMENT = 0;
 
-    public static void sendLocation(Context context, final String login, final Location location) {
+    public static void sendLocation(Context context, final String login, final float batteryPercentage, final Location location) {
         HttpResponseCallback callback = new HttpResponseCallback() {
             @Override
             public void failure(int statusCode) {
-                FileUtils.logLocation(login, location);
+                FileUtils.logLocation(login,batteryPercentage, location);
             }
 
             @Override
             public void unauthorized() {
-                FileUtils.logLocation(login, location);
+                FileUtils.logLocation(login,batteryPercentage, location);
             }
 
             @Override
             public void noConnection() {
-                FileUtils.logLocation(login, location);
+                FileUtils.logLocation(login,batteryPercentage, location);
             }
 
             @Override
             public void badConnection() {
-                FileUtils.logLocation(login, location);
+                FileUtils.logLocation(login,batteryPercentage, location);
             }
 
             @Override
             public void badRequest() {
-                FileUtils.logLocation(login, location);
+                FileUtils.logLocation(login,batteryPercentage, location);
             }
 
             @Override
             public void badResponse() {
-                FileUtils.logLocation(login, location);
+                FileUtils.logLocation(login,batteryPercentage, location);
             }
 
             @Override
@@ -83,13 +83,13 @@ public class LocationUtils {
         };
 
         try {
-            NetworkUtils.post(context, "/locations", buildJson(location), callback);
+            NetworkUtils.post(context, "/locations", buildJson(location, batteryPercentage), callback);
         } catch (JSONException e) {
             Log.e(TAG, "json error", e);
         }
     }
 
-    public static JSONObject buildJson(Location location) throws JSONException {
+    public static JSONObject buildJson(Location location, float batteryPercentage) throws JSONException {
         TimeZone tz = TimeZone.getTimeZone("UTC");
         DateFormat df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
         df.setTimeZone(tz);

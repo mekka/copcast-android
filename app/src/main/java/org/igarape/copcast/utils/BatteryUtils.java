@@ -11,10 +11,6 @@ public class BatteryUtils {
 
     private static final String TAG = BatteryUtils.class.getName();
 
-    private BatteryUtils(){}
-
-    private volatile static BatteryUtils instance = null;
-
     private static Float batteryPercentage;
     private static int status;
     private static int temperature;
@@ -23,16 +19,7 @@ public class BatteryUtils {
 
     private static float BATTERY_PERCENTAGE_LIMIT = 20;
 
-    public static BatteryUtils getSingletonInstance() {
-        if (null == instance) {
-            synchronized (BatteryUtils.class){
-                if (null == instance) {
-                    instance = new BatteryUtils();
-                }
-            }
-        }
-        return instance;
-    }
+
 
     public static boolean shouldUpload(){
         return (null != batteryPercentage ? batteryPercentage > BATTERY_PERCENTAGE_LIMIT:true) || plugged == 1;

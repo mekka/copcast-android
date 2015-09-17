@@ -4,29 +4,26 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
-import android.location.LocationManager;
 import android.util.Log;
 
 import org.igarape.copcast.utils.BatteryUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.LocationUtils;
 
-import java.util.List;
-
 /**
  * Created by FCavalcanti on 7/3/15.
  */
-public class AlarmReceiver extends BroadcastReceiver {
+public class AlarmLocationReceiver extends BroadcastReceiver {
 
-    public static String TAG = AlarmReceiver.class.getName();
+    public static String TAG = AlarmLocationReceiver.class.getName();
 
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "onReceive...");
-        if(BatteryUtils.getSingletonInstance().shouldUpload()){
+        if(BatteryUtils.shouldUpload()){
             final Location lastKnownLocation = Globals.getLastKnownLocation();
             if(null != lastKnownLocation){
-                LocationUtils.sendLocation(context, Globals.getUserLogin(context), lastKnownLocation);
+                LocationUtils.sendLocation(context, Globals.getUserLogin(context),BatteryUtils.getBatteryPercentage(), lastKnownLocation);
             }else{
                 Log.d(TAG, "no location found.");
             }
