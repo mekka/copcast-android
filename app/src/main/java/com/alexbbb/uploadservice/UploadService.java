@@ -11,6 +11,7 @@ import android.support.v4.app.NotificationCompat.Builder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.UploadManager;
 
 import java.io.BufferedReader;
@@ -146,6 +147,11 @@ public class UploadService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
+            if (!NetworkUtils.canUpload(getApplicationContext(), intent)) {
+                UploadManager.sendCancelToUI(LocalBroadcastManager.getInstance(getApplicationContext()));
+                this.stopSelf();
+                return;
+            }
             final String action = intent.getAction();
 
             if (getActionUpload().equals(action)) {
