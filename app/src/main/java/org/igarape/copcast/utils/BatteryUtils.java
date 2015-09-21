@@ -4,6 +4,9 @@ import android.content.Intent;
 import android.os.BatteryManager;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * Created by FCavalcanti on 7/17/15.
  */
@@ -37,6 +40,21 @@ public class BatteryUtils {
         BatteryUtils.status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS,0);
         BatteryUtils.temperature = batteryStatus.getIntExtra(BatteryManager.EXTRA_TEMPERATURE,0);
         Log.d(TAG, "updateValues with batteryPercentage=[" + BatteryUtils.batteryPercentage + "]");
+    }
+
+    public static JSONObject buildJson(){
+        JSONObject json = new JSONObject();
+
+        try {
+            json.put("batteryHealth", batteryHealth);
+            json.put("batteryPercentage", batteryPercentage);
+            json.put("plugged", plugged);
+            json.put("status", batteryHealth);
+            json.put("temperature", temperature);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
     }
 
     public static float getBatteryPercentage() {

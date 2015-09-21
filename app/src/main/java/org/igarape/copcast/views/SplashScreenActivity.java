@@ -62,7 +62,7 @@ public class SplashScreenActivity extends Activity {
     private void queryBatteryStatus(){
         IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent batteryStatus = context.registerReceiver(null, iFilter);
-        BatteryUtils.getSingletonInstance().updateValues(batteryStatus);
+        BatteryUtils.updateValues(batteryStatus);
     }
 
     private boolean checkPlayServices() {

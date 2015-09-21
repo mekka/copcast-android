@@ -83,13 +83,13 @@ public class LocationUtils {
         };
 
         try {
-            NetworkUtils.post(context, "/locations", buildJson(location, batteryPercentage), callback);
+            NetworkUtils.post(context, "/locations", buildJson(location), callback);
         } catch (JSONException e) {
             Log.e(TAG, "json error", e);
         }
     }
 
-    public static JSONObject buildJson(Location location, float batteryPercentage) throws JSONException {
+    public static JSONObject buildJson(Location location) throws JSONException {
         TimeZone tz = TimeZone.getTimeZone("UTC");
         DateFormat df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
         df.setTimeZone(tz);
