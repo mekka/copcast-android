@@ -1,6 +1,7 @@
 package org.igarape.copcast.service;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
  * Created by brunosiqueira on 21/08/15.
  */
 public class CopcastIDListenerService extends InstanceIDListenerService {
+    private static final String TAG = CopcastIDListenerService.class.getName();
     public void onTokenRefresh() {
         // Fetch updated Instance ID token and notify our app's server of any changes (if applicable).
         InstanceID instanceID = InstanceID.getInstance(getApplicationContext());
@@ -67,7 +69,7 @@ public class CopcastIDListenerService extends InstanceIDListenerService {
                 }
             });
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "error getting id ", e);
         }
     }
 }
