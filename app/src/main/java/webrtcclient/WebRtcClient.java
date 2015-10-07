@@ -138,6 +138,17 @@ public class WebRtcClient {
                     JSONObject payload = null;
                     if(!type.equals("init")) {
                         payload = data.getJSONObject("payload");
+                    } else if (peers.containsKey(from)){
+                        //already initalized. Wait till it finishes to start again.
+                        Log.d(TAG, "already connected");
+                        try {
+                            JSONObject message = new JSONObject();
+                            message.put("to", from);
+                            client.emit("alreadyConnected", message);
+                        } catch (JSONException e) {
+                            Log.e(TAG, "error when connection already started", e);
+                        }
+                        return;
                     }
                     // if peer is unknown, try to add him
                     if(!peers.containsKey(from)) {
