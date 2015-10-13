@@ -44,36 +44,36 @@ public class LocationUtils {
     private static final String TAG = LocationUtils.class.getName();
     public static final float SMALLEST_DISPLACEMENT = 0;
 
-    public static void sendLocation(Context context, final String login, final float batteryPercentage, final Location location) {
+    public static void sendLocation(Context context, final String login, final Location location) {
         HttpResponseCallback callback = new HttpResponseCallback() {
             @Override
             public void failure(int statusCode) {
-                FileUtils.logLocation(login,batteryPercentage, location);
+                FileUtils.logLocation(login, location);
             }
 
             @Override
             public void unauthorized() {
-                FileUtils.logLocation(login,batteryPercentage, location);
+                FileUtils.logLocation(login, location);
             }
 
             @Override
             public void noConnection() {
-                FileUtils.logLocation(login,batteryPercentage, location);
+                FileUtils.logLocation(login, location);
             }
 
             @Override
             public void badConnection() {
-                FileUtils.logLocation(login,batteryPercentage, location);
+                FileUtils.logLocation(login, location);
             }
 
             @Override
             public void badRequest() {
-                FileUtils.logLocation(login,batteryPercentage, location);
+                FileUtils.logLocation(login, location);
             }
 
             @Override
             public void badResponse() {
-                FileUtils.logLocation(login,batteryPercentage, location);
+                FileUtils.logLocation(login, location);
             }
 
             @Override

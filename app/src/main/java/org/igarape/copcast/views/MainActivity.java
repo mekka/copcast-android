@@ -37,7 +37,7 @@ import android.widget.Toast;
 import com.alexbbb.uploadservice.UploadService;
 
 import org.igarape.copcast.R;
-import org.igarape.copcast.receiver.AlarmLocationReceiver;
+import org.igarape.copcast.receiver.AlarmHeartBeatReceiver;
 import org.igarape.copcast.receiver.BatteryReceiver;
 import org.igarape.copcast.service.CopcastGcmListenerService;
 import org.igarape.copcast.service.LocationService;
@@ -416,7 +416,7 @@ public class MainActivity extends Activity {
     }
 
     private void stopAlarmReceiver(){
-        Intent intent = new Intent(this, AlarmLocationReceiver.class);
+        Intent intent = new Intent(this, AlarmHeartBeatReceiver.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, 0);
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
         alarmManager.cancel(pendingIntent);
@@ -427,7 +427,7 @@ public class MainActivity extends Activity {
          * AlarmManager...wakes every 15 sec.
          */
         AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(this, AlarmLocationReceiver.class);
+        Intent intent = new Intent(this, AlarmHeartBeatReceiver.class);
         PendingIntent pending = PendingIntent.getBroadcast(this, 0, intent,
                 PendingIntent.FLAG_CANCEL_CURRENT);
         manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), Globals.GPS_REPEAT_TIME, pending);

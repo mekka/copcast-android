@@ -21,6 +21,7 @@ import org.webrtc.SessionDescription;
 import org.webrtc.VideoCapturer;
 import org.webrtc.VideoCapturerAndroid;
 import org.webrtc.VideoSource;
+import org.webrtc.VideoTrack;
 
 import java.net.URISyntaxException;
 import java.util.HashMap;
@@ -137,6 +138,17 @@ public class WebRtcClient {
                     JSONObject payload = null;
                     if(!type.equals("init")) {
                         payload = data.getJSONObject("payload");
+                    } else if (peers.containsKey(from)){
+                        //already initalized. Wait till it finishes to start again.
+                        Log.d(TAG, "already connected");
+                        try {
+                            JSONObject message = new JSONObject();
+                            message.put("to", from);
+                            client.emit("alreadyConnected", message);
+                        } catch (JSONException e) {
+                            Log.e(TAG, "error when connection already started", e);
+                        }
+                        return;
                     }
                     // if peer is unknown, try to add him
                     if(!peers.containsKey(from)) {
@@ -151,7 +163,7 @@ public class WebRtcClient {
                         commandMap.get(type).execute(from, payload);
                     }
                 } catch (JSONException e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "error", e);
                 }
             }
         };
@@ -180,7 +192,7 @@ public class WebRtcClient {
                 sendMessage(id, sdp.type.canonicalForm(), payload);
                 pc.setLocalDescription(Peer.this, sdp);
             } catch (JSONException e) {
-                e.printStackTrace();
+                Log.e(TAG, "error", e);
             }
         }
 
@@ -223,7 +235,7 @@ public class WebRtcClient {
                 payload.put("candidate", candidate.sdp);
                 sendMessage(id, "candidate", payload);
             } catch (JSONException e) {
-                e.printStackTrace();
+                Log.e(TAG, "error", e);
             }
         }
 
@@ -283,10 +295,10 @@ public class WebRtcClient {
         try {
             IO.Options opts = new IO.Options();
             opts.forceNew = true;
-            opts.query = "token=" + token;
+            opts.query = "token=" + token + "&clientType=android";
             client = IO.socket(host, opts);
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            Log.e(TAG, "error connecting socket", e);
         }
         client.on("id", messageHandler.onId);
         client.on("message", messageHandler.onMessage);
@@ -330,7 +342,7 @@ public class WebRtcClient {
             client.disconnect();
             client.close();
         } catch(RuntimeException e){
-            e.printStackTrace();
+            Log.e(TAG, "error", e);
         }
     }
 
@@ -354,7 +366,7 @@ public class WebRtcClient {
             message.put("name", name);
             client.emit("readyToStream", message);
         } catch (JSONException e) {
-            e.printStackTrace();
+            Log.e(TAG, "error", e);
         }
     }
 

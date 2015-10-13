@@ -51,7 +51,7 @@
         <activity
             android:screenOrientation="fullSensor"
             android:name=".views.MainActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"/>
+            android:configChanges="orientation|screenSize"/>
         <activity
             android:screenOrientation="portrait"
             android:name=".views.LoginActivity"/>
@@ -62,7 +62,7 @@
         <service android:name=".service.LocationService" />
 
         <service android:name=".service.StreamService" />
-        <receiver android:name=".receiver.AlarmLocationReceiver"/>
+        <receiver android:name=".receiver.AlarmHeartBeatReceiver"/>
         <service
             tools:replace="android:exported"
             android:name="com.alexbbb.uploadservice.UploadService"
