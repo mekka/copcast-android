@@ -47,7 +47,7 @@ public class BatteryUtils {
     }
 
     public static JSONObject buildJson(){
-       return battery.getJson();
+       return battery != null ? battery.getJson() : null;
     }
 
     public static float getBatteryPercentage() {

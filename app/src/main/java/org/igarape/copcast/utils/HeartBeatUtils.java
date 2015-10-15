@@ -21,41 +21,55 @@ public class HeartBeatUtils {
         try {
             JSONObject json = new JSONObject();
             json.put("location", locationJson);
-            json.put("battery", batteryJson);
-            NetworkUtils.post(context, "/heartbeat/" + login, json, new HttpResponseCallback() {
+            if (batteryJson != null) {
+                json.put("battery", batteryJson);
+            }
+            NetworkUtils.post(context, "/heartbeats", json, new HttpResponseCallback() {
                 @Override
                 public void unauthorized() {
-                    FileUtils.logBattery(login, batteryJson);
+                    if (batteryJson != null) {
+                        FileUtils.logBattery(login, batteryJson);
+                    }
                     FileUtils.logLocation(login, locationJson);
                 }
 
                 @Override
                 public void failure(int statusCode) {
-                    FileUtils.logBattery(login, batteryJson);
+                    if (batteryJson != null) {
+                        FileUtils.logBattery(login, batteryJson);
+                    }
                     FileUtils.logLocation(login, locationJson);
                 }
 
                 @Override
                 public void noConnection() {
-                    FileUtils.logBattery(login, batteryJson);
+                    if (batteryJson != null) {
+                        FileUtils.logBattery(login, batteryJson);
+                    }
                     FileUtils.logLocation(login, locationJson);
                 }
 
                 @Override
                 public void badConnection() {
-                    FileUtils.logBattery(login, batteryJson);
+                    if (batteryJson != null) {
+                        FileUtils.logBattery(login, batteryJson);
+                    }
                     FileUtils.logLocation(login, locationJson);
                 }
 
                 @Override
                 public void badRequest() {
-                    FileUtils.logBattery(login, batteryJson);
+                    if (batteryJson != null) {
+                        FileUtils.logBattery(login, batteryJson);
+                    }
                     FileUtils.logLocation(login, locationJson);
                 }
 
                 @Override
                 public void badResponse() {
-                    FileUtils.logBattery(login, batteryJson);
+                    if (batteryJson != null) {
+                        FileUtils.logBattery(login, batteryJson);
+                    }
                     FileUtils.logLocation(login, locationJson);
                 }
             });
