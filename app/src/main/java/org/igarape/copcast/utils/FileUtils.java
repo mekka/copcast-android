@@ -20,6 +20,8 @@ import java.text.DecimalFormat;
 public class FileUtils {
     public static final String LOCATIONS_TXT = "locations.txt";
     public static final String HISTORY_TXT = "history.txt";
+    public static final String INCIDENTS_TXT = "incidents.txt";
+    public static final String INCIDENT_VIDEOS_TXT = "incident_videos.txt";
     public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     private static final String TAG = FileUtils.class.getName();
 
@@ -47,6 +49,14 @@ public class FileUtils {
         }
     }
 
+    public static void LogIncident(String userLogin, JSONObject incident) {
+        LogToFile(userLogin, INCIDENTS_TXT, incident.toString());
+    }
+
+    public static void LogIncidentVideo(String userLogin, String videoName) {
+        LogToFile(userLogin, INCIDENT_VIDEOS_TXT, videoName);
+    }
+
     public static void LogHistory(String userLogin, JSONObject history) {
         LogToFile(userLogin, HISTORY_TXT, history.toString());
     }
@@ -59,6 +69,10 @@ public class FileUtils {
 
     public static String getLocationsFilePath(String userLogin) {
         return getUserPath(userLogin) + LOCATIONS_TXT;
+    }
+
+    public static String getIncidentsFilePath(String userLogin) {
+        return getUserPath(userLogin) + INCIDENTS_TXT;
     }
 
     private static void LogToFile(String userLogin, String file, String data) {
@@ -132,7 +146,7 @@ public class FileUtils {
         if (directory.exists()){
             return org.apache.commons.io.FileUtils.sizeOfDirectory(directory);
         } else {
-           return (long) 0;
+            return (long) 0;
         }
     }
 

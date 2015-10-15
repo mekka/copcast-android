@@ -79,6 +79,7 @@ public class UploadManager {
             userLogin = users.remove(0);
             uploadHistories(userLogin);
             uploadLocations(userLogin);
+            uploadIncidents(userLogin);
             userPath = FileUtils.getPath(userLogin);
 
             File dir = new File(userPath);
@@ -256,6 +257,68 @@ public class UploadManager {
             Log.e(TAG, "location file error", e);
         } catch (JSONException e) {
             Log.e(TAG, "location file error", e);
+        }
+    }
+
+    private void uploadIncidents(String userLogin) {
+        final File file = new File(FileUtils.getIncidentsFilePath(userLogin));
+        if (!file.exists()) {
+            return;
+        }
+        Log.d(TAG, "Incidents file size: " + file.length());
+        FileInputStream is = null;
+        try {
+            is = new FileInputStream(file);
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+            JSONArray incidents = new JSONArray();
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                JSONObject json = new JSONObject(line);
+                incidents.put(json);
+            }
+
+            NetworkUtils.post(context, "/incidents/" + userLogin, incidents, new HttpResponseCallback() {
+                @Override
+                public void unauthorized() {
+                    Log.e(TAG, "incidents unauthorized");
+                }
+
+                @Override
+                public void failure(int statusCode) {
+                    Log.e(TAG, "incidents failure - statusCode: " + statusCode);
+                }
+
+                @Override
+                public void success(JSONObject response) {
+                    file.delete();
+                }
+
+                @Override
+                public void noConnection() {
+                    Log.e(TAG, "incidents noConnection");
+                }
+
+                @Override
+                public void badConnection() {
+                    Log.e(TAG, "incidents badConnection");
+                }
+
+                @Override
+                public void badRequest() {
+                    Log.e(TAG, "incidents badRequest");
+                }
+
+                @Override
+                public void badResponse() {
+                    Log.e(TAG, "incidents badResponse");
+                }
+            });
+        } catch (java.io.IOException e) {
+            Log.e(TAG, "incidents file error", e);
+        } catch (JSONException e) {
+            Log.e(TAG, "incidents file error", e);
         }
     }
 
