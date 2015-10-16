@@ -43,7 +43,6 @@ public class UploadManager {
 
     private final LocalBroadcastManager broadcaster;
     private List<String> users = null;
-    private final GenericExtFilter filter = new GenericExtFilter(".mp4");
     private ArrayList<File> videos;
     private DateFormat df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
 
@@ -83,7 +82,7 @@ public class UploadManager {
             userPath = FileUtils.getPath(userLogin);
 
             File dir = new File(userPath);
-            File[] files = dir.listFiles(filter);
+            File[] files = dir.listFiles(FileUtils.filter);
 
             if (files != null && files.length > 0) {
                 videos = new ArrayList<File>(Arrays.asList(files));
@@ -356,16 +355,4 @@ public class UploadManager {
         }
     }
 
-    class GenericExtFilter implements FilenameFilter {
-
-        private String ext;
-
-        public GenericExtFilter(String ext) {
-            this.ext = ext;
-        }
-
-        public boolean accept(File dir, String name) {
-            return (name.endsWith(ext));
-        }
-    }
 }

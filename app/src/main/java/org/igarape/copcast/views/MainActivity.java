@@ -629,6 +629,10 @@ public class MainActivity extends Activity {
         } else if (id == R.id.action_logout) {
             logout();
             return true;
+        } else if (id == R.id.action_video_gallery){
+            Intent i = new Intent(this, VideoGalleryActivity.class);
+            startActivity(i);
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }

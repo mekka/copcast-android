@@ -76,4 +76,5 @@
     <string name="pref_server_url">Server URL</string>
     <string name="serverurl_disabled_logged">It is not possible to change the server url while logged.</string>
     <string name="title_activity_upload_video">UploadVideoActivity</string>
+    <string name="video_gallery">Videos</string>
 </resources>

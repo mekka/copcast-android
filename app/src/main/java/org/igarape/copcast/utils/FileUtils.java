@@ -23,8 +23,13 @@ public class FileUtils {
     public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     private static final String TAG = FileUtils.class.getName();
     private static final String BATTERY_TXT = "battery.txt";
+    public static GenericExtFilter filter;
 
     private static String path = null;
+
+    static {
+        filter = new GenericExtFilter(".mp4");
+    }
 
 
     public static void setPath(String path) {
@@ -152,5 +157,18 @@ public class FileUtils {
 
     public static String getBatteriesFilePath(String userLogin) {
         return getUserPath(userLogin) + BATTERY_TXT;
+    }
+
+    public static class GenericExtFilter implements FilenameFilter {
+
+        private String ext;
+
+        public GenericExtFilter(String ext) {
+            this.ext = ext;
+        }
+
+        public boolean accept(File dir, String name) {
+            return (name.endsWith(ext));
+        }
     }
 }
