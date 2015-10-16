@@ -149,4 +149,8 @@ public class FileUtils {
     public static void logBattery(String login, JSONObject batteryJson) {
         LogToFile(login, BATTERY_TXT, batteryJson.toString());
     }
+
+    public static String getBatteriesFilePath(String userLogin) {
+        return getUserPath(userLogin) + BATTERY_TXT;
+    }
 }
