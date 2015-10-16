@@ -22,6 +22,7 @@ public class FileUtils {
     public static final String HISTORY_TXT = "history.txt";
     public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     private static final String TAG = FileUtils.class.getName();
+    private static final String BATTERY_TXT = "battery.txt";
 
     private static String path = null;
 
@@ -40,11 +41,15 @@ public class FileUtils {
 
     public static void logLocation(String userLogin, Location location) {
         try {
-            LogToFile(userLogin, LOCATIONS_TXT, LocationUtils.buildJson(location).toString());
+            logLocation(userLogin, LocationUtils.buildJson(location));
         } catch (JSONException e) {
             Log.e(TAG, "error recording location in file", e);
 
         }
+    }
+
+    public static void logLocation(String userLogin, JSONObject locationJson) {
+            LogToFile(userLogin, LOCATIONS_TXT, locationJson.toString());
     }
 
     public static void LogHistory(String userLogin, JSONObject history) {
@@ -127,7 +132,7 @@ public class FileUtils {
     }
 
     public static long getDirectorySize() {
-        Log.d(TAG, " file path name "+path);
+        Log.d(TAG, " file path name " + path);
         File directory = new File(path);
         if (directory.exists()){
             return org.apache.commons.io.FileUtils.sizeOfDirectory(directory);
@@ -138,5 +143,14 @@ public class FileUtils {
 
     public static String formatMegaBytes(Long size) {
         return new DecimalFormat("##.##").format((float) size / 1000000);
+    }
+
+
+    public static void logBattery(String login, JSONObject batteryJson) {
+        LogToFile(login, BATTERY_TXT, batteryJson.toString());
+    }
+
+    public static String getBatteriesFilePath(String userLogin) {
+        return getUserPath(userLogin) + BATTERY_TXT;
     }
 }

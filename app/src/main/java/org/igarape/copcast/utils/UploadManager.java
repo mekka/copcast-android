@@ -79,6 +79,7 @@ public class UploadManager {
             userLogin = users.remove(0);
             uploadHistories(userLogin);
             uploadLocations(userLogin);
+            uploadBattery(userLogin);
             userPath = FileUtils.getPath(userLogin);
 
             File dir = new File(userPath);
@@ -97,6 +98,70 @@ public class UploadManager {
             runUpload();
         }
 
+    }
+
+    private void uploadBattery(String userLogin) {
+        final File file = new File(FileUtils.getBatteriesFilePath(userLogin));
+        if (!file.exists()) {
+            return;
+        }
+        Log.d(TAG, "Battery file size: " + file.length());
+        FileInputStream is = null;
+        try {
+            is = new FileInputStream(file);
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+            JSONArray batteries = new JSONArray();
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                JSONObject json = new JSONObject(line);
+                if (json.getString("batteryPercentage").length() > 0) {
+                    batteries.put(json);
+                }
+            }
+
+            NetworkUtils.post(context, "/batteries/" + userLogin, batteries, new HttpResponseCallback() {
+                @Override
+                public void unauthorized() {
+                    Log.e(TAG, "batteries unauthorized");
+                }
+
+                @Override
+                public void failure(int statusCode) {
+                    Log.e(TAG, "batteries failure - statusCode: " + statusCode);
+                }
+
+                @Override
+                public void success(JSONObject response) {
+                    file.delete();
+                }
+
+                @Override
+                public void noConnection() {
+                    Log.e(TAG, "batteries noConnection");
+                }
+
+                @Override
+                public void badConnection() {
+                    Log.e(TAG, "batteries badConnection");
+                }
+
+                @Override
+                public void badRequest() {
+                    Log.e(TAG, "batteries badRequest");
+                }
+
+                @Override
+                public void badResponse() {
+                    Log.e(TAG, "batteries badResponse");
+                }
+            });
+        } catch (java.io.IOException e) {
+            Log.e(TAG, "location file error", e);
+        } catch (JSONException e) {
+            Log.e(TAG, "location file error", e);
+        }
     }
 
     private void uploadVideo(File nextVideo) {

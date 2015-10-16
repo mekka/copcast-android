@@ -19,6 +19,7 @@ public class Globals {
     public static final String USER_NAME = "USER_NAME";
     public static final String DIRECTORY_SIZE = "DIRECTORY_SIZE";
     public static final String DIRECTORY_UPLOADED_SIZE = "DIRECTORY_UPLOADED_SIZE";
+    public static final long BATTERY_REPEAT_TIME =  1000 * 600; // 10 minutes;
     public static String TAG = Globals.class.getName();
     public static final String SENDER_ID = "319635303076";
     private static final String PREF_ACCESS_TOKEN = "PREF_ACCESS_TOKEN";
