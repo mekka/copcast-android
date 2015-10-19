@@ -5,14 +5,22 @@ import android.location.Location;
 import android.os.Environment;
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by bruno on 11/3/14.
@@ -68,6 +76,31 @@ public class FileUtils {
 
     public static String getIncidentsFilePath(String userLogin) {
         return getUserPath(userLogin) + INCIDENTS_TXT;
+    }
+
+    public static JSONArray getFileContentAsJsonArray(String login, String filename) {
+        FileInputStream is;
+        String userPath = getUserPath(login);
+        JSONArray entries = new JSONArray();
+
+        try {
+            is = new FileInputStream(userPath + filename);
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                JSONObject json = new JSONObject(line);
+                entries.put(json);
+            }
+        } catch (FileNotFoundException e) {
+            Log.e(TAG, "File not found: "+e);
+        } catch (JSONException e) {
+            Log.e(TAG, "JSON exception: " + e);
+        } catch (IOException e) {
+            Log.e(TAG, "IO exception: " + e);
+        }
+        return entries;
     }
 
     private static void LogToFile(String userLogin, String file, String data) {
@@ -147,5 +180,21 @@ public class FileUtils {
 
     public static String formatMegaBytes(Long size) {
         return new DecimalFormat("##.##").format((float) size / 1000000);
+    }
+
+    public static List<String> getVideoPathList(String user) {
+        ArrayList<String> videoList = new ArrayList<>();
+
+        final String basedir = FileUtils.getPath(user);
+
+        File folder = new File(basedir);
+        File[] listOfFiles = folder.listFiles();
+
+        for (int i = 0; i < listOfFiles.length; i++) {
+            if (listOfFiles[i].isFile() && listOfFiles[i].getAbsolutePath().endsWith(".mp4")) {
+                videoList.add(listOfFiles[i].getAbsolutePath());
+            }
+        }
+        return videoList;
     }
 }

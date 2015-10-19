@@ -3,43 +3,46 @@ package org.igarape.copcast.utils;
 import android.content.Context;
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 public class IncidentUtils {
 
     private static final String TAG = HistoryUtils.class.getName();
 
-    public static JSONObject buildJson(String videoName) throws JSONException {
+    public static JSONObject buildJson(String videoPath) throws JSONException {
         JSONObject json = new JSONObject();
         json.put("timestamp", TimeUtils.getTimestamp().toString());
+        json.put("videoPath", videoPath);
         return json;
     }
 
-//    public static void updateIncident(final String userLogin, String videoName) {
-//        JSONArray entries = FileUtils.getContentAsJsonArray(userLogin, FileUtils.INCIDENTS_TXT);
-//        try {
-//            int last_pos = entries.length()-1;
-//            JSONObject last_obj = entries.getJSONObject(last_pos);
-//            last_obj.put("video_name", videoName);
-//            entries.put(last_pos, last_obj);
-//            FileUtils.setContentFromJsonArray(userLogin, FileUtils.INCIDENTS_TXT, entries);
-//        } catch (JSONException e) {
-//            Log.e(TAG, "error parsing incidents", e);
-//        }
-//    }
 
-    public static void storeIncidentVideoName(String userLogin, String videoName) {
-        FileUtils.LogIncidentVideo(userLogin, videoName);
-    }
-
-    public static void registerIncident(Context context, final String userLogin) {
-
-        String videoName = "videoteste";
-        JSONObject incident;
+    public static ArrayList<String> getIncidentVideosList(String userLogin) {
+        ArrayList<String> ret = new ArrayList<>();
+        JSONArray array = FileUtils.getFileContentAsJsonArray(userLogin, FileUtils.INCIDENTS_TXT);
 
         try {
-            incident = buildJson(videoName);
+            for(int i=0; i<array.length(); i++) {
+                ret.add(array.getJSONObject(i).getString("videoPath"));
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "JSON parsing error: "+e);
+        }
+
+        return ret;
+    }
+
+    public static void registerIncident(Context context, final String videoPath) {
+
+        JSONObject incident;
+        String userLogin = Globals.getUserLogin(context);
+
+        try {
+            incident = buildJson(videoPath);
             FileUtils.LogIncident(userLogin, incident);
 
             NetworkUtils.post(context, "/incidents", incident, new HttpResponseCallback() {
