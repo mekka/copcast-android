@@ -23,6 +23,7 @@ import android.view.WindowManager;
 import org.igarape.copcast.R;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
+import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.views.MainActivity;
 
 import java.io.IOException;
@@ -40,12 +41,13 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     private MediaRecorder mediaRecorder = null;
     private boolean isRecording;
     protected SurfaceHolder surfaceHolder;
-    public static final int MAX_DURATION_MS = 2000;
+    public static final int MAX_DURATION_MS = 300000;
     public static final long MAX_SIZE_BYTES = 7500000;
     private int mId = 1;
     private ReentrantLock lock = new ReentrantLock();
     private boolean serviceExiting = false;
     public static boolean serviceRunning = false;
+    private static String videoFileName;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -128,10 +130,12 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
             mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_LOW));
 
-            mediaRecorder.setOutputFile(
-                    FileUtils.getPath(Globals.getUserLogin(getBaseContext())) +
-                            android.text.format.DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime()) +
-                            ".mp4");
+            videoFileName = FileUtils.getPath(Globals.getUserLogin(getBaseContext())) +
+                    android.text.format.DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime()) +
+                    ".mp4";
+
+            Globals.setCurrentVideoPath(videoFileName);
+            mediaRecorder.setOutputFile(videoFileName);
 
             mediaRecorder.setOrientationHint(getScreenOrientation(Globals.getRotation()));
             mediaRecorder.setMaxDuration(MAX_DURATION_MS);
@@ -141,6 +145,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 public void onInfo(MediaRecorder mediaRecorder, int what, int extra) {
                     if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED ||
                             what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED) {
+
                         releaseMediaRecorder();
                         new MediaPrepareTask().execute();
                     }
@@ -208,6 +213,10 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
         lock.lock();
         Log.d(TAG, "> release locked");
+
+        //clear incident flag;
+        Globals.setIncidentFlag(false);
+
         try {
             if (mediaRecorder != null) {
 //                mediaRecorder.stop();

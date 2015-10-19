@@ -729,11 +729,13 @@ public class MainActivity extends Activity {
 
         switch(keyCode){
             case KeyEvent.KEYCODE_VOLUME_UP:
-            case KeyEvent.KEYCODE_VOLUME_DOWN:
                 Log.d(TAG, "Incident reported");
-                Globals.setIncidentFlag(true);
-                IncidentUtils.registerIncident(getApplicationContext(), Globals.getUserLogin(MainActivity.this));
-                vibrate(500);
+
+                if (!Globals.isIncidentFlag()) {
+                    IncidentUtils.registerIncident(getApplicationContext(), Globals.getCurrentVideoPath());
+                    vibrate(500);
+                    Globals.setIncidentFlag(true);
+                }
 
                 if (!VideoRecorderService.serviceRunning) {
 
@@ -746,6 +748,11 @@ public class MainActivity extends Activity {
                     }
                 }
                 return true;
+
+            case KeyEvent.KEYCODE_VOLUME_DOWN:
+                startActivity(new Intent(this, PlayerActivity.class));
+                return super.onKeyDown(keyCode, event);
+
         }
         return super.onKeyDown(keyCode, event);
     }
