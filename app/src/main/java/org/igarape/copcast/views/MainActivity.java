@@ -139,7 +139,7 @@ public class MainActivity extends Activity {
                         uploadManager.deleteVideoFile();
                         uploadManager.runUpload();
                     }
-              
+
                 } else if (intent.getAction().equals(CopcastGcmListenerService.START_STREAMING_ACTION)) {
                     if (isMissionStarted()) {
                         mStreamSwitch.setChecked(true);
@@ -728,14 +728,17 @@ public class MainActivity extends Activity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
         switch(keyCode){
+            case KeyEvent.KEYCODE_VOLUME_DOWN:
             case KeyEvent.KEYCODE_VOLUME_UP:
-                Log.d(TAG, "Incident reported");
 
                 if (!Globals.isIncidentFlag()) {
                     IncidentUtils.registerIncident(getApplicationContext(), Globals.getCurrentVideoPath());
                     vibrate(500);
                     Globals.setIncidentFlag(true);
-                }
+                    Log.d(TAG, "Incident reported");
+                } else
+                    Log.d(TAG, "Incident already reported. Skipping");
+
 
                 if (!VideoRecorderService.serviceRunning) {
 
@@ -749,9 +752,6 @@ public class MainActivity extends Activity {
                 }
                 return true;
 
-            case KeyEvent.KEYCODE_VOLUME_DOWN:
-                startActivity(new Intent(this, PlayerActivity.class));
-                return super.onKeyDown(keyCode, event);
 
         }
         return super.onKeyDown(keyCode, event);
