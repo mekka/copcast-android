@@ -4,6 +4,14 @@ import android.content.Intent;
 import android.os.BatteryManager;
 import android.util.Log;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+
 /**
  * Created by FCavalcanti on 7/17/15.
  */
@@ -11,64 +19,88 @@ public class BatteryUtils {
 
     private static final String TAG = BatteryUtils.class.getName();
 
-    private BatteryUtils(){}
-
-    private volatile static BatteryUtils instance = null;
-
-    private static Float batteryPercentage;
-    private static int status;
-    private static int temperature;
-    private static int plugged;
-    private static int batteryHealth;
+    private static Battery battery;
 
     private static float BATTERY_PERCENTAGE_LIMIT = 20;
 
-    public static BatteryUtils getSingletonInstance() {
-        if (null == instance) {
-            synchronized (BatteryUtils.class){
-                if (null == instance) {
-                    instance = new BatteryUtils();
-                }
-            }
-        }
-        return instance;
-    }
+    private static final SimpleDateFormat df;
 
+    static{
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
+        df.setTimeZone(tz);
+    }
     public static boolean shouldUpload(){
-        return (null != batteryPercentage ? batteryPercentage > BATTERY_PERCENTAGE_LIMIT:true) || plugged == 1;
+        return (null != battery ? battery.batteryPercentage > BATTERY_PERCENTAGE_LIMIT:true) || (battery !=null && battery.plugged == 1);
         //TODO garantir que o valor do plugged eh realmente 1 quando recarregando
     }
 
     public static void updateValues(Intent batteryStatus){
         int batteryLevel = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
         int maxLevel = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, 0);
-        BatteryUtils.batteryHealth = batteryStatus.getIntExtra(
+
+
+        battery = new Battery( ((float) batteryLevel / (float) maxLevel) * 100, batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS,0), batteryStatus.getIntExtra(BatteryManager.EXTRA_TEMPERATURE,0), batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED,0), batteryStatus.getIntExtra(
                 BatteryManager.EXTRA_HEALTH,
-                BatteryManager.BATTERY_HEALTH_UNKNOWN);
-        BatteryUtils.batteryPercentage = ((float) batteryLevel / (float) maxLevel) * 100;
-        BatteryUtils.plugged = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED,0);
-        BatteryUtils.status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS,0);
-        BatteryUtils.temperature = batteryStatus.getIntExtra(BatteryManager.EXTRA_TEMPERATURE,0);
-        Log.d(TAG, "updateValues with batteryPercentage=[" + BatteryUtils.batteryPercentage + "]");
+                BatteryManager.BATTERY_HEALTH_UNKNOWN), new Date());
+        Log.d(TAG, "updateValues with batteryPercentage=[" + battery.batteryPercentage + "]");
+    }
+
+    public static JSONObject buildJson(){
+       return battery != null ? battery.getJson() : null;
     }
 
     public static float getBatteryPercentage() {
-        return batteryPercentage;
+        return battery.batteryPercentage;
     }
 
     public static int getStatus() {
-        return status;
+        return battery.status;
     }
 
     public static int getTemperature() {
-        return temperature;
+        return battery.temperature;
     }
 
     public static int getPlugged() {
-        return plugged;
+        return battery.plugged;
     }
 
     public static int getBatteryHealth() {
-        return batteryHealth;
+        return battery.batteryHealth;
+    }
+
+    private static class Battery {
+        private Date date;
+        private Float batteryPercentage;
+        private int status;
+        private int temperature;
+        private int plugged;
+        private int batteryHealth;
+
+        private Battery(Float batteryPercentage, int status, int temperature, int plugged, int batteryHealth, Date date) {
+            this.batteryPercentage = batteryPercentage;
+            this.status = status;
+            this.temperature = temperature;
+            this.plugged = plugged;
+            this.batteryHealth = batteryHealth;
+            this.date = date;
+        }
+
+        public JSONObject getJson() {
+            JSONObject json = new JSONObject();
+
+            try {
+                json.put("batteryHealth", batteryHealth);
+                json.put("batteryPercentage", batteryPercentage);
+                json.put("plugged", plugged);
+                json.put("status", batteryHealth);
+                json.put("temperature", temperature);
+                json.put("date", df.format(date));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return json;
+        }
     }
 }

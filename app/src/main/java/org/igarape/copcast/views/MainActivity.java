@@ -38,7 +38,7 @@ import android.widget.Toast;
 import com.alexbbb.uploadservice.UploadService;
 
 import org.igarape.copcast.R;
-import org.igarape.copcast.receiver.AlarmReceiver;
+import org.igarape.copcast.receiver.AlarmHeartBeatReceiver;
 import org.igarape.copcast.receiver.BatteryReceiver;
 import org.igarape.copcast.service.CopcastGcmListenerService;
 import org.igarape.copcast.service.LocationService;
@@ -127,7 +127,7 @@ public class MainActivity extends Activity {
                     stopUploading();
                     stopAlarmReceiver();
                 } else if (intent.getAction().equals(BatteryReceiver.BATTERY_OKAY_MESSAGE)) {
-                    //TODO check if it's already running. if not, start startAlarmReceiver()
+                    //TODO check if it's already running. if not, start startAlarmLocationReceiver()
                 }
                 else if (intent.getAction().equals(UploadManager.UPLOAD_FAILED_ACTION)) {
                     if (uploadManager != null) {
@@ -268,7 +268,7 @@ public class MainActivity extends Activity {
 
                 HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this));
 
-                startAlarmReceiver();
+                startAlarmLocationReceiver();
             }
 
 
@@ -418,21 +418,29 @@ public class MainActivity extends Activity {
     }
 
     private void stopAlarmReceiver(){
-        Intent intent = new Intent(this, AlarmReceiver.class);
+        Intent intent = new Intent(this, AlarmHeartBeatReceiver.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, 0);
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
         alarmManager.cancel(pendingIntent);
     }
 
-    private void startAlarmReceiver() {
+    private void startAlarmLocationReceiver() {
         /**
          * AlarmManager...wakes every 15 sec.
          */
         AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(this, AlarmReceiver.class);
+        Intent intent = new Intent(this, AlarmHeartBeatReceiver.class);
         PendingIntent pending = PendingIntent.getBroadcast(this, 0, intent,
                 PendingIntent.FLAG_CANCEL_CURRENT);
         manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), Globals.GPS_REPEAT_TIME, pending);
+
+
+
+        intent = new Intent(this, BatteryReceiver.class);
+        pending = PendingIntent.getBroadcast(this, 0, intent,
+                PendingIntent.FLAG_CANCEL_CURRENT);
+        manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), Globals.BATTERY_REPEAT_TIME, pending);
+
     }
 
     public void missionCompleted()
