@@ -59,6 +59,7 @@ public class FileUtils {
 
     public static void LogIncident(String userLogin, JSONObject incident) {
         LogToFile(userLogin, INCIDENTS_TXT, incident.toString());
+    }
 
     public static void logLocation(String userLogin, JSONObject locationJson) {
             LogToFile(userLogin, LOCATIONS_TXT, locationJson.toString());
@@ -200,6 +201,7 @@ public class FileUtils {
             }
         }
         return videoList;
+    }
 
     public static void logBattery(String login, JSONObject batteryJson) {
         LogToFile(login, BATTERY_TXT, batteryJson.toString());
