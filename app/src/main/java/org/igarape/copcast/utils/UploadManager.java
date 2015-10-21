@@ -328,6 +328,7 @@ public class UploadManager {
     private void uploadIncidents(String userLogin) {
         final File file = new File(FileUtils.getIncidentsFilePath(userLogin));
         if (!file.exists()) {
+            Log.d(TAG, "No failed incidents to upload");
             return;
         }
         Log.d(TAG, "Incidents file size: " + file.length());
@@ -344,7 +345,7 @@ public class UploadManager {
                 incidents.put(json);
             }
 
-            NetworkUtils.post(context, "/incidents/" + userLogin, incidents, new HttpResponseCallback() {
+            NetworkUtils.post(context, "/incidents", incidents, new HttpResponseCallback() {
                 @Override
                 public void unauthorized() {
                     Log.e(TAG, "incidents unauthorized");
