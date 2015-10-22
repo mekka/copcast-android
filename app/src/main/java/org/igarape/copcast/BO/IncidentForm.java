@@ -1,16 +1,17 @@
 package org.igarape.copcast.BO;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * Created by alex on 10/21/15.
  */
-public class SendForm implements Serializable {
-    public String getDate() {
+public class IncidentForm implements Serializable {
+    public Date getDate() {
         return date;
     }
 
-    public void setDate(String date) {
+    public void setDate(Date date) {
         this.date = date;
     }
 
@@ -110,7 +111,15 @@ public class SendForm implements Serializable {
         this.useLethalForce = useLethalForce;
     }
 
-    private String date;
+    public long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(long userId) {
+        this.userId = userId;
+    }
+
+    private Date date;
     private float lat;
     private float lng;
     private boolean accident;
@@ -123,5 +132,8 @@ public class SendForm implements Serializable {
     private boolean argument;
     private boolean useOfForce;
     private boolean useLethalForce;
+
+
+    private long userId;
 
 }
