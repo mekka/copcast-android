@@ -44,6 +44,7 @@ import org.igarape.copcast.service.CopcastGcmListenerService;
 import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.service.StreamService;
 import org.igarape.copcast.service.VideoRecorderService;
+import org.igarape.copcast.state.IncidentFlagState;
 import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
@@ -76,6 +77,8 @@ public class MainActivity extends Activity {
 
     private MediaPlayer mySongclick;
     private UploadManager uploadManager;
+    private Long first_keydown;
+    private final int FLAG_TRIGGER_WAIT_TIME = 1000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -748,34 +751,42 @@ public class MainActivity extends Activity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
-        switch(keyCode){
+        switch(keyCode) {
             case KeyEvent.KEYCODE_VOLUME_DOWN:
             case KeyEvent.KEYCODE_VOLUME_UP:
 
-                if (!Globals.isIncidentFlag()) {
-                    IncidentUtils.registerIncident(getApplicationContext(), Globals.getCurrentVideoPath());
-                    vibrate(500);
-                    Globals.setIncidentFlag(true);
-                    Log.d(TAG, "Incident reported");
-                } else
-                    Log.d(TAG, "Incident already reported. Skipping");
+                if (first_keydown == null) {
+                    first_keydown = System.currentTimeMillis(); // first keydown sets start time
+                } else if (System.currentTimeMillis() - first_keydown > FLAG_TRIGGER_WAIT_TIME) {
+                    if (Globals.getIncidentFlag() == IncidentFlagState.NOT_FLAGGED) {
 
+                        //wait a bit
+                        first_keydown = null; //reset state
 
-                if (!VideoRecorderService.serviceRunning) {
+                        if (!VideoRecorderService.serviceRunning) {
 
-                    if ( ((TextView) findViewById(R.id.welcome)).getText().equals(getString(R.string.pause_title))) {
-                        Log.d(TAG, "resuming mission by forced incident");
-                        mResumeMissionButton.performClick();
+                            Globals.setIncidentFlag(IncidentFlagState.FLAG_PENDING);
+                            Log.d(TAG, "Flag incident scheduled");
+
+                            if (((TextView) findViewById(R.id.welcome)).getText().equals(getString(R.string.pause_title))) {
+                                Log.d(TAG, "resuming mission by forced incident");
+                                mResumeMissionButton.performClick();
+                            } else {
+                                Log.d(TAG, "starting mission by forced incident");
+                                mStarMissionButton.performClick();
+                            }
+                        } else {
+                            Globals.setIncidentFlag(IncidentFlagState.FLAGGED);
+                            Log.d(TAG, "Flag incident immediately");
+                            IncidentUtils.registerIncident(getApplicationContext(), Globals.getCurrentVideoPath());
+                        }
                     } else {
-                        Log.d(TAG, "starting mission by forced incident");
-                        mStarMissionButton.performClick();
+                        Log.d(TAG, "Incident already reported. Skipping");
                     }
                 }
-                return true;
-
 
         }
-        return super.onKeyDown(keyCode, event);
+        return true;
     }
 
 }

@@ -1,6 +1,7 @@
 package org.igarape.copcast.utils;
 
 import android.content.Context;
+import android.os.Vibrator;
 import android.util.Log;
 
 import org.igarape.copcast.db.JsonDataType;
@@ -36,6 +37,11 @@ public class IncidentUtils {
     public static void registerIncident(final Context context, final String videoPath) {
 
         final JSONObject incident;
+
+        Log.d(TAG, "Flagging incident");
+        Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        v.vibrate(500);
+
 
         try {
             saveVideoPath(context, videoPath);

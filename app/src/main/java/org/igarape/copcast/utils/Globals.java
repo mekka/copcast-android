@@ -9,6 +9,8 @@ import android.location.Location;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import org.igarape.copcast.state.IncidentFlagState;
+
 /**
  * Created by fcavalcanti on 28/10/2014.
  */
@@ -39,7 +41,7 @@ public class Globals {
     private static Location lastKnownLocation = null;
     public static final long GPS_REPEAT_TIME = 1000 * 15; // 15 seconds
     private static int rotation;
-    private static boolean incidentFlag = false;
+    private static IncidentFlagState incidentFlag = IncidentFlagState.NOT_FLAGGED;
     private static String currentVideoPath;
 
 
@@ -233,19 +235,19 @@ public class Globals {
         return sharedPref.getBoolean(REQUIRE_WIFI_ONLY, true);
     }
 
-    public static boolean isIncidentFlag() {
-        return incidentFlag;
-    }
-
-    public static void setIncidentFlag(boolean incidentFlag) {
-        Globals.incidentFlag = incidentFlag;
-    }
-
     public static String getCurrentVideoPath() {
         return currentVideoPath;
     }
 
     public static void setCurrentVideoPath(String currentVideoPath) {
         Globals.currentVideoPath = currentVideoPath;
+    }
+
+    public static IncidentFlagState getIncidentFlag() {
+        return incidentFlag;
+    }
+
+    public static void setIncidentFlag(IncidentFlagState incidentFlag) {
+        Globals.incidentFlag = incidentFlag;
     }
 }

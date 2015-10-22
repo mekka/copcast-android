@@ -21,6 +21,7 @@ import android.view.SurfaceView;
 import android.view.WindowManager;
 
 import org.igarape.copcast.R;
+import org.igarape.copcast.state.IncidentFlagState;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.IncidentUtils;
@@ -138,8 +139,9 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             Globals.setCurrentVideoPath(videoFileName);
             mediaRecorder.setOutputFile(videoFileName);
 
-            if (Globals.isIncidentFlag()) {
-                IncidentUtils.saveVideoPath(getApplicationContext(), videoFileName);
+            if (Globals.getIncidentFlag() == IncidentFlagState.FLAG_PENDING) {
+                IncidentUtils.registerIncident(getApplicationContext(), Globals.getCurrentVideoPath());
+                Globals.setIncidentFlag(IncidentFlagState.FLAGGED);
             }
 
             mediaRecorder.setOrientationHint(getScreenOrientation(Globals.getRotation()));
@@ -168,10 +170,6 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
             return true;
 
-        } catch (JSONException e) {
-            Log.e(TAG, "Unable to store flagged video into database");
-            Log.d(TAG, e.toString());
-            return false;
         } finally {
             lock.unlock();
             Log.d(TAG, "< prepare unlocked");
@@ -220,11 +218,12 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
     private void releaseMediaRecorder() {
 
+        Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
+
         lock.lock();
         Log.d(TAG, "> release locked");
 
         //clear incident flag;
-        Globals.setIncidentFlag(false);
 
         try {
             if (mediaRecorder != null) {
