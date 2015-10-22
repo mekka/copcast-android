@@ -20,6 +20,8 @@ public class IncidentUtils {
     public static JSONObject buildJson() throws JSONException {
         JSONObject json = new JSONObject();
         json.put("date", TimeUtils.getTimestamp().toString());
+        json.put("lat", Globals.getLastKnownLocation().getLatitude());
+        json.put("lon", Globals.getLastKnownLocation().getLongitude());
         return json;
     }
 
