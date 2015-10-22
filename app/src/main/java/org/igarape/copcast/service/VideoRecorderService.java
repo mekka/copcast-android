@@ -25,6 +25,7 @@ import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.views.MainActivity;
+import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.Date;
@@ -137,6 +138,10 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             Globals.setCurrentVideoPath(videoFileName);
             mediaRecorder.setOutputFile(videoFileName);
 
+            if (Globals.isIncidentFlag()) {
+                IncidentUtils.saveVideoPath(getApplicationContext(), videoFileName);
+            }
+
             mediaRecorder.setOrientationHint(getScreenOrientation(Globals.getRotation()));
             mediaRecorder.setMaxDuration(MAX_DURATION_MS);
             mediaRecorder.setMaxFileSize(MAX_SIZE_BYTES);
@@ -163,6 +168,10 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
             return true;
 
+        } catch (JSONException e) {
+            Log.e(TAG, "Unable to store flagged video into database");
+            Log.d(TAG, e.toString());
+            return false;
         } finally {
             lock.unlock();
             Log.d(TAG, "< prepare unlocked");
