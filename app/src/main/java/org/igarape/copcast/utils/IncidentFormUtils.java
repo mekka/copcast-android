@@ -1,0 +1,149 @@
+package org.igarape.copcast.utils;
+
+import android.content.Context;
+import android.util.Log;
+
+import org.igarape.copcast.BO.IncidentForm;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+
+/**
+ * Created by alexsalgado on 21/10/2015.
+ */
+public class IncidentFormUtils {
+    /*
+  * Define a request code to send to Google Play services
+  * This code is returned in Activity.onActivityResult
+  */
+    public final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
+
+    /*
+     * Constants for location update parameters
+     */
+    // Milliseconds per second
+    public static final int MILLISECONDS_PER_SECOND = 1000;
+
+    // The update interval
+    public static final int UPDATE_INTERVAL_IN_SECONDS = 5;
+
+    // A fast interval ceiling
+    public static final int FAST_CEILING_IN_SECONDS = 5;
+
+    // Update interval in milliseconds
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS =
+            MILLISECONDS_PER_SECOND * UPDATE_INTERVAL_IN_SECONDS;
+
+    // A fast ceiling of update intervals, used when the app is visible
+    public static final long FAST_INTERVAL_CEILING_IN_MILLISECONDS =
+            MILLISECONDS_PER_SECOND * FAST_CEILING_IN_SECONDS;
+    private static final String TAG = IncidentFormUtils.class.getName();
+    public static final float SMALLEST_DISPLACEMENT = 0;
+
+    public static void sendForm(Context context, final String login, final IncidentForm incidentForm) {
+        HttpResponseCallback callback = new HttpResponseCallback() {
+            @Override
+            public void failure(int statusCode) {
+                FileUtils.logIncidentForm(login, incidentForm);
+            }
+
+            @Override
+            public void unauthorized() {
+                FileUtils.logIncidentForm(login, incidentForm);
+            }
+
+            @Override
+            public void noConnection() {
+                FileUtils.logIncidentForm(login, incidentForm);
+            }
+
+            @Override
+            public void badConnection() {
+                FileUtils.logIncidentForm(login, incidentForm);
+            }
+
+            @Override
+            public void badRequest() {
+                FileUtils.logIncidentForm(login, incidentForm);
+            }
+
+            @Override
+            public void badResponse() {
+                FileUtils.logIncidentForm(login, incidentForm);
+            }
+
+            @Override
+            public void success(JSONObject response) {
+                Log.i(TAG, "SendForm sent successfully");
+            }
+        };
+
+        try {
+            NetworkUtils.post(context, "/incidentForms", buildJson(incidentForm), callback);
+        } catch (JSONException e) {
+            Log.e(TAG, "json error", e);
+        }
+    }
+
+    public static JSONObject buildJson(IncidentForm incidentForm) throws JSONException {
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        DateFormat df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
+        df.setTimeZone(tz);
+        return buildJson(new Date(),
+                incidentForm.getLat(),
+                incidentForm.getLng(),
+                incidentForm.isAccident(),
+                incidentForm.getGravity(),
+                incidentForm.getInjured(),
+                incidentForm.isFine(),
+                incidentForm.getFineType(),
+                incidentForm.isArrest(),
+                incidentForm.isResistance(),
+                incidentForm.isArgument(),
+                incidentForm.isUseOfForce(),
+                incidentForm.isUseLethalForce(),
+                incidentForm.getUserId() );
+
+    }
+
+    public static JSONObject buildJson( Date date,
+                                        float lat,
+                                        float lng,
+                                        boolean accident,
+                                        int gravity,
+                                        int injured,
+                                        boolean fine,
+                                        String fineType,
+                                        boolean arrest,
+                                        boolean resistance,
+                                        boolean argument,
+                                        boolean useOfForce,
+                                        boolean useLethalForce,
+                                        long userId
+
+    ) throws JSONException {
+        JSONObject json = new JSONObject();
+
+        json.put("date", date);
+        json.put("lat", lat);
+        json.put("lng", lng);
+        json.put("accident", accident);
+        json.put("gravity", gravity);
+        json.put("injured", injured);
+        json.put("fine", fine);
+        json.put("fineType", fineType);
+        json.put("arrest", arrest);
+        json.put("resistance", resistance);
+        json.put("argument", argument);
+        json.put("useOfForce", useOfForce);
+        json.put("useLethalForce", useLethalForce);
+        json.put("userId", userId);
+
+
+        return json;
+    }
+}
