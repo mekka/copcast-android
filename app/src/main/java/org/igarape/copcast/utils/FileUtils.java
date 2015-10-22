@@ -5,14 +5,22 @@ import android.location.Location;
 import android.os.Environment;
 import android.util.Log;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by bruno on 11/3/14.
@@ -20,6 +28,7 @@ import java.text.DecimalFormat;
 public class FileUtils {
     public static final String LOCATIONS_TXT = "locations.txt";
     public static final String HISTORY_TXT = "history.txt";
+    public static final String INCIDENTS_TXT = "incidents.txt";
     public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
     private static final String TAG = FileUtils.class.getName();
     private static final String BATTERY_TXT = "battery.txt";
@@ -48,6 +57,10 @@ public class FileUtils {
         }
     }
 
+    public static void LogIncident(String userLogin, JSONObject incident) {
+        LogToFile(userLogin, INCIDENTS_TXT, incident.toString());
+    }
+
     public static void logLocation(String userLogin, JSONObject locationJson) {
             LogToFile(userLogin, LOCATIONS_TXT, locationJson.toString());
     }
@@ -64,6 +77,10 @@ public class FileUtils {
 
     public static String getLocationsFilePath(String userLogin) {
         return getUserPath(userLogin) + LOCATIONS_TXT;
+    }
+
+    public static String getIncidentsFilePath(String userLogin) {
+        return getUserPath(userLogin) + INCIDENTS_TXT;
     }
 
     private static void LogToFile(String userLogin, String file, String data) {
@@ -137,7 +154,7 @@ public class FileUtils {
         if (directory.exists()){
             return org.apache.commons.io.FileUtils.sizeOfDirectory(directory);
         } else {
-           return (long) 0;
+            return (long) 0;
         }
     }
 
@@ -145,6 +162,21 @@ public class FileUtils {
         return new DecimalFormat("##.##").format((float) size / 1000000);
     }
 
+    public static List<String> getVideoPathList(String user) {
+        ArrayList<String> videoList = new ArrayList<>();
+
+        final String basedir = FileUtils.getPath(user);
+
+        File folder = new File(basedir);
+        File[] listOfFiles = folder.listFiles();
+
+        for (int i = 0; i < listOfFiles.length; i++) {
+            if (listOfFiles[i].isFile() && listOfFiles[i].getAbsolutePath().endsWith(".mp4")) {
+                videoList.add(listOfFiles[i].getAbsolutePath());
+            }
+        }
+        return videoList;
+    }
 
     public static void logBattery(String login, JSONObject batteryJson) {
         LogToFile(login, BATTERY_TXT, batteryJson.toString());
@@ -152,5 +184,6 @@ public class FileUtils {
 
     public static String getBatteriesFilePath(String userLogin) {
         return getUserPath(userLogin) + BATTERY_TXT;
+
     }
 }

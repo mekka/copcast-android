@@ -22,6 +22,7 @@ import android.os.CountDownTimer;
 import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -48,9 +49,11 @@ import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.HistoryUtils;
 import org.igarape.copcast.utils.HttpResponseCallback;
+import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.UploadManager;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.igarape.copcast.utils.FileUtils.formatMegaBytes;
@@ -100,8 +103,6 @@ public class MainActivity extends Activity {
                     Intent intentAux = new Intent(MainActivity.this, VideoRecorderService.class);
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     stopService(intentAux);
-
-
                 } else {
                     HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this));
 
@@ -139,7 +140,7 @@ public class MainActivity extends Activity {
                         uploadManager.deleteVideoFile();
                         uploadManager.runUpload();
                     }
-              
+
                 } else if (intent.getAction().equals(CopcastGcmListenerService.START_STREAMING_ACTION)) {
                     if (isMissionStarted()) {
                         mStreamSwitch.setChecked(true);
@@ -306,6 +307,7 @@ public class MainActivity extends Activity {
                                                      intent = new Intent(MainActivity.this, VideoRecorderService.class);
                                                      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                                      stopService(intent);
+
 
                                                      intent = new Intent(MainActivity.this, LocationService.class);
                                                      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -626,6 +628,18 @@ public class MainActivity extends Activity {
             Intent i = new Intent(this, SettingsActivity.class);
             startActivity(i);
             return true;
+        } else if (id == R.id.action_playback) {
+            List<String> videos = FileUtils.getVideoPathList(Globals.getUserLogin(MainActivity.this));
+
+            if (videos.size() == 0) {
+                Log.w(TAG, "no video available for playback");
+                Toast.makeText(MainActivity.this, getResources().getString(R.string.no_video_message), Toast.LENGTH_LONG).show();
+            } else {
+                Log.d(TAG, videos.size()+ " videos available for playback");
+                Intent i = new Intent(this, PlayerActivity.class);
+                startActivity(i);
+            }
+            return true;
         } else if (id == R.id.action_logout) {
             logout();
             return true;
@@ -733,22 +747,35 @@ public class MainActivity extends Activity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-    /*
-        Detect volumen key down event
-     */
+
         switch(keyCode){
             case KeyEvent.KEYCODE_VOLUME_DOWN:
-                //Log.d("Keydown","Volumen Down pressed");
-                //vibrate(500);
-                //mStarMissionButton.callOnClick();
+            case KeyEvent.KEYCODE_VOLUME_UP:
 
-                //return true;
+                if (!Globals.isIncidentFlag()) {
+                    IncidentUtils.registerIncident(getApplicationContext(), Globals.getCurrentVideoPath());
+                    vibrate(500);
+                    Globals.setIncidentFlag(true);
+                    Log.d(TAG, "Incident reported");
+                } else
+                    Log.d(TAG, "Incident already reported. Skipping");
+
+
+                if (!VideoRecorderService.serviceRunning) {
+
+                    if ( ((TextView) findViewById(R.id.welcome)).getText().equals(getString(R.string.pause_title))) {
+                        Log.d(TAG, "resuming mission by forced incident");
+                        mResumeMissionButton.performClick();
+                    } else {
+                        Log.d(TAG, "starting mission by forced incident");
+                        mStarMissionButton.performClick();
+                    }
+                }
+                return true;
+
+
         }
         return super.onKeyDown(keyCode, event);
     }
 
-    private void flagOcurrence()
-    {
-        //Log.d("flag","flag to database!");
-    }
 }

@@ -13,10 +13,7 @@ public abstract class HttpResponseCallback {
 
     public abstract void failure(int statusCode);
 
-    public void success(JSONObject response) {
-    }
-
-    ;
+    public void success(JSONObject response) {}
 
     public abstract void noConnection();
 

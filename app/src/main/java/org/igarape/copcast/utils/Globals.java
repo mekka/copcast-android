@@ -39,6 +39,9 @@ public class Globals {
     private static Location lastKnownLocation = null;
     public static final long GPS_REPEAT_TIME = 1000 * 15; // 15 seconds
     private static int rotation;
+    private static boolean incidentFlag = false;
+    private static String currentVideoPath;
+
 
     public synchronized static String getAccessToken(Context context) {
         if (accessToken == null) {
@@ -228,5 +231,21 @@ public class Globals {
     public static Boolean isWifiOnly(Context context){
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         return sharedPref.getBoolean(REQUIRE_WIFI_ONLY, true);
+    }
+
+    public static boolean isIncidentFlag() {
+        return incidentFlag;
+    }
+
+    public static void setIncidentFlag(boolean incidentFlag) {
+        Globals.incidentFlag = incidentFlag;
+    }
+
+    public static String getCurrentVideoPath() {
+        return currentVideoPath;
+    }
+
+    public static void setCurrentVideoPath(String currentVideoPath) {
+        Globals.currentVideoPath = currentVideoPath;
     }
 }
