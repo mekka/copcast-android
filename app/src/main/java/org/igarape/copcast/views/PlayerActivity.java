@@ -19,6 +19,7 @@ import org.igarape.copcast.R;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.IncidentUtils;
+import org.json.JSONException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,7 +96,7 @@ class VideoEntryAdapter extends BaseAdapter {
 public class PlayerActivity extends Activity {
 
     private static final String TAG = PlayerActivity.class.getName();
-    private ArrayList<String> incidentVideoList = new ArrayList<>();
+    private List<String> incidentVideoList = new ArrayList<>();
     private ArrayList<VideoEntry> videoList = new ArrayList<>();
     private ListView listView;
     private VideoView videoView;
@@ -116,7 +117,13 @@ public class PlayerActivity extends Activity {
 
         videoPathList = FileUtils.getVideoPathList(userLogin);
 
-        incidentVideoList = IncidentUtils.getIncidentVideosList(userLogin);
+        try {
+            incidentVideoList = IncidentUtils.getFlaggedVideosList(getApplicationContext());
+        } catch (JSONException e) {
+            Log.e(TAG, "Could not retrieve flagged videos list");
+            Log.d(TAG, e.toString());
+        }
+
 
         for (String p : videoPathList) {
             boolean flag = incidentVideoList.contains(p);

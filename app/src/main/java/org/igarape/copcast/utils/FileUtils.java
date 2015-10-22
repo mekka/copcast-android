@@ -83,31 +83,6 @@ public class FileUtils {
         return getUserPath(userLogin) + INCIDENTS_TXT;
     }
 
-    public static JSONArray getFileContentAsJsonArray(String login, String filename) {
-        FileInputStream is;
-        String userPath = getUserPath(login);
-        JSONArray entries = new JSONArray();
-
-        try {
-            is = new FileInputStream(userPath + filename);
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
-            String line;
-
-            while ((line = br.readLine()) != null) {
-                JSONObject json = new JSONObject(line);
-                entries.put(json);
-            }
-        } catch (FileNotFoundException e) {
-            Log.e(TAG, "File not found: "+e);
-        } catch (JSONException e) {
-            Log.e(TAG, "JSON exception: " + e);
-        } catch (IOException e) {
-            Log.e(TAG, "IO exception: " + e);
-        }
-        return entries;
-    }
-
     private static void LogToFile(String userLogin, String file, String data) {
         String userPath = getUserPath(userLogin);
         try {
