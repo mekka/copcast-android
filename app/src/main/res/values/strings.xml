@@ -77,6 +77,7 @@
     <string name="serverurl_disabled_logged">It is not possible to change the server url while logged.</string>
     <string name="title_activity_upload_video">UploadVideoActivity</string>
     <string name="title_activity_incident_report">Incident Report</string>
+    <string name="action_incident_form">Incident Form</string>
 
     <string name="hello_world">Hello world!</string>
 </resources>
