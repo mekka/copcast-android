@@ -42,6 +42,7 @@ public class SqliteUtils {
         newRowId = db.insert(JsonDataEntry.TABLE_NAME, null, values);
 
         Log.d(TAG, "INSERTED "+value+" OF TYPE "+type+" FOR USER "+user+" WITH ID "+newRowId);
+        db.close();
     }
 
     public static void storeToDb(Context context, String user, String type, JSONObject obj) {
@@ -54,6 +55,7 @@ public class SqliteUtils {
         int r = db.delete(JsonDataEntry.TABLE_NAME, JsonDataEntry.COLUMN_TYPE+"=? AND "+JsonDataEntry.COLUMN_USER+"=?", new String[] {jsonDataType, user});
 
         Log.d(TAG, "Number of " + jsonDataType + " entries removed: " + r);
+        db.close();
     }
 
     public static JSONArray getFromDb(Context context, String user, String type) throws JSONException {
@@ -82,6 +84,8 @@ public class SqliteUtils {
             JSONObject obj = new JSONObject(tmp);
             ret.put(obj);
         }
+
+        db.close();
 
         return ret;
     }
