@@ -77,5 +77,6 @@
     <string name="serverurl_disabled_logged">Não é possíel alterar a URL do servidor enquanto estiver conectado.</string>
     <string name="title_activity_upload_video">UploadVideoActivity</string>
     <string name="action_incident_form">Formulário de Incidentes</string>
-
+    <string name="action_playback">Reprodução de vídeos</string>
+    <string name="no_video_message">Não há vídeos disponíveis para reprodução</string>
 </resources>

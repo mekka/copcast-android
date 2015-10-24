@@ -78,6 +78,7 @@
     <string name="title_activity_upload_video">UploadVideoActivity</string>
     <string name="title_activity_incident_report">Incident Report</string>
     <string name="action_incident_form">Incident Form</string>
-
     <string name="hello_world">Hello world!</string>
+    <string name="action_playback">Video playback</string>
+    <string name="no_video_message">No video available for playback</string>
 </resources>

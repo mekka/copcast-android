@@ -72,7 +72,7 @@ public class HistoryUtils {
             });
 
         } catch (JSONException e) {
-            e.printStackTrace();
+            Log.e(TAG, "error sending history", e);
         }
     }
 }

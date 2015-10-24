@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -62,7 +63,7 @@ public class SplashScreenActivity extends Activity {
     private void queryBatteryStatus(){
         IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent batteryStatus = context.registerReceiver(null, iFilter);
-        BatteryUtils.getSingletonInstance().updateValues(batteryStatus);
+        BatteryUtils.updateValues(batteryStatus);
     }
 
     private boolean checkPlayServices() {
@@ -128,7 +129,7 @@ public class SplashScreenActivity extends Activity {
             try {
                 Thread.sleep(SPLASH_SHOW_TIME);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Log.e(TAG, "error running background", e);
             }
             return msg;
         }

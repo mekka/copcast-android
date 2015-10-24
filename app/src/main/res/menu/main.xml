@@ -10,6 +10,10 @@
         android:title="@string/action_incident_form"
         android:orderInCategory="50"/>
     <item
+        android:id="@+id/action_playback"
+        android:title="@string/action_playback"
+        android:orderInCategory="70"/>
+    <item
         android:id="@+id/action_logout"
         android:title="@string/logout"
         android:orderInCategory="101"/>

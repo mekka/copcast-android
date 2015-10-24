@@ -9,6 +9,8 @@ import com.alexbbb.uploadservice.ContentType;
 import com.alexbbb.uploadservice.UploadRequest;
 import com.alexbbb.uploadservice.UploadService;
 
+import org.igarape.copcast.db.JsonDataContract;
+import org.igarape.copcast.db.JsonDataType;
 import org.igarape.copcast.views.MainActivity;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -79,7 +81,10 @@ public class UploadManager {
             userLogin = users.remove(0);
             uploadHistories(userLogin);
             uploadLocations(userLogin);
+            uploadIncidents(userLogin);
+            uploadBattery(userLogin);
             userPath = FileUtils.getPath(userLogin);
+            SqliteUtils.clearByType(context, userLogin, JsonDataType.TYPE_FLAGGED_VIDEO);
 
             File dir = new File(userPath);
             File[] files = dir.listFiles(filter);
@@ -97,6 +102,70 @@ public class UploadManager {
             runUpload();
         }
 
+    }
+
+    private void uploadBattery(String userLogin) {
+        final File file = new File(FileUtils.getBatteriesFilePath(userLogin));
+        if (!file.exists()) {
+            return;
+        }
+        Log.d(TAG, "Battery file size: " + file.length());
+        FileInputStream is = null;
+        try {
+            is = new FileInputStream(file);
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
+            JSONArray batteries = new JSONArray();
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                JSONObject json = new JSONObject(line);
+                if (json.getString("batteryPercentage").length() > 0) {
+                    batteries.put(json);
+                }
+            }
+
+            NetworkUtils.post(context, "/batteries/" + userLogin, batteries, new HttpResponseCallback() {
+                @Override
+                public void unauthorized() {
+                    Log.e(TAG, "batteries unauthorized");
+                }
+
+                @Override
+                public void failure(int statusCode) {
+                    Log.e(TAG, "batteries failure - statusCode: " + statusCode);
+                }
+
+                @Override
+                public void success(JSONObject response) {
+                    file.delete();
+                }
+
+                @Override
+                public void noConnection() {
+                    Log.e(TAG, "batteries noConnection");
+                }
+
+                @Override
+                public void badConnection() {
+                    Log.e(TAG, "batteries badConnection");
+                }
+
+                @Override
+                public void badRequest() {
+                    Log.e(TAG, "batteries badRequest");
+                }
+
+                @Override
+                public void badResponse() {
+                    Log.e(TAG, "batteries badResponse");
+                }
+            });
+        } catch (java.io.IOException e) {
+            Log.e(TAG, "location file error", e);
+        } catch (JSONException e) {
+            Log.e(TAG, "location file error", e);
+        }
     }
 
     private void uploadVideo(File nextVideo) {
@@ -257,6 +326,63 @@ public class UploadManager {
         } catch (JSONException e) {
             Log.e(TAG, "location file error", e);
         }
+    }
+
+    private void uploadIncidents(final String userLogin) {
+
+        JSONArray incidents;
+
+        try {
+            incidents = SqliteUtils.getFromDb(context, userLogin, JsonDataType.TYPE_INCIDENT_FLAG);
+        } catch (JSONException e) {
+            Log.e(TAG, "Unable to read incidents from database");
+            Log.d(TAG, e.toString());
+            return;
+        }
+
+        if (incidents.length() == 0) {
+            Log.d(TAG, "No failed incidents to upload");
+            return;
+        }
+
+        Log.d(TAG, "# of incidents: " + incidents.length());
+
+        NetworkUtils.post(context, "/incidents", incidents, new HttpResponseCallback() {
+            @Override
+            public void unauthorized() {
+                Log.e(TAG, "incidents unauthorized");
+            }
+
+            @Override
+            public void failure(int statusCode) {
+                Log.e(TAG, "incidents failure - statusCode: " + statusCode);
+            }
+
+            @Override
+            public void success(JSONObject response) {
+                SqliteUtils.clearByType(context, userLogin, JsonDataType.TYPE_INCIDENT_FLAG);
+            }
+
+            @Override
+            public void noConnection() {
+                Log.e(TAG, "incidents noConnection");
+            }
+
+            @Override
+            public void badConnection() {
+                Log.e(TAG, "incidents badConnection");
+            }
+
+            @Override
+            public void badRequest() {
+                Log.e(TAG, "incidents badRequest");
+            }
+
+            @Override
+            public void badResponse() {
+                Log.e(TAG, "incidents badResponse");
+            }
+        });
     }
 
     public static void sendCancelToUI(LocalBroadcastManager broadcaster) {

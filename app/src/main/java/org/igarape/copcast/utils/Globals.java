@@ -9,6 +9,8 @@ import android.location.Location;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import org.igarape.copcast.state.IncidentFlagState;
+
 /**
  * Created by fcavalcanti on 28/10/2014.
  */
@@ -19,6 +21,7 @@ public class Globals {
     public static final String USER_NAME = "USER_NAME";
     public static final String DIRECTORY_SIZE = "DIRECTORY_SIZE";
     public static final String DIRECTORY_UPLOADED_SIZE = "DIRECTORY_UPLOADED_SIZE";
+    public static final long BATTERY_REPEAT_TIME =  1000 * 600; // 10 minutes;
     public static String TAG = Globals.class.getName();
     public static final String SENDER_ID = "319635303076";
     private static final String PREF_ACCESS_TOKEN = "PREF_ACCESS_TOKEN";
@@ -38,6 +41,9 @@ public class Globals {
     private static Location lastKnownLocation = null;
     public static final long GPS_REPEAT_TIME = 1000 * 15; // 15 seconds
     private static int rotation;
+    private static IncidentFlagState incidentFlag = IncidentFlagState.NOT_FLAGGED;
+    private static String currentVideoPath;
+
 
     public synchronized static String getAccessToken(Context context) {
         if (accessToken == null) {
@@ -227,5 +233,21 @@ public class Globals {
     public static Boolean isWifiOnly(Context context){
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         return sharedPref.getBoolean(REQUIRE_WIFI_ONLY, true);
+    }
+
+    public static String getCurrentVideoPath() {
+        return currentVideoPath;
+    }
+
+    public static void setCurrentVideoPath(String currentVideoPath) {
+        Globals.currentVideoPath = currentVideoPath;
+    }
+
+    public static IncidentFlagState getIncidentFlag() {
+        return incidentFlag;
+    }
+
+    public static void setIncidentFlag(IncidentFlagState incidentFlag) {
+        Globals.incidentFlag = incidentFlag;
     }
 }
