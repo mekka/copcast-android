@@ -16,8 +16,10 @@ import android.widget.TextView;
 import android.widget.VideoView;
 
 import org.igarape.copcast.R;
+import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
+import org.igarape.copcast.utils.HistoryUtils;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.json.JSONException;
 
@@ -113,7 +115,7 @@ public class PlayerActivity extends Activity {
         listView = (ListView) findViewById(R.id.videoListView);
         videoView = (VideoView) findViewById(R.id.videoView);
 
-        String userLogin = Globals.getUserLogin(getApplicationContext());
+        final String userLogin = Globals.getUserLogin(getApplicationContext());
 
         videoPathList = FileUtils.getVideoPathList(userLogin);
 
@@ -141,7 +143,7 @@ public class PlayerActivity extends Activity {
                                     long arg3) {
 
                 VideoEntry chapter = adap.getItem(arg2);
-
+                HistoryUtils.registerHistory(getApplicationContext(), State.SEEN_VIDEO, State.SEEN_VIDEO, userLogin, chapter.video);
                 videoView.setVideoPath(chapter.path);
                 videoView.start();
             }
