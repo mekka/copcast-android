@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import org.igarape.copcast.BO.IncidentForm;
+import org.igarape.copcast.db.JsonDataType;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -11,11 +12,15 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by alexsalgado on 21/10/2015.
  */
 public class IncidentFormUtils {
+
+    private static AtomicBoolean failureLogged = new AtomicBoolean(false);
+
     /*
   * Define a request code to send to Google Play services
   * This code is returned in Activity.onActivityResult
@@ -44,36 +49,38 @@ public class IncidentFormUtils {
     private static final String TAG = IncidentFormUtils.class.getName();
     public static final float SMALLEST_DISPLACEMENT = 0;
 
-    public static void sendForm(Context context, final String login, final IncidentForm incidentForm) {
+    public static void sendForm(final Context context, final String login, final IncidentForm incidentForm) {
         HttpResponseCallback callback = new HttpResponseCallback() {
             @Override
             public void failure(int statusCode) {
-                FileUtils.logIncidentForm(login, incidentForm);
+                failedRegisterIncident(context, incidentForm, "failure");
             }
 
             @Override
             public void unauthorized() {
-                FileUtils.logIncidentForm(login, incidentForm);
+
+                failedRegisterIncident(context, incidentForm, "unauthorized");
+
             }
 
             @Override
             public void noConnection() {
-                FileUtils.logIncidentForm(login, incidentForm);
+                failedRegisterIncident(context, incidentForm, "noConnection");
             }
 
             @Override
             public void badConnection() {
-                FileUtils.logIncidentForm(login, incidentForm);
+                failedRegisterIncident(context, incidentForm, "badConnection");
             }
 
             @Override
             public void badRequest() {
-                FileUtils.logIncidentForm(login, incidentForm);
+                failedRegisterIncident(context, incidentForm, "badRequest");
             }
 
             @Override
             public void badResponse() {
-                FileUtils.logIncidentForm(login, incidentForm);
+                failedRegisterIncident(context, incidentForm, "badResponse");
             }
 
             @Override
@@ -86,6 +93,21 @@ public class IncidentFormUtils {
             NetworkUtils.post(context, "/incidentForms", buildJson(incidentForm), callback);
         } catch (JSONException e) {
             Log.e(TAG, "json error", e);
+        }
+    }
+
+    private static void failedRegisterIncident(Context context, IncidentForm incidentForm, String tag) {
+        Log.e(TAG, "Formincident not sent successfully: " + tag);
+
+        if (!failureLogged.getAndSet(true)) {
+            String userLogin = Globals.getUserLogin(context);
+            try {
+                SqliteUtils.storeToDb(context, userLogin,
+                        JsonDataType.TYPE_INCIDENT_FORM,
+                        buildJson(incidentForm));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -123,9 +145,8 @@ public class IncidentFormUtils {
                                         boolean argument,
                                         boolean useOfForce,
                                         boolean useLethalForce,
-                                        long userId
+                                        long userId) throws JSONException {
 
-    ) throws JSONException {
         JSONObject json = new JSONObject();
 
         json.put("date", date);
