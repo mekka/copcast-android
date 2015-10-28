@@ -12,7 +12,7 @@ public class IncidentReportActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_incident_report);
+        setContentView(R.layout.activity_form_incident_report);
     }
 
 
