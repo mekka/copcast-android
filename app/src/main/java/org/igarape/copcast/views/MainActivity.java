@@ -593,26 +593,6 @@ public class MainActivity extends Activity {
         super.onDestroy();
     }
 
-    @Override
-    public void onBackPressed() {
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
-
-        Resources res = getResources();
-        alertDialog.setTitle(res.getString(R.string.confirmation_tittle));
-        alertDialog.setMessage(res.getString(R.string.confirmation_msg));
-
-        alertDialog.setPositiveButton(res.getText(R.string.confirmation_button_positive), new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                MainActivity.this.finish();
-            }
-        });
-        alertDialog.setNegativeButton(res.getText(R.string.confirmation_button_negative), new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-        alertDialog.show();
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -784,9 +764,30 @@ public class MainActivity extends Activity {
                         Log.d(TAG, "Incident already reported. Skipping");
                     }
                 }
-
+            case KeyEvent.KEYCODE_BACK:
+                onBackPressed();
         }
         return true;
+    }
+
+    public void onBackPressed() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
+
+        Resources res = getResources();
+        alertDialog.setTitle(res.getString(R.string.confirmation_tittle));
+        alertDialog.setMessage(res.getString(R.string.confirmation_msg));
+
+        alertDialog.setPositiveButton(res.getText(R.string.confirmation_button_positive), new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                MainActivity.this.finish();
+            }
+        });
+        alertDialog.setNegativeButton(res.getText(R.string.confirmation_button_negative), new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        alertDialog.show();
     }
 
 }
