@@ -7,6 +7,10 @@ import android.util.JsonWriter;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.igarape.copcast.BO.IncidentForm;
@@ -25,6 +29,26 @@ import java.util.Date;
 
 public class FormIncidentReportActivity extends Activity {
 
+    //UI Components
+    TextView txtDate;
+    TextView txtTime;
+    TextView txtLocation;
+    EditText txtAddress;
+
+    CheckBox chkAccident;
+    SeekBar skbAccGravity;
+    EditText txtAccNumInjured;
+
+    CheckBox chkFine;
+    EditText txtFineType;
+
+    CheckBox chkArrest;
+    CheckBox chkArrResistance;
+    CheckBox chkArrResArgument;
+    CheckBox chkArrResUseForce;
+    CheckBox chkArrResUseLetahlForce;
+
+
     private Button btnSendForm;
     private String TAG = FormIncidentReportActivity.class.getName();
 
@@ -34,6 +58,8 @@ public class FormIncidentReportActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_form_incident_report);
 
+        initForm();
+
         btnSendForm = (Button) findViewById(R.id.btnFormSend);
 
         btnSendForm.setOnClickListener(new View.OnClickListener() {
@@ -42,6 +68,32 @@ public class FormIncidentReportActivity extends Activity {
                 sendIndicidentForm(v);
             }
         });
+    }
+
+    private void initForm() {
+
+
+        //bind the UI components
+        txtDate = (TextView) findViewById(R.id.txtDate);
+        txtTime = (TextView) findViewById(R.id.txtTime);
+        txtLocation = (TextView) findViewById(R.id.txtLocation);
+        txtAddress = (EditText)  findViewById(R.id.txtAddress);
+
+        chkAccident = (CheckBox) findViewById(R.id.chkAccident);
+        skbAccGravity = (SeekBar) findViewById(R.id.skbAccGravity);
+        txtAccNumInjured = (EditText) findViewById(R.id.txtAccNumInjured);
+
+        chkFine = (CheckBox) findViewById(R.id.chkFine);
+        txtFineType = (EditText) findViewById(R.id.txtFineType);
+
+        chkArrest = (CheckBox) findViewById(R.id.chkArrest);
+        chkArrResistance = (CheckBox) findViewById(R.id.chkArrResistance);
+        chkArrResArgument = (CheckBox) findViewById(R.id.chkArrResArgument);
+        chkArrResUseForce = (CheckBox) findViewById(R.id.chkArrResUseForce);
+        chkArrResUseLetahlForce = (CheckBox) findViewById(R.id.chkArrResUseLetahlForce);
+
+
+
     }
 
     private void sendIndicidentForm(View v) {
