@@ -19,6 +19,7 @@ import org.igarape.copcast.BO.IncidentForm;
 import org.igarape.copcast.R;
 import org.igarape.copcast.utils.BatteryUtils;
 import org.igarape.copcast.utils.FileUtils;
+import org.igarape.copcast.utils.GPSTracker;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.IncidentFormUtils;
 import org.igarape.copcast.utils.LocationUtils;
@@ -77,19 +78,27 @@ public class FormIncidentReportActivity extends Activity {
         btnSendForm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                validateFormBeforeSend(v);
-                sendIndicidentForm(v);
+                if (validateFormBeforeSend(v)) {
+                    sendIndicidentForm(v);
+                }
             }
         });
     }
 
-    private void validateFormBeforeSend(View v) {
+    private boolean validateFormBeforeSend(View v) {
+
+        boolean validated = true;
 
         String strAddress = txtAddress.getText().toString();
+        if (strAddress.length() == 0)
+        {
+            validated = false;
+            Toast.makeText(c, "Please, fill the address.", Toast.LENGTH_SHORT).show();
+        }
 
         Log.d(TAG, "validateFormBeforeSend");
 
-
+        return validated;
     }
 
     private void initForm() {
@@ -116,14 +125,38 @@ public class FormIncidentReportActivity extends Activity {
 
         //init date and time
         TimeZone tz = TimeZone.getTimeZone("UTC");
-        DateFormat df = new SimpleDateFormat( IncidentFormUtils.DATE_FORMAT );
+        DateFormat df = new SimpleDateFormat( IncidentFormUtils.DATETIME_FORMAT );
         df.setTimeZone(tz);
         txtDate.setText(df.format(new Date()));
 
-        df = new SimpleDateFormat( IncidentFormUtils.TIME_FORMAT );
-        df.setTimeZone(tz);
-        txtTime.setText(df.format(new Date()));
+        // check if GPS enabled
+        GPSTracker gpsTracker = new GPSTracker(this);
 
+        if (gpsTracker.getIsGPSTrackingEnabled())
+        {
+            String strLatitude = String.valueOf(gpsTracker.getLatitude());
+            String strLongitude = String.valueOf(gpsTracker.getLongitude());
+
+            txtLocation.setText(strLatitude + "/" + strLongitude);
+
+            String country = gpsTracker.getCountryName(this);
+            String city = gpsTracker.getLocality(this);
+            String postalCode = gpsTracker.getPostalCode(this);
+            String addressLine = gpsTracker.getAddressLine(this);
+
+            txtAddress.setText(addressLine + "\n" +
+                    city + "\n" +
+                    country + "\n"+
+                    postalCode);
+
+        }
+        else
+        {
+            // can't get location
+            // GPS or Network is not enabled
+            // Ask user to enable GPS/network in settings
+            gpsTracker.showSettingsAlert();
+        }
 
 
 
