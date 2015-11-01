@@ -1,7 +1,10 @@
 package org.igarape.copcast.utils;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 import org.igarape.copcast.BO.IncidentForm;
 import org.igarape.copcast.db.JsonDataType;
@@ -14,10 +17,13 @@ import java.util.Date;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+
 /**
  * Created by alexsalgado on 21/10/2015.
  */
 public class IncidentFormUtils {
+    public static final String DATE_FORMAT = "yyyy-MM-dd";
+    public static final String TIME_FORMAT = "HH:mm:ss";
 
     private static AtomicBoolean failureLogged = new AtomicBoolean(false);
 
@@ -166,5 +172,22 @@ public class IncidentFormUtils {
 
 
         return json;
+    }
+
+    //toast wrapper
+    public static void toast ( final  String message, final Context context)
+    {
+        //avoid ui thread nonsense
+
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+
     }
 }
