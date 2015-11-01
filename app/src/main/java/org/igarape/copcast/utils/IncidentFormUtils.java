@@ -175,7 +175,7 @@ public class IncidentFormUtils {
     }
 
     //toast wrapper
-    public static void toast ( final  String message, final Context context)
+    public static void fToast ( final  String message, final Context context)
     {
         //avoid ui thread nonsense
 

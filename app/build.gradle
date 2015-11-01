@@ -34,20 +34,17 @@ android {
     }
     productFlavors {
         local {
-            resValue "string", "SERVER_URL_DEFAULT", "m\"http://copcastapi.pmerj.rj.gov.br\""
-            //resValue "string", "SERVER_URL_DEFAULT", "m\"http://mogi-api.igarape.org\""
-            //resValue "string", "SERVER_URL_DEFAULT", "\"http://192.168.1.72:3000\""
+            //resValue "string", "SERVER_URL_DEFAULT", "\"http://mogi-api.igarape.org\""
+            resValue "string", "SERVER_URL_DEFAULT", "\"http://192.168.0.100:3000\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "true"
         }
         general {
-            resValue "string", "SERVER_URL_DEFAULT", "\"http://copcastapi.pmerj.rj.gov.br\""
-            //resValue "string", "SERVER_URL_DEFAULT", "\"http://mogi-api.igarape.org\""
+            resValue "string", "SERVER_URL_DEFAULT", "\"http://mogi-api.igarape.org\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "true"
             signingConfig signingConfigs.config
         }
         capeTown {
             resValue "string", "SERVER_URL_DEFAULT", "\"http://api.mogidocs.co.za\""
-            //resValue "string", "SERVER_URL_DEFAULT", "\"http://api.mogidocs.co.za\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "false"
         }
     }

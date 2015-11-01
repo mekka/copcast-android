@@ -1,11 +1,13 @@
 package org.igarape.copcast.views;
 
 import android.app.Activity;
+import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.JsonWriter;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewDebug;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -16,6 +18,7 @@ import android.widget.Toast;
 import org.igarape.copcast.BO.IncidentForm;
 import org.igarape.copcast.R;
 import org.igarape.copcast.utils.BatteryUtils;
+import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.IncidentFormUtils;
 import org.igarape.copcast.utils.LocationUtils;
@@ -24,10 +27,15 @@ import org.json.JSONObject;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 public class FormIncidentReportActivity extends Activity {
+
+    //context
+    Context c;
 
     //UI Components
     TextView txtDate;
@@ -56,7 +64,11 @@ public class FormIncidentReportActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        c = this;
+
         setContentView(R.layout.activity_form_incident_report);
+
 
         initForm();
 
@@ -65,9 +77,19 @@ public class FormIncidentReportActivity extends Activity {
         btnSendForm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                validateFormBeforeSend(v);
                 sendIndicidentForm(v);
             }
         });
+    }
+
+    private void validateFormBeforeSend(View v) {
+
+        String strAddress = txtAddress.getText().toString();
+
+        Log.d(TAG, "validateFormBeforeSend");
+
+
     }
 
     private void initForm() {
@@ -92,6 +114,17 @@ public class FormIncidentReportActivity extends Activity {
         chkArrResUseForce = (CheckBox) findViewById(R.id.chkArrResUseForce);
         chkArrResUseLetahlForce = (CheckBox) findViewById(R.id.chkArrResUseLetahlForce);
 
+        //init date and time
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        DateFormat df = new SimpleDateFormat( IncidentFormUtils.DATE_FORMAT );
+        df.setTimeZone(tz);
+        txtDate.setText(df.format(new Date()));
+
+        df = new SimpleDateFormat( IncidentFormUtils.TIME_FORMAT );
+        df.setTimeZone(tz);
+        txtTime.setText(df.format(new Date()));
+
+
 
 
     }
@@ -104,8 +137,9 @@ public class FormIncidentReportActivity extends Activity {
 
         sendIncidentForm(incident);
 
-        Toast toast= Toast.makeText(getApplicationContext(), "Form sent", Toast.LENGTH_LONG);
-        toast.show();
+        Toast.makeText(c, "Form sent", Toast.LENGTH_LONG);
+
+
     }
 
     private void sendIncidentForm(IncidentForm incidentForm) {
@@ -113,8 +147,8 @@ public class FormIncidentReportActivity extends Activity {
         Log.d(TAG, "writeJSONtoFile...");
 
         IncidentFormUtils.sendForm(getApplicationContext(),
-                    Globals.getUserLogin(getApplicationContext()),
-                    incidentForm);
+                Globals.getUserLogin(getApplicationContext()),
+                incidentForm);
     }
 
     private IncidentForm getIncidentForm() {
@@ -138,6 +172,42 @@ public class FormIncidentReportActivity extends Activity {
         incidentForm.setUseLethalForce(true);
 
         return incidentForm;
+
+    }
+
+    public void onClickTypeViolation(View view)
+    {
+        // Is the view now checked?
+        boolean checked = ((CheckBox) view).isChecked();
+
+        // Check which checkbox was clicked
+        switch(view.getId()) {
+            case R.id.chkAccident:
+                //if (checked) {
+                //shows Gravity and Injured
+                skbAccGravity.setEnabled(checked);
+                txtAccNumInjured.setEnabled(checked);
+
+                break;
+            case R.id.chkFine:
+                //shows/hide
+                txtFineType.setEnabled(checked);
+                break;
+            case R.id.chkArrest:
+                //shoows/hide
+                chkArrResistance.setEnabled(checked);
+
+                break;
+
+            case R.id.chkArrResistance:
+                //shoows/hide
+                chkArrResArgument.setEnabled(checked);
+                chkArrResUseForce.setEnabled(checked);
+                chkArrResUseLetahlForce.setEnabled(checked);
+
+                break;
+        }
+
 
     }
 }
