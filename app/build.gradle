@@ -34,8 +34,8 @@ android {
     }
     productFlavors {
         local {
-            //resValue "string", "SERVER_URL_DEFAULT", "\"http://mogi-api.igarape.org\""
-            resValue "string", "SERVER_URL_DEFAULT", "\"http://192.168.0.100:3000\""
+            resValue "string", "SERVER_URL_DEFAULT", "\"http://mogi-api.igarape.org\""
+            //resValue "string", "SERVER_URL_DEFAULT", "\"http://192.168.0.100:3000\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "true"
         }
         general {

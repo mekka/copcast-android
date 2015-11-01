@@ -106,7 +106,7 @@ public class FormIncidentReportActivity extends Activity {
 
         //bind the UI components
         txtDate = (TextView) findViewById(R.id.txtDate);
-        txtTime = (TextView) findViewById(R.id.txtTime);
+
         txtLocation = (TextView) findViewById(R.id.txtLocation);
         txtAddress = (EditText)  findViewById(R.id.txtAddress);
 

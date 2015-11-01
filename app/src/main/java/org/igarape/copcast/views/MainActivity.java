@@ -597,6 +597,7 @@ public class MainActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
+        Log.d(TAG, "Menu inflated!");
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
@@ -623,7 +624,13 @@ public class MainActivity extends Activity {
                 startActivity(i);
             }
             return true;
-        } else if (id == R.id.action_logout) {
+        } else if (id == R.id.action_incident_form) {
+            Log.d(TAG, "IncidentForm Open!");
+            Intent i = new Intent(this, IncidentReportActivity.class);
+            startActivity(i);
+            return true;
+
+        }    else if (id == R.id.action_logout) {
             logout();
             return true;
         }
