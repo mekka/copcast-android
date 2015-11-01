@@ -107,7 +107,7 @@
             android:value="@integer/google_play_services_version" />
 
         <activity
-            android:name=".views.IncidentReportActivity"
+            android:name=".views.FormIncidentReportActivity"
             android:label="@string/title_activity_incident_report" >
         </activity>
     </application>
