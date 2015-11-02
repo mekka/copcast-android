@@ -63,7 +63,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Accident?"
-            android:onClick="onClickTypeViolation:"
+            android:onClick="onClickTypeViolation"
             android:id="@+id/chkAccident" />
 
 
@@ -98,7 +98,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Fine?"
-            android:onClick="onClickTypeViolation:"
+            android:onClick="onClickTypeViolation"
             android:id="@+id/chkFine" />
 
         <TextView
@@ -119,13 +119,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Arrest?"
-            android:onClick="onClickTypeViolation:"
+            android:onClick="onClickTypeViolation"
             android:id="@+id/chkArrest" />
 
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Resistance?"
+            android:onClick="onClickTypeViolation"
             android:id="@+id/chkArrResistance" />
 
 
