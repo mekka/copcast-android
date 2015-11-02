@@ -98,6 +98,7 @@ public class IncidentFormUtils {
         };
 
         try {
+            Log.d(TAG, "NetworkUtils.post -> sending....");
             NetworkUtils.post(context, "/incidentForms", buildJson(incidentForm), callback);
         } catch (JSONException e) {
             Log.e(TAG, "json error", e);
@@ -120,10 +121,10 @@ public class IncidentFormUtils {
     }
 
     public static JSONObject buildJson(IncidentForm incidentForm) throws JSONException {
-        TimeZone tz = TimeZone.getTimeZone("UTC");
-        DateFormat df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
-        df.setTimeZone(tz);
-        return buildJson(new Date(),
+
+        Log.d(TAG, "buldJson");
+
+        return buildJson( incidentForm.getDate(),
                 incidentForm.getLat(),
                 incidentForm.getLng(),
                 incidentForm.isAccident(),

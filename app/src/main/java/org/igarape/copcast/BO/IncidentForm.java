@@ -119,6 +119,15 @@ public class IncidentForm implements Serializable {
         this.userId = userId;
     }
 
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
     private Date date;
     private float lat;
     private float lng;
@@ -135,5 +144,8 @@ public class IncidentForm implements Serializable {
 
 
     private long userId;
+
+
+    private String address;
 
 }

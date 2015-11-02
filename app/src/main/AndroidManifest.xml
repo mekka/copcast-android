@@ -57,6 +57,12 @@
             android:name=".views.LoginActivity"/>
         <activity
             android:name=".views.SettingsActivity" />
+
+        <activity
+            android:name=".views.FormIncidentReportActivity"
+            android:label="@string/title_activity_incident_report" >
+        </activity>
+
         <!--<service android:name=".service.RecorderService" />-->
         <service android:name=".service.VideoRecorderService" />
         <service android:name=".service.LocationService" />
@@ -106,10 +112,6 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <activity
-            android:name=".views.FormIncidentReportActivity"
-            android:label="@string/title_activity_incident_report" >
-        </activity>
     </application>
 
 </manifest>

@@ -2,8 +2,10 @@ package org.igarape.copcast.views;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
+import android.text.SpannableStringBuilder;
 import android.util.JsonWriter;
 import android.util.Log;
 import android.view.View;
@@ -214,12 +216,31 @@ public class FormIncidentReportActivity extends Activity {
     private void sendIndicidentForm(View v) {
 
         IncidentForm incident;
+        Drawable color;
+        color = btnSendForm.getBackground();
+        try {
+            //change butto behavior
+            btnSendForm.setBackgroundColor( color.getOpacity() );
+            btnSendForm.setEnabled(false);
 
-        incident = getIncidentForm();
+            incident = getIncidentForm();
 
-        sendIncidentForm(incident);
+            sendIncidentForm(incident);
 
-        Toast.makeText(c, "Form sent", Toast.LENGTH_LONG);
+            Toast.makeText(c, "Form sent", Toast.LENGTH_LONG);
+            btnSendForm.setBackground(color);
+            btnSendForm.setEnabled(true);
+
+            finish();
+        }
+        catch (Exception e)
+        {
+            Toast.makeText(c, "Error sending form to server, please retry!", Toast.LENGTH_LONG);
+            btnSendForm.setBackground(color);
+            btnSendForm.setEnabled(true);
+
+        }
+
 
 
     }
@@ -235,23 +256,44 @@ public class FormIncidentReportActivity extends Activity {
 
     private IncidentForm getIncidentForm() {
 
-        Location lastKnownLocation = Globals.getLastKnownLocation();
+        // check if GPS enabled
+        GPSTracker gpsTracker = new GPSTracker(this);
+        String address="";
+        String strLatitude = "0.0";
+        String strLongitude = "0.0" ;
+
+
+
+        if (gpsTracker.getIsGPSTrackingEnabled()) {
+            strLatitude = String.valueOf(gpsTracker.getLatitude());
+            strLongitude = String.valueOf(gpsTracker.getLongitude());
+
+        } else {
+            // can't get location
+            // GPS or Network is not enabled
+            // Ask user to enable GPS/network in settings
+            gpsTracker.showSettingsAlert();
+        }
 
         IncidentForm incidentForm = new IncidentForm();
 
         incidentForm.setDate(new Date());
-        incidentForm.setLat((float) lastKnownLocation.getLatitude());
-        incidentForm.setLng((float) lastKnownLocation.getLongitude());
-        incidentForm.setAccident(true); // TODO: 10/22/15 get from form
-        incidentForm.setGravity(5);
-        incidentForm.setInjured(3);
-        incidentForm.setFine(true);
-        incidentForm.setFineType("speed");
-        incidentForm.setArrest(true);
-        incidentForm.setResistance(true);
-        incidentForm.setArgument(true);
-        incidentForm.setUseOfForce(true);
-        incidentForm.setUseLethalForce(true);
+        incidentForm.setLat(Float.parseFloat(strLatitude));
+        incidentForm.setLng(Float.parseFloat(strLongitude));
+        incidentForm.setAddress(txtAddress.getText().toString());
+
+        incidentForm.setAccident(chkAccident.isChecked());
+        incidentForm.setGravity(skbAccGravity.getProgress());
+        incidentForm.setInjured(Integer.parseInt(txtAccNumInjured.getText().toString()));
+        incidentForm.setFine(chkFine.isChecked());
+        incidentForm.setFineType(txtFineType.getText().toString());
+        incidentForm.setArrest(chkArrest.isChecked());
+        incidentForm.setResistance(chkArrResistance.isChecked());
+        incidentForm.setArgument(chkArrResArgument.isChecked());
+        incidentForm.setUseOfForce(chkArrResUseForce.isChecked());
+        incidentForm.setUseLethalForce(chkArrResUseLetahlForce.isChecked());
+
+        incidentForm.setUserId( 2 ); //// TODO: 11/2/15 getUserId 
 
         return incidentForm;
 

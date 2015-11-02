@@ -80,6 +80,8 @@ public class MainActivity extends Activity {
     private Long first_keydown;
     private final int FLAG_TRIGGER_WAIT_TIME = 1000;
 
+    private Button btnIncidente;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,6 +118,15 @@ public class MainActivity extends Activity {
                 }
             }
         };
+
+        //incidente todo:remove
+        btnIncidente = (Button) findViewById(R.id.botaoIncidente);
+        btnIncidente.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clicouBotao(v);
+            }
+        });
 
         ActionBar ab = getActionBar(); //needs  import android.app.ActionBar;
         ab.setTitle(Globals.getUserName(getApplicationContext()));
@@ -625,8 +636,8 @@ public class MainActivity extends Activity {
             }
             return true;
         } else if (id == R.id.action_incident_form) {
-            Log.d(TAG, "IncidentForm Open!");
-            Intent i = new Intent(this, IncidentReportActivity.class);
+            Log.d(TAG, "IncidentForm Open Menu!");
+            Intent i = new Intent(this, FormIncidentReportActivity.class);
             startActivity(i);
             return true;
 
@@ -653,6 +664,7 @@ public class MainActivity extends Activity {
         stopService(new Intent(MainActivity.this, LocationService.class));
         stopService(new Intent(MainActivity.this, VideoRecorderService.class));
         stopService(new Intent(MainActivity.this, UploadService.class));
+
         stopAlarmReceiver();
     }
 
@@ -797,4 +809,10 @@ public class MainActivity extends Activity {
         alertDialog.show();
     }
 
+    public void clicouBotao(View v)
+    {
+        Log.d(TAG, "IncidentForm Open!");
+        Intent i = new Intent(this, FormIncidentReportActivity.class);
+        startActivity(i);
+    }
 }
