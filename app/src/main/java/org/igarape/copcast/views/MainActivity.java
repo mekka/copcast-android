@@ -772,11 +772,12 @@ public class MainActivity extends Activity {
                         Log.d(TAG, "Incident already reported. Skipping");
                     }
                 }
-                break;
+                return true;
             case KeyEvent.KEYCODE_BACK:
                 onBackPressed();
+                return true;
         }
-        return true;
+        return super.onKeyDown(keyCode, event);
     }
 
     public void onBackPressed() {
