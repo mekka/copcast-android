@@ -58,54 +58,57 @@ public class IncidentFormUtils {
     public static final float SMALLEST_DISPLACEMENT = 0;
 
     public static void sendForm(final Context context, final String login, final IncidentForm incidentForm) {
-        HttpResponseCallback callback = new HttpResponseCallback() {
-            @Override
-            public void failure(int statusCode) {
-                failedRegisterIncident(context, incidentForm, "failure");
-            }
+
+        final JSONObject incidentFormJSON;
+
+        try {
+            incidentFormJSON = buildJson(incidentForm);
+        } catch (JSONException e) {
+            Log.e(TAG, "error building incidentForm JSON");
+            return;
+        }
+
+        failureLogged.set(false);
+
+        Log.d(TAG, "NetworkUtils.post -> sending....");
+
+        NetworkUtils.post(context, "/incidentForms", incidentFormJSON, new HttpResponseCallback() {
 
             @Override
             public void unauthorized() {
 
-                failedRegisterIncident(context, incidentForm, "unauthorized");
+                failedRegisterIncident(context, incidentFormJSON, "unauthorized");
+            }
 
+            @Override
+            public void failure(int statusCode) {
+                failedRegisterIncident(context, incidentFormJSON, "failure");
             }
 
             @Override
             public void noConnection() {
-                failedRegisterIncident(context, incidentForm, "noConnection");
+                failedRegisterIncident(context, incidentFormJSON, "noConnection");
             }
 
             @Override
             public void badConnection() {
-                failedRegisterIncident(context, incidentForm, "badConnection");
+                failedRegisterIncident(context, incidentFormJSON, "badConnection");
             }
 
             @Override
             public void badRequest() {
-                failedRegisterIncident(context, incidentForm, "badRequest");
+                failedRegisterIncident(context, incidentFormJSON, "badRequest");
             }
 
             @Override
             public void badResponse() {
-                failedRegisterIncident(context, incidentForm, "badResponse");
+                failedRegisterIncident(context, incidentFormJSON, "badResponse");
             }
-
-            @Override
-            public void success(JSONObject response) {
-                Log.i(TAG, "SendForm sent successfully");
-            }
-        };
-
-        try {
-            Log.d(TAG, "NetworkUtils.post -> sending....");
-            NetworkUtils.post(context, "/incidentForms", buildJson(incidentForm), callback);
-        } catch (JSONException e) {
-            Log.e(TAG, "json error", e);
-        }
+        });
     }
 
-    private static void failedRegisterIncident(Context context, IncidentForm incidentForm, String tag) {
+
+    private static void failedRegisterIncident(Context context, JSONObject incidentFormJSON, String tag) {
         Log.e(TAG, "Formincident not sent successfully: " + tag);
 
         if (!failureLogged.getAndSet(true)) {
@@ -113,8 +116,8 @@ public class IncidentFormUtils {
             try {
                 SqliteUtils.storeToDb(context, userLogin,
                         JsonDataType.TYPE_INCIDENT_FORM,
-                        buildJson(incidentForm));
-            } catch (JSONException e) {
+                        incidentFormJSON);
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -137,7 +140,8 @@ public class IncidentFormUtils {
                 incidentForm.isArgument(),
                 incidentForm.isUseOfForce(),
                 incidentForm.isUseLethalForce(),
-                incidentForm.getUserId() );
+                incidentForm.getUserId(),
+                incidentForm.getAddress());
 
     }
 
@@ -154,11 +158,18 @@ public class IncidentFormUtils {
                                         boolean argument,
                                         boolean useOfForce,
                                         boolean useLethalForce,
-                                        long userId) throws JSONException {
+                                        long userId,
+                                        String address) throws JSONException {
 
         JSONObject json = new JSONObject();
 
-        json.put("date", date);
+        SimpleDateFormat df;
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
+        df.setTimeZone(tz);
+
+        json.put("date", df.toString());
+        json.put("adress", address);
         json.put("lat", lat);
         json.put("lng", lng);
         json.put("accident", accident);
@@ -172,6 +183,7 @@ public class IncidentFormUtils {
         json.put("useOfForce", useOfForce);
         json.put("useLethalForce", useLethalForce);
         json.put("userId", userId);
+
 
 
         return json;
