@@ -168,8 +168,8 @@ public class IncidentFormUtils {
         df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
         df.setTimeZone(tz);
 
-        json.put("date", df.toString());
-        json.put("adress", address);
+        json.put("date", df.format(date));
+        json.put("address", address);
         json.put("lat", lat);
         json.put("lng", lng);
         json.put("accident", accident);
