@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    >
+    android:layout_marginTop="10dp"
+    android:padding="10dp"
+    android:baselineAligned="true"
+>
 
     <ImageView
         android:id="@+id/imageView1"
@@ -10,8 +14,8 @@
         android:layout_height="40dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-
-        android:background="#c30000" />
+        android:background="#00c30000"
+        android:src="@drawable/play" />
 
     <TextView
         android:id="@+id/listItemText"
@@ -20,8 +24,38 @@
         android:layout_marginLeft="23dp"
         android:layout_marginTop="10dp"
         android:layout_toRightOf="@+id/imageView1"
-        android:text="CodeLearn Chapter 1"
-        android:textSize="16sp" />
+        android:text="16:44:38"
+        android:textSize="20sp"
+        android:textStyle="bold" />
 
+    <TextView
+        android:id="@+id/listItemText2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="23dp"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@+id/imageView1"
+        android:text="10/22"
+        android:textSize="20sp"
+        android:textStyle="italic" />
 
-</RelativeLayout>
+    <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        />
+
+    <ImageView
+        android:id="@+id/issue_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:layout_alignParentRight="true"
+        android:drawableBottom="@drawable/issue_button"
+        android:layout_alignParentEnd="true"
+        android:layout_gravity="right"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="#00000000"
+        android:src="@drawable/issue" />
+
+</LinearLayout>
