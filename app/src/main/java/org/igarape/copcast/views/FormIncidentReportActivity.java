@@ -135,6 +135,18 @@ public class FormIncidentReportActivity extends Activity {
             Toast.makeText(c, "Please, fill the address.", Toast.LENGTH_SHORT).show();
         }
 
+        if (txtFineType.getText().toString().length() == 0) {
+            validated = false;
+            Toast.makeText(c, "Please, fill the Fine type.", Toast.LENGTH_SHORT).show();
+        }
+
+        if (chkAccident.isChecked())
+        {
+            if ( txtAccNumInjured.getText().toString().length() == 0) {
+                validated = false;
+                Toast.makeText(c, "Please, fill Number of Injured.", Toast.LENGTH_SHORT).show();
+            }
+        }
         Log.d(TAG, "validateFormBeforeSend");
 
         return validated;
