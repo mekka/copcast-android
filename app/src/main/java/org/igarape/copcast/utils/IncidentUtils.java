@@ -22,7 +22,7 @@ public class IncidentUtils {
         JSONObject json = new JSONObject();
         json.put("date", TimeUtils.getTimestamp().toString());
         json.put("lat", Globals.getLastKnownLocation().getLatitude());
-        json.put("lon", Globals.getLastKnownLocation().getLongitude());
+        json.put("lng", Globals.getLastKnownLocation().getLongitude());
         return json;
     }
 
@@ -42,18 +42,13 @@ public class IncidentUtils {
         Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
         v.vibrate(500);
 
-
-        try {
-            saveVideoPath(context, videoPath);
-        } catch (JSONException e) {
-            Log.e(TAG, "Could not save flagged video on database");
-            Log.d(TAG, e.toString());
-        }
+        saveVideoPath(context, videoPath);
 
         try {
             incident = buildJson();
         } catch (JSONException e) {
-            Log.e(TAG, "error building incident JSON");
+            Log.e(TAG, "error building incident JSON.");
+            Log.d(TAG, e.toString());
             return;
         }
 
@@ -93,18 +88,23 @@ public class IncidentUtils {
         });
     }
 
-    public static void saveVideoPath(Context context, String videoPath) throws JSONException {
+    public static void saveVideoPath(Context context, String videoPath) {
 
         if (videoPath == null || videoPath.length() == 0) {
             Log.w(TAG, "saveVideoPath called without video argument");
             return;
         }
 
-        JSONObject obj = buildJson();
-        obj.put("videoPath", videoPath);
-
-        SqliteUtils.storeToDb(context, Globals.getUserLogin(context),
-                JsonDataType.TYPE_FLAGGED_VIDEO, obj.toString());
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("date", TimeUtils.getTimestamp().toString());
+            obj.put("videoPath", videoPath);
+            SqliteUtils.storeToDb(context, Globals.getUserLogin(context),
+                    JsonDataType.TYPE_FLAGGED_VIDEO, obj.toString());
+        } catch (JSONException e) {
+            Log.e(TAG, "Error building incident JSON. Video name not stored.");
+            Log.d(TAG, e.toString());
+        }
     }
 
     public static List<String> getFlaggedVideosList(Context context) throws JSONException {
