@@ -3,13 +3,9 @@ package org.igarape.copcast.views;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.location.Location;
 import android.os.Bundle;
-import android.text.SpannableStringBuilder;
-import android.util.JsonWriter;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewDebug;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -17,21 +13,12 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.GoogleApiClient;
-
-import org.igarape.copcast.BO.IncidentForm;
+import org.igarape.copcast.bo.IncidentForm;
 import org.igarape.copcast.R;
-import org.igarape.copcast.utils.BatteryUtils;
-import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.GPSTracker;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.IncidentFormUtils;
-import org.igarape.copcast.utils.LocationUtils;
-import org.json.JSONObject;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -108,13 +95,16 @@ public class FormIncidentReportActivity extends Activity {
                 txtFineType.setEnabled(checked);
                 break;
             case R.id.chkArrest:
-                //shoows/hide
+                //shows/hide
                 chkArrResistance.setEnabled(checked);
+                chkArrResArgument.setEnabled(checked);
+                chkArrResUseForce.setEnabled(checked);
+                chkArrResUseLetahlForce.setEnabled(checked);
 
                 break;
 
             case R.id.chkArrResistance:
-                //shoows/hide
+                //shows/hide
                 chkArrResArgument.setEnabled(checked);
                 chkArrResUseForce.setEnabled(checked);
                 chkArrResUseLetahlForce.setEnabled(checked);
@@ -194,10 +184,16 @@ public class FormIncidentReportActivity extends Activity {
             String postalCode = gpsTracker.getPostalCode(this);
             String addressLine = gpsTracker.getAddressLine(this);
 
-            txtAddress.setText(addressLine + "\n" +
-                    city + "\n" +
-                    country + "\n" +
-                    postalCode);
+            if (addressLine == null)
+            {
+                txtAddress.setText("(Address not detect automatically, please type yourself...)");
+            }
+            else {
+                txtAddress.setText(addressLine + "\n" +
+                        city + "\n" +
+                        country + "\n" +
+                        postalCode);
+            }
 
         } else {
             // can't get location
@@ -304,8 +300,6 @@ public class FormIncidentReportActivity extends Activity {
         incidentForm.setArgument(chkArrResArgument.isChecked());
         incidentForm.setUseOfForce(chkArrResUseForce.isChecked());
         incidentForm.setUseLethalForce(chkArrResUseLetahlForce.isChecked());
-
-        incidentForm.setUserId( 2 ); //// TODO: 11/2/15 getUserId 
 
         return incidentForm;
 
