@@ -108,7 +108,7 @@ public class FormIncidentReportActivity extends Activity {
                 txtFineType.setEnabled(checked);
                 break;
             case R.id.chkArrest:
-                //shoows/hide
+                //shows/hide
                 chkArrResistance.setEnabled(checked);
                 chkArrResArgument.setEnabled(checked);
                 chkArrResUseForce.setEnabled(checked);
@@ -117,7 +117,7 @@ public class FormIncidentReportActivity extends Activity {
                 break;
 
             case R.id.chkArrResistance:
-                //shoows/hide
+                //shows/hide
                 chkArrResArgument.setEnabled(checked);
                 chkArrResUseForce.setEnabled(checked);
                 chkArrResUseLetahlForce.setEnabled(checked);
