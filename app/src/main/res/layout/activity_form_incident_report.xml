@@ -24,13 +24,14 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Date / Time"
+            android:textColor="#0799C6"
             android:id="@+id/lblDate" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="@color/text_dark"
+            android:textColor="#FFF"
             android:text="11/11/11 10:30:33"
             android:id="@+id/txtDate" />
 
@@ -39,13 +40,14 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Location"
+            android:textColor="#0799C6"
             android:id="@+id/lblLocation" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="@color/text_dark"
+            android:textColor="#FFF"
             android:text="Location"
             android:id="@+id/txtLocation" />
 
@@ -54,22 +56,25 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Address"
+            android:textColor="#0799C6"
             android:id="@+id/lblAddress" />
 
 
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
             android:inputType="textMultiLine"
-            android:textColor="@color/text_dark"
+            android:textColor="#FFF"
             android:ems="10"
             android:id="@+id/txtAddress" />
 
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Accident?"
-            android:textColor="@color/primary_text_default_material_dark"
+            android:textColor="#0799C6"
             android:onClick="onClickTypeViolation"
             android:id="@+id/chkAccident" />
 
@@ -79,35 +84,40 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Gravity"
-            android:textColor="@color/text_dark"
+            android:textColor="#0799C6"
             android:id="@+id/lblGravityAcc" />
 
         <SeekBar
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
             android:id="@+id/skbAccGravity"
+            android:textColor="#FFF"
             android:layout_gravity="center_horizontal" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="#0799C6"
             android:text="Number of injured"
             android:id="@+id/lblInjured" />
 
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/text_dark"
+            android:textAppearance="?android:attr/textAppearanceMedium"
             android:inputType="number"
+            android:textColor="#FFF"
             android:ems="10"
             android:id="@+id/txtAccNumInjured" />
 
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Fine?"
-            android:textColor="@color/primary_text_default_material_dark"
+            android:textColor="#0799C6"
             android:onClick="onClickTypeViolation"
             android:id="@+id/chkFine" />
 
@@ -115,30 +125,33 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="@color/primary_text_default_material_dark"
+            android:textColor="#0799C6"
             android:text="Type of fine"
             android:id="@+id/lblTypeFine" />
 
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/text_dark"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="#FFF"
             android:ems="10"
             android:id="@+id/txtFineType" />
 
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Arrest?"
-            android:textColor="@color/primary_text_default_material_dark"
+            android:textColor="#0799C6"
             android:onClick="onClickTypeViolation"
             android:id="@+id/chkArrest" />
 
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Resistance?"
-            android:textColor="@color/secondary_text_default_material_dark"
+            android:textColor="#0799C6"
             android:onClick="onClickTypeViolation"
             android:id="@+id/chkArrResistance" />
 
@@ -146,22 +159,25 @@
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Argument?"
-            android:textColor="@color/secondary_text_default_material_dark"
+            android:textColor="#FFF"
             android:id="@+id/chkArrResArgument" />
 
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Use of force?"
-            android:textColor="@color/secondary_text_default_material_dark"
+            android:textColor="#FFF"
             android:id="@+id/chkArrResUseForce" />
 
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Use of lethal force?"
-            android:textColor="@color/secondary_text_default_material_dark"
+            android:textColor="#FFF"
             android:id="@+id/chkArrResUseLetahlForce" />
 
     </LinearLayout>
