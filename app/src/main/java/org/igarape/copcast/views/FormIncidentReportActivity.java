@@ -110,6 +110,9 @@ public class FormIncidentReportActivity extends Activity {
             case R.id.chkArrest:
                 //shoows/hide
                 chkArrResistance.setEnabled(checked);
+                chkArrResArgument.setEnabled(checked);
+                chkArrResUseForce.setEnabled(checked);
+                chkArrResUseLetahlForce.setEnabled(checked);
 
                 break;
 
@@ -194,10 +197,16 @@ public class FormIncidentReportActivity extends Activity {
             String postalCode = gpsTracker.getPostalCode(this);
             String addressLine = gpsTracker.getAddressLine(this);
 
-            txtAddress.setText(addressLine + "\n" +
-                    city + "\n" +
-                    country + "\n" +
-                    postalCode);
+            if (addressLine == null)
+            {
+                txtAddress.setText("(Address not detect automatically, please type yourself...)");
+            }
+            else {
+                txtAddress.setText(addressLine + "\n" +
+                        city + "\n" +
+                        country + "\n" +
+                        postalCode);
+            }
 
         } else {
             // can't get location
@@ -304,8 +313,6 @@ public class FormIncidentReportActivity extends Activity {
         incidentForm.setArgument(chkArrResArgument.isChecked());
         incidentForm.setUseOfForce(chkArrResUseForce.isChecked());
         incidentForm.setUseLethalForce(chkArrResUseLetahlForce.isChecked());
-
-        incidentForm.setUserId( 2 ); //// TODO: 11/2/15 getUserId 
 
         return incidentForm;
 
