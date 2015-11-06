@@ -6,12 +6,11 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
-import org.igarape.copcast.BO.IncidentForm;
+import org.igarape.copcast.bo.IncidentForm;
 import org.igarape.copcast.db.JsonDataType;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
