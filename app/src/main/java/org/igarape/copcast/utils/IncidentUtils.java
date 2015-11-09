@@ -1,10 +1,13 @@
 package org.igarape.copcast.utils;
 
 import android.content.Context;
+import android.os.AsyncTask;
+import android.os.Handler;
 import android.os.Vibrator;
 import android.util.Log;
 
 import org.igarape.copcast.db.JsonDataType;
+import org.igarape.copcast.state.IncidentFlagState;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,21 +39,40 @@ public class IncidentUtils {
 
     public static void registerIncident(final Context context, final String videoPath) {
 
-        final JSONObject incident;
-
-        Log.d(TAG, "Flagging incident");
-        Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-        v.vibrate(500);
+        final JSONObject[] incident = new JSONObject[1];
 
         saveVideoPath(context, videoPath);
-
         try {
-            incident = buildJson();
-        } catch (JSONException e) {
-            Log.e(TAG, "error building incident JSON.");
+            incident[0] = buildJson();
+            sendIncident(context, incident[0]);
+        } catch (Exception e) {
+            Log.e(TAG, "error building incident JSON. Replay in 2s.");
             Log.d(TAG, e.toString());
-            return;
+            //Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED); // this will reset the flag state and allow for a longer volume press to take place;
+
+            new AsyncTask<Void, Void, Void>() {
+
+                @Override
+                protected Void doInBackground(Void... params) {
+                    try{
+                        Thread.sleep(2000);
+                        Log.d(TAG, "TRYING AGAIN");
+                        incident[0] = buildJson();
+                        sendIncident(context, incident[0]);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Failed second try");
+                        Log.d(TAG, e.toString());
+                    }
+                    return null;
+                }
+
+            }.execute();
+
         }
+
+    }
+
+    private static void sendIncident(final Context context, final JSONObject incident) {
 
         failureLogged.set(false);
 
@@ -84,6 +106,11 @@ public class IncidentUtils {
             @Override
             public void badResponse() {
                 failedRegisterIncident(context, incident, "badResponse");
+            }
+
+            @Override
+            public void success(byte[] output) {
+                Log.d(TAG, "enviado!!!");
             }
         });
     }
