@@ -6,6 +6,9 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Location;
+import android.media.CamcorderProfile;
+import android.media.CameraProfile;
+import android.media.MediaRecorder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -43,6 +46,7 @@ public class Globals {
     private static int rotation;
     private static IncidentFlagState incidentFlag = IncidentFlagState.NOT_FLAGGED;
     private static String currentVideoPath;
+    public final static int appCamcoderProfile = CamcorderProfile.QUALITY_LOW;
 
 
     public synchronized static String getAccessToken(Context context) {
