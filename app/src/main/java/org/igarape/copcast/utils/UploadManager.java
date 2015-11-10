@@ -394,7 +394,6 @@ public class UploadManager {
         JSONArray incidentsForms;
 
         try {
-            //SqliteUtils.clearByType(context, userLogin, JsonDataType.TYPE_INCIDENT_FORM);
             incidentsForms = SqliteUtils.getFromDb(context, userLogin, JsonDataType.TYPE_INCIDENT_FORM);
         } catch (JSONException e) {
             Log.e(TAG, "Unable to read incidentsForms from database");
