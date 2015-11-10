@@ -29,6 +29,9 @@ public class HistoryUtils {
         json.put("date", df.format(new Date()));
         return json;
     }
+    public static void registerHistory(Context context, State currentState, State nextState, final String userLogin){
+        registerHistory(context, currentState, nextState, userLogin, null);
+    }
 
     public static void registerHistory(Context context, State currentState, State nextState, final String userLogin, String extras) {
 
