@@ -1,4 +1,4 @@
-package org.igarape.copcast.BO;
+package org.igarape.copcast.bo;
 
 import java.io.Serializable;
 import java.util.Date;
