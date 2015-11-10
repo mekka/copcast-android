@@ -81,8 +81,8 @@
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="Accident?"
             android:textColor="#0799C6"
-            android:button="@drawable/abc_btn_check_to_on_mtrl_000"
             android:onClick="onClickTypeViolation"
+            android:button="@drawable/abc_btn_check_material"
             android:id="@+id/chkAccident" />
 
 
