@@ -79,10 +79,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Accident?"
+            android:text="  Accident?"
             android:textColor="#0799C6"
             android:onClick="onClickTypeViolation"
-            android:button="@drawable/abc_btn_check_material"
+            android:button="@drawable/my_checkbox"
             android:id="@+id/chkAccident" />
 
 
@@ -128,10 +128,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Fine?"
+            android:text="  Fine?"
             android:textColor="#0799C6"
-            android:button="@drawable/abc_btn_check_material"
             android:onClick="onClickTypeViolation"
+            android:button="@drawable/my_checkbox"
             android:id="@+id/chkFine" />
 
         <TextView
@@ -157,21 +157,21 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Arrest?"
+            android:text="  Arrest?"
             android:textColor="#0799C6"
             android:onClick="onClickTypeViolation"
-            android:button="@drawable/abc_btn_check_material"
+            android:button="@drawable/my_checkbox"
             android:id="@+id/chkArrest" />
 
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Resistance?"
+            android:text="  Resistance?"
             android:textColor="#0799C6"
-            android:button="@drawable/abc_btn_check_material"
             android:layout_marginLeft= "10dp"
             android:onClick="onClickTypeViolation"
+            android:button="@drawable/my_checkbox"
             android:id="@+id/chkArrResistance" />
 
 
@@ -179,31 +179,31 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Argument?"
+            android:text="  Argument?"
             android:layout_marginLeft= "20dp"
             android:textColor="#FFF"
-            android:button="@drawable/abc_btn_check_material"
+            android:button="@drawable/my_checkbox"
             android:id="@+id/chkArrResArgument" />
 
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Use of force?"
+            android:text="  Use of force?"
             android:textColor="#FFF"
             android:layout_marginLeft= "20dp"
-            android:button="@drawable/abc_btn_check_material"
+            android:button="@drawable/my_checkbox"
             android:id="@+id/chkArrResUseForce" />
 
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Use of lethal force?"
+            android:text="  Use of lethal force?"
             android:textColor="#FFF"
             android:layout_marginBottom = "10dp"
             android:layout_marginLeft= "20dp"
-            android:button="@drawable/abc_btn_check_material"
+            android:button="@drawable/my_checkbox"
             android:id="@+id/chkArrResUseLetahlForce" />
 
     </LinearLayout>
