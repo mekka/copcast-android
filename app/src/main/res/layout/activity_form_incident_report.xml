@@ -27,23 +27,64 @@
                 android:textColor="@color/text_lbl_blue"
                 android:id="@+id/lblDate" />
 
-            <DatePicker
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/datePicker"
-                android:calendarViewShown="false"
-                android:calendarTextColor="@color/text_dark_block"
-                android:yearListSelectorColor="@color/text_dark_block"
-                android:textColor="@color/text_dark_block"/>
+            <!--<DatePicker-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:id="@+id/datePicker"-->
+                <!--android:calendarViewShown="false"-->
+                <!--android:calendarTextColor="@color/text_dark_block"-->
+                <!--android:yearListSelectorColor="@color/text_dark_block"-->
+                <!--android:textColor="@color/text_dark_block"/>-->
 
-            <TimePicker
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/timePicker"
-                android:amPmTextColor="@color/text_dark_block"
-                android:numbersTextColor="@color/text_dark_block"
-                android:numbersSelectorColor="@color/text_dark_block"
-                android:textColor="@color/text_dark_block"/>
+            <!--<TimePicker-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:id="@+id/timePicker"-->
+                <!--android:amPmTextColor="@color/text_dark_block"-->
+                <!--android:numbersTextColor="@color/text_dark_block"-->
+                <!--android:numbersSelectorColor="@color/text_dark_block"-->
+                <!--android:textColor="@color/text_dark_block"/>-->
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Date &amp; Time"
+                    android:id="@+id/txtDate"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_weight="1" />
+
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/btnSetDate"
+                    android:src="@android:drawable/ic_menu_edit" />
+
+                <Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="10" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="Time"
+                    android:id="@+id/txtTime"
+                    android:layout_weight="1" />
+
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/btnSetTime"
+                    android:src="@android:drawable/ic_menu_edit" />
+            </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -89,8 +130,8 @@
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="@string/accident"
                 android:textColor="@color/text_lbl_blue"
-                android:button="@drawable/my_checkbox"
-                android:id="@+id/chkAccident" />
+                android:id="@+id/chkAccident"
+                android:button="@drawable/custom_checkbox" />
 
 
             <LinearLayout
@@ -98,7 +139,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:id="@+id/accidentLayout"
-                android:visibility="gone">
+                android:visibility="gone"
+                android:showDividers="middle|beginning|end">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -109,14 +151,72 @@
                     android:layout_marginLeft= "10dp"
                     android:id="@+id/lblGravityAcc" />
 
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:gravity="center"
+                    android:paddingLeft="12dp"
+                    android:paddingRight="12dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:text="1"
+                        android:id="@+id/textView3"
+                        android:layout_weight="1"
+                        android:gravity="start" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:text="2"
+                        android:id="@+id/textView4"
+                        android:layout_weight="1"
+                        android:gravity="start" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:text="3"
+                        android:id="@+id/textView5"
+                        android:layout_weight="1"
+                        android:gravity="start" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:text="4"
+                        android:id="@+id/textView6"
+                        android:layout_weight="1"
+                        android:gravity="start" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:text="5"
+                        android:id="@+id/textView7"
+                        android:layout_weight="0"
+                        android:gravity="end" />
+                </LinearLayout>
+
                 <SeekBar
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textAppearance="?android:attr/textAppearanceMedium"
                     android:id="@+id/skbAccGravity"
                     android:textColor="@color/text_dark_block"
-                    android:layout_marginLeft= "20dp"
-                    android:layout_gravity="center_horizontal" />
+                    android:layout_gravity="center_horizontal"
+                    android:max="4"
+                    android:splitTrack="false"
+                    android:indeterminate="false"
+                    android:progress="0" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -147,8 +247,9 @@
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="@string/fine"
                 android:textColor="@color/text_lbl_blue"
-                android:button="@drawable/my_checkbox"
-                android:id="@+id/chkFine" />
+                android:id="@+id/chkFine"
+                android:checked="false"
+                android:button="@drawable/custom_checkbox" />
 
             <LinearLayout
                 android:orientation="vertical"
@@ -183,7 +284,7 @@
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="@string/arrest"
                 android:textColor="@color/text_lbl_blue"
-                android:button="@drawable/my_checkbox"
+                android:button="@drawable/custom_checkbox"
                 android:id="@+id/chkArrest" />
 
             <LinearLayout
@@ -200,7 +301,7 @@
                     android:text="@string/resistance"
                     android:textColor="@color/text_lbl_blue"
                     android:layout_marginLeft= "10dp"
-                    android:button="@drawable/my_checkbox"
+                    android:button="@drawable/custom_checkbox"
                     android:id="@+id/chkArrResistance" />
 
                 <LinearLayout
@@ -217,7 +318,7 @@
                         android:text="@string/argument"
                         android:layout_marginLeft= "20dp"
                         android:textColor="@color/text_dark_block"
-                        android:button="@drawable/my_checkbox"
+                        android:button="@drawable/custom_checkbox"
                         android:id="@+id/chkArrResArgument" />
 
                     <CheckBox
@@ -227,7 +328,7 @@
                         android:text="@string/use_force"
                         android:textColor="@color/text_dark_block"
                         android:layout_marginLeft= "20dp"
-                        android:button="@drawable/my_checkbox"
+                        android:button="@drawable/custom_checkbox"
                         android:id="@+id/chkArrResUseForce" />
 
                     <CheckBox
@@ -238,7 +339,7 @@
                         android:textColor="@color/text_dark_block"
                         android:layout_marginBottom = "10dp"
                         android:layout_marginLeft= "20dp"
-                        android:button="@drawable/my_checkbox"
+                        android:button="@drawable/custom_checkbox"
                         android:id="@+id/chkArrResUseLetahlForce" />
                 </LinearLayout>
 

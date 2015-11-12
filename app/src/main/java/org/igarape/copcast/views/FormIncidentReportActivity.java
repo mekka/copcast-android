@@ -1,15 +1,20 @@
 package org.igarape.copcast.views;
 
 import android.app.Activity;
+import android.app.DatePickerDialog;
+import android.app.DialogFragment;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -17,6 +22,8 @@ import android.widget.Toast;
 
 import org.igarape.copcast.bo.IncidentForm;
 import org.igarape.copcast.R;
+import org.igarape.copcast.fragments.DatePickerFragment;
+import org.igarape.copcast.fragments.TimePickerFragment;
 import org.igarape.copcast.utils.GPSTracker;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.IncidentFormUtils;
@@ -51,6 +58,9 @@ public class FormIncidentReportActivity extends Activity {
     CheckBox chkArrResArgument;
     CheckBox chkArrResUseForce;
     CheckBox chkArrResUseLetahlForce;
+    ScrollView sv;
+    ImageButton btnSetDate;
+    ImageButton btnSetTime;
 
 
     private Button btnSendForm;
@@ -64,7 +74,9 @@ public class FormIncidentReportActivity extends Activity {
         c = this;
         Log.d(TAG, "FormIncident created");
         setContentView(R.layout.activity_form_incident_report);
-
+        sv = (ScrollView)findViewById(R.id.scrollView1);
+        btnSetDate = (ImageButton) findViewById(R.id.btnSetDate);
+        btnSetTime = (ImageButton) findViewById(R.id.btnSetTime);
 
         initForm();
 
@@ -150,8 +162,8 @@ public class FormIncidentReportActivity extends Activity {
 
 
         //bind the UI components
-        datePicker = (DatePicker) findViewById(R.id.datePicker);
-        timePicker = (TimePicker) findViewById(R.id.timePicker);
+//        datePicker = (DatePicker) findViewById(R.id.datePicker);
+//        timePicker = (TimePicker) findViewById(R.id.timePicker);
 
         txtLocation = (TextView) findViewById(R.id.txtLocation);
         txtAddress = (EditText) findViewById(R.id.txtAddress);
@@ -228,6 +240,7 @@ public class FormIncidentReportActivity extends Activity {
             public void onClick(View v) {
                 if (((CheckBox) v).isChecked()) {
                     findViewById(R.id.accidentLayout).setVisibility(View.VISIBLE);
+                    sv.scrollTo(0, sv.getBottom());
                 } else {
                     findViewById(R.id.accidentLayout).setVisibility(View.GONE);
                 }
@@ -239,6 +252,7 @@ public class FormIncidentReportActivity extends Activity {
             public void onClick(View v) {
                 if (((CheckBox)v).isChecked()){
                     findViewById(R.id.fineLayout).setVisibility(View.VISIBLE);
+                    sv.scrollTo(0, sv.getBottom());
                 } else {
                     findViewById(R.id.fineLayout).setVisibility(View.GONE);
                 }
@@ -250,6 +264,7 @@ public class FormIncidentReportActivity extends Activity {
             public void onClick(View v) {
                 if (((CheckBox)v).isChecked()){
                     findViewById(R.id.arrestLayout).setVisibility(View.VISIBLE);
+                    sv.scrollTo(0, sv.getBottom());
                 } else {
                     findViewById(R.id.arrestLayout).setVisibility(View.GONE);
                 }
@@ -259,11 +274,31 @@ public class FormIncidentReportActivity extends Activity {
         chkArrResistance.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (((CheckBox)v).isChecked()){
+                if (((CheckBox) v).isChecked()) {
                     findViewById(R.id.resistanceLayout).setVisibility(View.VISIBLE);
+                    sv.scrollTo(0, sv.getBottom());
                 } else {
                     findViewById(R.id.resistanceLayout).setVisibility(View.GONE);
                 }
+            }
+        });
+
+
+        btnSetDate.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                DialogFragment newFragment = new DatePickerFragment();
+                newFragment.show(getFragmentManager(), "datePicker");
+                return true;
+            }
+        });
+
+        btnSetTime.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                DialogFragment newFragment = new TimePickerFragment();
+                newFragment.show(getFragmentManager(), "timePicker");
+                return true;
             }
         });
 
@@ -275,7 +310,7 @@ public class FormIncidentReportActivity extends Activity {
         Drawable color;
         color = btnSendForm.getBackground();
         try {
-            //change butto behavior
+            //change button behavior
             btnSendForm.setBackgroundColor( color.getOpacity() );
             btnSendForm.setEnabled(false);
 

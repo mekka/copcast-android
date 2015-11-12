@@ -53,7 +53,7 @@
     <string name="upload_stopped">Upload canceled due to network/charging restrictions</string>
     <string name="under_construction">Under construction</string>
     <string name="upload_completed">Upload completed!</string>
-    <string name="stop_uploading">You are uploading data. Want to stop it and start the mission?</string>
+    <string name="stop_uploading">You are uploading data. Stop it and start a new mission?</string>
     <string name="ok">Ok</string>
     <string name="cancel">Cancel</string>
     <string name="notification_stream_title">Livestreaming</string>
@@ -63,7 +63,7 @@
     <string name="resume_mission">Resume Mission</string>
     <string name="pause_title">Paused</string>
     <string name="pause_desc">Recording have been paused.</string>
-    <string name="wifi_dialog_title">Wi-Fi is disabled</string>
+    <string name="wifi_dialog_title">Wi-Fi disabled</string>
     <string name="wifi_dialog_msg">For better location accuracy please turn Wi-Fi on. Do you wanna change settings?</string>
     <string name="cancel_button">Cancel</string>
     <string name="settings_button">Settings</string>
@@ -85,7 +85,6 @@
     <string name="alert_message">GPS Error</string>
     <string name="send">Send</string>
     <string name="lethal_force">Use of lethal force?</string>
-    <string name="use_force">Use of force?</string>
     <string name="argument">Argument?</string>
     <string name="resistance">Resistance?</string>
     <string name="arrest">Arrest?</string>
@@ -97,4 +96,6 @@
     <string name="address">Address</string>
     <string name="location">Location</string>
     <string name="date_time">Date / Time</string>
+    <string name="use_force">Use of force?</string>
+
 </resources>
