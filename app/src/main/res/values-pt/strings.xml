@@ -80,4 +80,6 @@
     <string name="action_playback">Reprodução de vídeos</string>
     <string name="no_video_message">Não há vídeos disponíveis para reprodução</string>
     <string name="alert_message">Erro no GPS</string>
+    <string name="send">Send</string>
+    <string name="use_force">Use of force?</string>
 </resources>
