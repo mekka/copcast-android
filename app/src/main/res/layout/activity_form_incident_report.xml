@@ -8,88 +8,83 @@
     tools:context="org.igarape.copcast.views.FormIncidentReportActivity"
     style="@style/AppTheme">
 
-<ScrollView
-    android:layout_width="fill_parent"
-    android:layout_height="450dp"
-    android:id="@+id/scrollView1">
-
-    <LinearLayout
-        android:orientation="vertical"
+    <ScrollView
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Date / Time"
-            android:textColor="#0799C6"
-            android:id="@+id/lblDate" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="#FFF"
-            android:text="11/11/11 10:30:33"
-            android:layout_marginBottom = "10dp"
-            android:layout_marginLeft= "10dp"
-            android:id="@+id/txtDate" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Location"
-            android:textColor="#0799C6"
-            android:id="@+id/lblLocation" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="#FFF"
-            android:text="Location"
-            android:layout_marginBottom = "10dp"
-            android:layout_marginLeft= "10dp"
-            android:id="@+id/txtLocation" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Address"
-            android:textColor="#0799C6"
-            android:id="@+id/lblAddress" />
-
-
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:inputType="textMultiLine"
-            android:textColor="#FFF"
-            android:ems="10"
-            android:layout_marginBottom = "10dp"
-            android:layout_marginLeft= "10dp"
-            android:id="@+id/txtAddress" />
-
-        <CheckBox
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Accident?"
-            android:textColor="#0799C6"
-            android:onClick="onClickTypeViolation"
-            android:button="@drawable/abc_btn_check_material"
-            android:id="@+id/chkAccident" />
-
+        android:layout_height="450dp"
+        android:id="@+id/scrollView1">
 
         <LinearLayout
             android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="Date / Time"
+                android:textColor="#0799C6"
+                android:id="@+id/lblDate" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="#FFF"
+                android:text="11/11/11 10:30:33"
+                android:layout_marginBottom = "10dp"
+                android:layout_marginLeft= "10dp"
+                android:id="@+id/txtDate" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="Location"
+                android:textColor="#0799C6"
+                android:id="@+id/lblLocation" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="#FFF"
+                android:text="Location"
+                android:layout_marginBottom = "10dp"
+                android:layout_marginLeft= "10dp"
+                android:id="@+id/txtLocation" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="Address"
+                android:textColor="#0799C6"
+                android:id="@+id/lblAddress" />
+
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:inputType="textMultiLine"
+                android:textColor="#FFF"
+                android:ems="10"
+                android:layout_marginBottom = "10dp"
+                android:layout_marginLeft= "10dp"
+                android:id="@+id/txtAddress" />
+
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="  Accident?"
+                android:textColor="#0799C6"
+                android:onClick="onClickTypeViolation"
+                android:button="@drawable/my_checkbox"
+                android:id="@+id/chkAccident" />
+
 
             <TextView
                 android:layout_width="wrap_content"
@@ -128,22 +123,16 @@
                 android:layout_marginBottom = "10dp"
                 android:layout_marginLeft= "20dp"
                 android:id="@+id/txtAccNumInjured" />
-        </LinearLayout>
 
-        <CheckBox
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Fine?"
-            android:textColor="#0799C6"
-            android:button="@drawable/abc_btn_check_material"
-            android:onClick="onClickTypeViolation"
-            android:id="@+id/chkFine" />
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="  Fine?"
+                android:textColor="#0799C6"
+                android:onClick="onClickTypeViolation"
+                android:button="@drawable/my_checkbox"
+                android:id="@+id/chkFine" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -163,77 +152,63 @@
                 android:layout_marginBottom = "10dp"
                 android:layout_marginLeft= "20dp"
                 android:id="@+id/txtFineType" />
-        </LinearLayout>
-
-        <CheckBox
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Arrest?"
-            android:textColor="#0799C6"
-            android:onClick="onClickTypeViolation"
-            android:button="@drawable/abc_btn_check_material"
-            android:id="@+id/chkArrest" />
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
 
             <CheckBox
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="Resistance?"
+                android:text="  Arrest?"
                 android:textColor="#0799C6"
-                android:button="@drawable/abc_btn_check_material"
+                android:onClick="onClickTypeViolation"
+                android:button="@drawable/my_checkbox"
+                android:id="@+id/chkArrest" />
+
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="  Resistance?"
+                android:textColor="#0799C6"
                 android:layout_marginLeft= "10dp"
                 android:onClick="onClickTypeViolation"
+                android:button="@drawable/my_checkbox"
                 android:id="@+id/chkArrResistance" />
 
-            <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
 
-                <CheckBox
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="Argument?"
-                    android:layout_marginLeft= "20dp"
-                    android:textColor="#FFF"
-                    android:button="@drawable/abc_btn_check_material"
-                    android:id="@+id/chkArrResArgument" />
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="  Argument?"
+                android:layout_marginLeft= "20dp"
+                android:textColor="#FFF"
+                android:button="@drawable/my_checkbox"
+                android:id="@+id/chkArrResArgument" />
 
-                <CheckBox
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="Use of force?"
-                    android:textColor="#FFF"
-                    android:layout_marginLeft= "20dp"
-                    android:button="@drawable/abc_btn_check_material"
-                    android:id="@+id/chkArrResUseForce" />
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="  Use of force?"
+                android:textColor="#FFF"
+                android:layout_marginLeft= "20dp"
+                android:button="@drawable/my_checkbox"
+                android:id="@+id/chkArrResUseForce" />
 
-                <CheckBox
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="Use of lethal force?"
-                    android:textColor="#FFF"
-                    android:layout_marginBottom = "10dp"
-                    android:layout_marginLeft= "20dp"
-                    android:button="@drawable/abc_btn_check_material"
-                    android:id="@+id/chkArrResUseLetahlForce" />
-            </LinearLayout>
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="  Use of lethal force?"
+                android:textColor="#FFF"
+                android:layout_marginBottom = "10dp"
+                android:layout_marginLeft= "20dp"
+                android:button="@drawable/my_checkbox"
+                android:id="@+id/chkArrResUseLetahlForce" />
 
         </LinearLayout>
 
-
-    </LinearLayout>
-
-</ScrollView>
+    </ScrollView>
 
 
     <Button
