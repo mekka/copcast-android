@@ -195,21 +195,29 @@ public class FormIncidentReportActivity extends Activity {
             String strLongitude = String.valueOf(gpsTracker.getLongitude());
 
             txtLocation.setText(strLatitude + "/" + strLongitude);
+            StringBuffer address = new StringBuffer();
+            if (gpsTracker.getAddressLine(this) != null){
+                address.append(gpsTracker.getAddressLine(this));
+            }
+            if (gpsTracker.getLocality(this) != null){
+                address.append("\n");
+                address.append(gpsTracker.getLocality(this));
+            }
+            if (gpsTracker.getPostalCode(this) != null){
+                address.append("\n");
+                address.append(gpsTracker.getPostalCode(this));
+            }
+            if (gpsTracker.getCountryName(this) != null){
+                address.append("\n");
+                address.append(gpsTracker.getCountryName(this));
+            }
 
-            String country = gpsTracker.getCountryName(this);
-            String city = gpsTracker.getLocality(this);
-            String postalCode = gpsTracker.getPostalCode(this);
-            String addressLine = gpsTracker.getAddressLine(this);
-
-            if (addressLine == null)
+            if (address.length() == 0)
             {
                 txtAddress.setText("(Address not detect automatically, please type yourself...)");
             }
             else {
-                txtAddress.setText(addressLine + "\n" +
-                        city + "\n" +
-                        country + "\n" +
-                        postalCode);
+                txtAddress.setText(address.toString());
             }
 
         } else {
@@ -219,21 +227,7 @@ public class FormIncidentReportActivity extends Activity {
             gpsTracker.showSettingsAlert();
         }
 
-//        boolean checked = false;
-//        //init checkBox
-//        skbAccGravity.setEnabled(checked);
-//        txtAccNumInjured.setEnabled(checked);
-//
-//        //shows/hide
-//        txtFineType.setEnabled(checked);
-//
-//        //hide
-//        chkArrResistance.setEnabled(checked);
-//
-//        //hide
-//        chkArrResArgument.setEnabled(checked);
-//        chkArrResUseForce.setEnabled(checked);
-//        chkArrResUseLetahlForce.setEnabled(checked);
+
 
         chkAccident.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -242,6 +236,8 @@ public class FormIncidentReportActivity extends Activity {
                     findViewById(R.id.accidentLayout).setVisibility(View.VISIBLE);
                     sv.scrollTo(0, sv.getBottom());
                 } else {
+                    skbAccGravity.setProgress(0);
+                    txtAccNumInjured.setText(null);
                     findViewById(R.id.accidentLayout).setVisibility(View.GONE);
                 }
             }
@@ -254,6 +250,7 @@ public class FormIncidentReportActivity extends Activity {
                     findViewById(R.id.fineLayout).setVisibility(View.VISIBLE);
                     sv.scrollTo(0, sv.getBottom());
                 } else {
+                    txtFineType.setText(null);
                     findViewById(R.id.fineLayout).setVisibility(View.GONE);
                 }
             }
@@ -266,6 +263,10 @@ public class FormIncidentReportActivity extends Activity {
                     findViewById(R.id.arrestLayout).setVisibility(View.VISIBLE);
                     sv.scrollTo(0, sv.getBottom());
                 } else {
+                    chkArrResistance.setChecked(false);
+                    chkArrResArgument.setChecked(false);
+                    chkArrResUseForce.setChecked(false);
+                    chkArrResUseLetahlForce.setChecked(false);
                     findViewById(R.id.arrestLayout).setVisibility(View.GONE);
                 }
             }
@@ -278,6 +279,9 @@ public class FormIncidentReportActivity extends Activity {
                     findViewById(R.id.resistanceLayout).setVisibility(View.VISIBLE);
                     sv.scrollTo(0, sv.getBottom());
                 } else {
+                    chkArrResArgument.setChecked(false);
+                    chkArrResUseForce.setChecked(false);
+                    chkArrResUseLetahlForce.setChecked(false);
                     findViewById(R.id.resistanceLayout).setVisibility(View.GONE);
                 }
             }

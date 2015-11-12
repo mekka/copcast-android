@@ -97,5 +97,6 @@
     <string name="location">Location</string>
     <string name="date_time">Date / Time</string>
     <string name="use_force">Use of force?</string>
-
+    <string name="date">Date</string>
+    <string name="time">Time</string>
 </resources>

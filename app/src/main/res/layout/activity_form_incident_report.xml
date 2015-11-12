@@ -23,27 +23,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="@string/date_time"
+                android:text="@string/date"
                 android:textColor="@color/text_lbl_blue"
                 android:id="@+id/lblDate" />
-
-            <!--<DatePicker-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:id="@+id/datePicker"-->
-                <!--android:calendarViewShown="false"-->
-                <!--android:calendarTextColor="@color/text_dark_block"-->
-                <!--android:yearListSelectorColor="@color/text_dark_block"-->
-                <!--android:textColor="@color/text_dark_block"/>-->
-
-            <!--<TimePicker-->
-                <!--android:layout_width="wrap_content"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:id="@+id/timePicker"-->
-                <!--android:amPmTextColor="@color/text_dark_block"-->
-                <!--android:numbersTextColor="@color/text_dark_block"-->
-                <!--android:numbersSelectorColor="@color/text_dark_block"-->
-                <!--android:textColor="@color/text_dark_block"/>-->
 
             <LinearLayout
                 android:orientation="horizontal"
