@@ -8,9 +8,11 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import org.igarape.copcast.bo.IncidentForm;
@@ -21,6 +23,7 @@ import org.igarape.copcast.utils.IncidentFormUtils;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -30,7 +33,8 @@ public class FormIncidentReportActivity extends Activity {
     Context c;
 
     //UI Components
-    TextView txtDate;
+    DatePicker datePicker;
+    TimePicker timePicker;
     TextView txtTime;
     TextView txtLocation;
     EditText txtAddress;
@@ -76,44 +80,44 @@ public class FormIncidentReportActivity extends Activity {
         });
     }
 
-    public void onClickTypeViolation(View view) {
-        Log.d(TAG, "onClickTypeViolation");
-        // Is the view now checked?
-        boolean checked = ((CheckBox) view).isChecked();
-
-        // Check which checkbox was clicked
-        switch (view.getId()) {
-            case R.id.chkAccident:
-                //if (checked) {
-                //shows Gravity and Injured
-                skbAccGravity.setEnabled(checked);
-                txtAccNumInjured.setEnabled(checked);
-
-                break;
-            case R.id.chkFine:
-                //shows/hide
-                txtFineType.setEnabled(checked);
-                break;
-            case R.id.chkArrest:
-                //shows/hide
-                chkArrResistance.setEnabled(checked);
-                chkArrResArgument.setEnabled(checked);
-                chkArrResUseForce.setEnabled(checked);
-                chkArrResUseLetahlForce.setEnabled(checked);
-
-                break;
-
-            case R.id.chkArrResistance:
-                //shows/hide
-                chkArrResArgument.setEnabled(checked);
-                chkArrResUseForce.setEnabled(checked);
-                chkArrResUseLetahlForce.setEnabled(checked);
-
-                break;
-        }
-
-
-    }
+//    public void onClickTypeViolation(View view) {
+//        Log.d(TAG, "onClickTypeViolation");
+//        // Is the view now checked?
+//        boolean checked = ((CheckBox) view).isChecked();
+//
+//        // Check which checkbox was clicked
+//        switch (view.getId()) {
+//            case R.id.chkAccident:
+//                //if (checked) {
+//                //shows Gravity and Injured
+//                skbAccGravity.setEnabled(checked);
+//                txtAccNumInjured.setEnabled(checked);
+//
+//                break;
+//            case R.id.chkFine:
+//                //shows/hide
+//                txtFineType.setEnabled(checked);
+//                break;
+//            case R.id.chkArrest:
+//                //shows/hide
+//                chkArrResistance.setEnabled(checked);
+//                chkArrResArgument.setEnabled(checked);
+//                chkArrResUseForce.setEnabled(checked);
+//                chkArrResUseLetahlForce.setEnabled(checked);
+//
+//                break;
+//
+//            case R.id.chkArrResistance:
+//                //shows/hide
+//                chkArrResArgument.setEnabled(checked);
+//                chkArrResUseForce.setEnabled(checked);
+//                chkArrResUseLetahlForce.setEnabled(checked);
+//
+//                break;
+//        }
+//
+//
+//    }
 
     private boolean validateFormBeforeSend(View v) {
 
@@ -146,7 +150,8 @@ public class FormIncidentReportActivity extends Activity {
 
 
         //bind the UI components
-        txtDate = (TextView) findViewById(R.id.txtDate);
+        datePicker = (DatePicker) findViewById(R.id.datePicker);
+        timePicker = (TimePicker) findViewById(R.id.timePicker);
 
         txtLocation = (TextView) findViewById(R.id.txtLocation);
         txtAddress = (EditText) findViewById(R.id.txtAddress);
@@ -164,11 +169,11 @@ public class FormIncidentReportActivity extends Activity {
         chkArrResUseForce = (CheckBox) findViewById(R.id.chkArrResUseForce);
         chkArrResUseLetahlForce = (CheckBox) findViewById(R.id.chkArrResUseLetahlForce);
 
-        //init date and time
-        TimeZone tz = TimeZone.getTimeZone("UTC");
-        DateFormat df = new SimpleDateFormat(IncidentFormUtils.DATETIME_FORMAT);
-        df.setTimeZone(tz);
-        txtDate.setText(df.format(new Date()));
+//        //init date and time
+//        TimeZone tz = TimeZone.getTimeZone("UTC");
+//        DateFormat df = new SimpleDateFormat(IncidentFormUtils.DATETIME_FORMAT);
+//        df.setTimeZone(tz);
+//        datePicker.setText(df.format(new Date()));
 
         // check if GPS enabled
         GPSTracker gpsTracker = new GPSTracker(this);
@@ -202,22 +207,65 @@ public class FormIncidentReportActivity extends Activity {
             gpsTracker.showSettingsAlert();
         }
 
-        boolean checked = false;
-        //init checkBox
-        skbAccGravity.setEnabled(checked);
-        txtAccNumInjured.setEnabled(checked);
+//        boolean checked = false;
+//        //init checkBox
+//        skbAccGravity.setEnabled(checked);
+//        txtAccNumInjured.setEnabled(checked);
+//
+//        //shows/hide
+//        txtFineType.setEnabled(checked);
+//
+//        //hide
+//        chkArrResistance.setEnabled(checked);
+//
+//        //hide
+//        chkArrResArgument.setEnabled(checked);
+//        chkArrResUseForce.setEnabled(checked);
+//        chkArrResUseLetahlForce.setEnabled(checked);
 
-        //shows/hide
-        txtFineType.setEnabled(checked);
+        chkAccident.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (((CheckBox) v).isChecked()) {
+                    findViewById(R.id.accidentLayout).setVisibility(View.VISIBLE);
+                } else {
+                    findViewById(R.id.accidentLayout).setVisibility(View.GONE);
+                }
+            }
+        });
 
-        //hide
-        chkArrResistance.setEnabled(checked);
+        chkFine.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (((CheckBox)v).isChecked()){
+                    findViewById(R.id.fineLayout).setVisibility(View.VISIBLE);
+                } else {
+                    findViewById(R.id.fineLayout).setVisibility(View.GONE);
+                }
+            }
+        });
 
-        //hide
-        chkArrResArgument.setEnabled(checked);
-        chkArrResUseForce.setEnabled(checked);
-        chkArrResUseLetahlForce.setEnabled(checked);
+        chkArrest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (((CheckBox)v).isChecked()){
+                    findViewById(R.id.arrestLayout).setVisibility(View.VISIBLE);
+                } else {
+                    findViewById(R.id.arrestLayout).setVisibility(View.GONE);
+                }
+            }
+        });
 
+        chkArrResistance.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (((CheckBox)v).isChecked()){
+                    findViewById(R.id.resistanceLayout).setVisibility(View.VISIBLE);
+                } else {
+                    findViewById(R.id.resistanceLayout).setVisibility(View.GONE);
+                }
+            }
+        });
 
     }
 
@@ -285,7 +333,7 @@ public class FormIncidentReportActivity extends Activity {
 
         IncidentForm incidentForm = new IncidentForm();
 
-        incidentForm.setDate(new Date());
+        incidentForm.setDate(getDateFromPicker(datePicker, timePicker));
         incidentForm.setLat(Float.parseFloat(strLatitude));
         incidentForm.setLng(Float.parseFloat(strLongitude));
         incidentForm.setAddress(txtAddress.getText().toString());
@@ -305,6 +353,14 @@ public class FormIncidentReportActivity extends Activity {
 
     }
 
+
+    public static java.util.Date getDateFromPicker(DatePicker datePicker, TimePicker timePicker){
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth(),
+                timePicker.getCurrentHour(), timePicker.getCurrentMinute());
+
+        return calendar.getTime();
+    }
 
 
 }

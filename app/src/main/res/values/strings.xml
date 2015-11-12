@@ -83,4 +83,18 @@
     <string name="no_video_message">No video available for playback</string>
     <string name="gps_config">GPS Config</string>
     <string name="alert_message">GPS Error</string>
+    <string name="send">Send</string>
+    <string name="lethal_force">Use of lethal force?</string>
+    <string name="use_force">Use of force?</string>
+    <string name="argument">Argument?</string>
+    <string name="resistance">Resistance?</string>
+    <string name="arrest">Arrest?</string>
+    <string name="type_fine">Type of fine</string>
+    <string name="fine">Fine?</string>
+    <string name="number_injured">Number of injured</string>
+    <string name="gravity">Gravity</string>
+    <string name="accident">Accident?</string>
+    <string name="address">Address</string>
+    <string name="location">Location</string>
+    <string name="date_time">Date / Time</string>
 </resources>
