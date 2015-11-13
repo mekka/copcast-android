@@ -56,7 +56,7 @@ public class IncidentFormUtils {
     private static final String TAG = IncidentFormUtils.class.getName();
     public static final float SMALLEST_DISPLACEMENT = 0;
 
-    public static void sendForm(final Context context, final String login, final IncidentForm incidentForm) {
+    public static void sendForm(final Context context, final String login, final IncidentForm incidentForm, final IncidentFormCallback incidentFormCallback) {
 
         final JSONObject incidentFormJSON;
 
@@ -77,31 +77,42 @@ public class IncidentFormUtils {
             public void unauthorized() {
 
                 failedRegisterIncident(context, incidentFormJSON, "unauthorized");
+                incidentFormCallback.failure();
             }
 
             @Override
             public void failure(int statusCode) {
                 failedRegisterIncident(context, incidentFormJSON, "failure");
+                incidentFormCallback.failure();
             }
 
             @Override
             public void noConnection() {
                 failedRegisterIncident(context, incidentFormJSON, "noConnection");
+                incidentFormCallback.failure();
             }
 
             @Override
             public void badConnection() {
                 failedRegisterIncident(context, incidentFormJSON, "badConnection");
+                incidentFormCallback.failure();
             }
 
             @Override
             public void badRequest() {
                 failedRegisterIncident(context, incidentFormJSON, "badRequest");
+                incidentFormCallback.failure();
             }
 
             @Override
             public void badResponse() {
                 failedRegisterIncident(context, incidentFormJSON, "badResponse");
+                incidentFormCallback.failure();
+            }
+
+            @Override
+            public void success(JSONObject response) {
+                incidentFormCallback.success();
             }
         });
     }
