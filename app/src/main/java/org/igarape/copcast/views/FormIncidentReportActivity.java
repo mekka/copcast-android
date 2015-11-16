@@ -30,14 +30,18 @@ import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.IncidentFormCallback;
 import org.igarape.copcast.utils.IncidentFormUtils;
 
-import java.util.Calendar;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 public class FormIncidentReportActivity extends Activity {
 
     //context
-    Context c;
+    Context context;
 
     //UI Components
     DatePicker datePicker;
@@ -76,7 +80,7 @@ public class FormIncidentReportActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        c = this;
+        context = this;
         Log.d(TAG, "FormIncident created");
         setContentView(R.layout.activity_form_incident_report);
         sv = (ScrollView)findViewById(R.id.scrollView1);
@@ -92,7 +96,7 @@ public class FormIncidentReportActivity extends Activity {
             @Override
             public void onClick(View v) {
                 if (validateFormBeforeSend(v)) {
-                    sendIndicidentForm(v);
+                    sendIncidentForm(v);
                 }
             }
         });
@@ -160,19 +164,20 @@ public class FormIncidentReportActivity extends Activity {
         String strAddress = txtAddress.getText().toString();
         if (strAddress.length() == 0) {
             validated = false;
-            Toast.makeText(c, getString(R.string.fill_address), Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, getString(R.string.fill_address), Toast.LENGTH_SHORT).show();
         }
 
-        if (txtFineType.getText().toString().length() == 0) {
-            validated = false;
-            Toast.makeText(c, getString(R.string.fill_fine_type), Toast.LENGTH_SHORT).show();
+        if (chkFine.isChecked()) {
+            if (txtFineType.getText().toString().length() == 0) {
+                validated = false;
+                Toast.makeText(context, getString(R.string.fill_fine_type), Toast.LENGTH_SHORT).show();
+            }
         }
-
         if (chkAccident.isChecked())
         {
             if ( txtAccNumInjured.getText().toString().length() == 0) {
                 validated = false;
-                Toast.makeText(c, getString(R.string.fill_number_injured), Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, getString(R.string.fill_number_injured), Toast.LENGTH_SHORT).show();
             }
         }
         Log.d(TAG, "validateFormBeforeSend");
@@ -343,7 +348,7 @@ public class FormIncidentReportActivity extends Activity {
         }
     }
 
-    private void sendIndicidentForm(View v) {
+    private void sendIncidentForm(View v) {
 
         IncidentForm incident;
         Drawable color;
@@ -357,7 +362,7 @@ public class FormIncidentReportActivity extends Activity {
 
             sendIncidentForm(incident);
 
-            Toast.makeText(c, getString(R.string.form_sent), Toast.LENGTH_LONG);
+            Toast.makeText(context, getString(R.string.form_sent), Toast.LENGTH_LONG);
             btnSendForm.setBackground(color);
             btnSendForm.setEnabled(true);
 
@@ -365,7 +370,8 @@ public class FormIncidentReportActivity extends Activity {
         }
         catch (Exception e)
         {
-            Toast.makeText(c, getString(R.string.error_sending_form), Toast.LENGTH_LONG);
+            Log.e(TAG, "error sending the form", e);
+            Toast.makeText(context, getString(R.string.error_sending_form), Toast.LENGTH_LONG).show();
             btnSendForm.setBackground(color);
             btnSendForm.setEnabled(true);
 
@@ -384,12 +390,11 @@ public class FormIncidentReportActivity extends Activity {
                 incidentForm, new IncidentFormCallback() {
                     @Override
                     public void failure() {
-                        Toast.makeText(c, getString(R.string.error_sending_form), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, getString(R.string.error_sending_form), Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void success() {
-                        Toast.makeText(c, getString(R.string.form_sent), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
@@ -417,14 +422,26 @@ public class FormIncidentReportActivity extends Activity {
 
         IncidentForm incidentForm = new IncidentForm();
 
-        incidentForm.setDate(getDateFromPicker(datePicker, timePicker));
+
+
+        try {
+            DateFormat format = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.ENGLISH);
+            Date date = format.parse(txtDate.getText().toString()+" "+txtTime.getText().toString());
+            incidentForm.setDate(date);
+        } catch (ParseException e) {
+            Log.e(TAG, "error parsing date", e);
+        }
+
+
         incidentForm.setLat(Float.parseFloat(strLatitude));
         incidentForm.setLng(Float.parseFloat(strLongitude));
         incidentForm.setAddress(txtAddress.getText().toString());
 
         incidentForm.setAccident(chkAccident.isChecked());
         incidentForm.setGravity(skbAccGravity.getProgress());
-        incidentForm.setInjured(Integer.parseInt(txtAccNumInjured.getText().toString()));
+        if (chkAccident.isChecked()) {
+            incidentForm.setInjured(Integer.parseInt(txtAccNumInjured.getText().toString()));
+        }
         incidentForm.setFine(chkFine.isChecked());
         incidentForm.setFineType(txtFineType.getText().toString());
         incidentForm.setArrest(chkArrest.isChecked());
@@ -435,14 +452,5 @@ public class FormIncidentReportActivity extends Activity {
 
         return incidentForm;
 
-    }
-
-
-    public static java.util.Date getDateFromPicker(DatePicker datePicker, TimePicker timePicker){
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth(),
-                timePicker.getCurrentHour(), timePicker.getCurrentMinute());
-
-        return calendar.getTime();
     }
 }
