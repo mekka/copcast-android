@@ -81,7 +81,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_playback">Video playback</string>
     <string name="no_video_message">No video available for playback</string>
-<<<<<<< HEAD
     <string name="gps_config">GPS Config</string>
     <string name="alert_message">GPS Error</string>
     <string name="send">Send</string>
@@ -106,7 +105,5 @@
     <string name="address_not_detected">Address not detect automatically, please type yourself...</string>
     <string name="form_sent">Form sent</string>
     <string name="error_sending_form">Error sending form to server, please retry!</string>
-=======
     <string name="registered_incident">Incident Registered</string>
->>>>>>> develop
 </resources>
