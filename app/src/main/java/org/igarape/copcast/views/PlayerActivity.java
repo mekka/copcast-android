@@ -323,7 +323,7 @@ public class PlayerActivity extends Activity {
             mProgressBar.setProgress(0);
 
             do {
-                if (isCancelled()) {
+                if (isCancelled() || !videoView.isPlaying()) {
                     break;
                 }
 
@@ -339,7 +339,7 @@ public class PlayerActivity extends Activity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            } while (mProgressBar.getProgress() <= 100);
+            } while (mProgressBar.getProgress() <= 100 && videoView.isPlaying());
 
             Log.d(TAG, "exited task");
             return null;

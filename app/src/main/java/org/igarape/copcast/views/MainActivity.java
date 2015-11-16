@@ -801,6 +801,7 @@ public class MainActivity extends Activity {
                             Globals.setIncidentFlag(IncidentFlagState.FLAGGED);
                             Log.d(TAG, "Flag incident immediately");
                             IncidentUtils.registerIncident(getApplicationContext(), Globals.getCurrentVideoPath());
+                            Toast.makeText(this, getResources().getString(R.string.registered_incident), Toast.LENGTH_LONG).show();
                         }
                     } else {
                         Log.d(TAG, "Incident already reported. Skipping");
