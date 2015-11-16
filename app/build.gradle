@@ -25,7 +25,6 @@ android {
         versionName "1.1"
         // Enabling multidex support.
         multiDexEnabled true
-        signingConfig signingConfigs.config
     }
     buildTypes {
         release {
@@ -41,10 +40,9 @@ android {
         general {
             resValue "string", "SERVER_URL_DEFAULT", "\"http://mogi-api.igarape.org\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "true"
-            signingConfig signingConfigs.config
         }
         capeTown {
-            resValue "string", "SERVER_URL_DEFAULT", "\"http://api.mogidocs.co.za\""
+            resValue "string", "SERVER_URL_DEFAULT", "\"http://docs-api.mycopcast.com\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "false"
         }
     }
