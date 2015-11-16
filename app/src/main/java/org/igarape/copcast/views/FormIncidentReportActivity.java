@@ -395,7 +395,6 @@ public class FormIncidentReportActivity extends Activity {
 
                     @Override
                     public void success() {
-                        Toast.makeText(context, getString(R.string.form_sent), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
