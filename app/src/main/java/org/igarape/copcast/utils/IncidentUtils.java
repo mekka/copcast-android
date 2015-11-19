@@ -1,10 +1,13 @@
 package org.igarape.copcast.utils;
 
 import android.content.Context;
+import android.os.AsyncTask;
+import android.os.Handler;
 import android.os.Vibrator;
 import android.util.Log;
 
 import org.igarape.copcast.db.JsonDataType;
+import org.igarape.copcast.state.IncidentFlagState;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,7 +25,7 @@ public class IncidentUtils {
         JSONObject json = new JSONObject();
         json.put("date", TimeUtils.getTimestamp().toString());
         json.put("lat", Globals.getLastKnownLocation().getLatitude());
-        json.put("lon", Globals.getLastKnownLocation().getLongitude());
+        json.put("lng", Globals.getLastKnownLocation().getLongitude());
         return json;
     }
 
@@ -36,26 +39,40 @@ public class IncidentUtils {
 
     public static void registerIncident(final Context context, final String videoPath) {
 
-        final JSONObject incident;
+        final JSONObject[] incident = new JSONObject[1];
 
-        Log.d(TAG, "Flagging incident");
-        Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-        v.vibrate(500);
-
-
+        saveVideoPath(context, videoPath);
         try {
-            saveVideoPath(context, videoPath);
-        } catch (JSONException e) {
-            Log.e(TAG, "Could not save flagged video on database");
+            incident[0] = buildJson();
+            sendIncident(context, incident[0]);
+        } catch (Exception e) {
+            Log.e(TAG, "error building incident JSON. Replay in 2s.");
             Log.d(TAG, e.toString());
+            //Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED); // this will reset the flag state and allow for a longer volume press to take place;
+
+            new AsyncTask<Void, Void, Void>() {
+
+                @Override
+                protected Void doInBackground(Void... params) {
+                    try{
+                        Thread.sleep(2000);
+                        Log.d(TAG, "TRYING AGAIN");
+                        incident[0] = buildJson();
+                        sendIncident(context, incident[0]);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Failed second try");
+                        Log.d(TAG, e.toString());
+                    }
+                    return null;
+                }
+
+            }.execute();
+
         }
 
-        try {
-            incident = buildJson();
-        } catch (JSONException e) {
-            Log.e(TAG, "error building incident JSON");
-            return;
-        }
+    }
+
+    private static void sendIncident(final Context context, final JSONObject incident) {
 
         failureLogged.set(false);
 
@@ -90,21 +107,31 @@ public class IncidentUtils {
             public void badResponse() {
                 failedRegisterIncident(context, incident, "badResponse");
             }
+
+            @Override
+            public void success(byte[] output) {
+                Log.d(TAG, "enviado!!!");
+            }
         });
     }
 
-    public static void saveVideoPath(Context context, String videoPath) throws JSONException {
+    public static void saveVideoPath(Context context, String videoPath) {
 
         if (videoPath == null || videoPath.length() == 0) {
             Log.w(TAG, "saveVideoPath called without video argument");
             return;
         }
 
-        JSONObject obj = buildJson();
-        obj.put("videoPath", videoPath);
-
-        SqliteUtils.storeToDb(context, Globals.getUserLogin(context),
-                JsonDataType.TYPE_FLAGGED_VIDEO, obj.toString());
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("date", TimeUtils.getTimestamp().toString());
+            obj.put("videoPath", videoPath);
+            SqliteUtils.storeToDb(context, Globals.getUserLogin(context),
+                    JsonDataType.TYPE_FLAGGED_VIDEO, obj.toString());
+        } catch (JSONException e) {
+            Log.e(TAG, "Error building incident JSON. Video name not stored.");
+            Log.d(TAG, e.toString());
+        }
     }
 
     public static List<String> getFlaggedVideosList(Context context) throws JSONException {

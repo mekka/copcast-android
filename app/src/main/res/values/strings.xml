@@ -78,4 +78,5 @@
     <string name="title_activity_upload_video">UploadVideoActivity</string>
     <string name="action_playback">Video playback</string>
     <string name="no_video_message">No video available for playback</string>
+    <string name="registered_incident">Incident Registered</string>
 </resources>

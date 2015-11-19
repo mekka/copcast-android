@@ -130,7 +130,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             mediaRecorder.setCamera(camera);
             mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
             mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-            mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_LOW));
+            mediaRecorder.setProfile(CamcorderProfile.get(Globals.appCamcoderProfile));
 
             videoFileName = FileUtils.getPath(Globals.getUserLogin(getBaseContext())) +
                     android.text.format.DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime()) +

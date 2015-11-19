@@ -30,10 +30,6 @@ public class BatteryUtils {
         df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
         df.setTimeZone(tz);
     }
-    public static boolean shouldUpload(){
-        return (null != battery ? battery.batteryPercentage > BATTERY_PERCENTAGE_LIMIT:true) || (battery !=null && battery.plugged == 1);
-        //TODO garantir que o valor do plugged eh realmente 1 quando recarregando
-    }
 
     public static void updateValues(Intent batteryStatus){
         int batteryLevel = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
