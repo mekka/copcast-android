@@ -186,6 +186,7 @@ public class NetworkUtils {
 
                 try {
                     URL urlToRequest = new URL(Globals.getServerUrl(context) + url);
+                    Log.w(TAG, "URL: " + urlToRequest);
                     urlConnection = (HttpURLConnection) urlToRequest.openConnection();
 
                     if (method.equals(Method.POST)) {

@@ -132,6 +132,10 @@ public class LoginActivity extends Activity {
                 post(getApplicationContext(), "/token", params, new HttpResponseCallback() {
                     @Override
                     public void success(JSONObject response) {
+                        if (response == null) {
+                            showToast(R.string.connection_error);
+                            return;
+                        }
                         Log.d(TAG, "@JSONRESPONSE=[" + response + "]");
                         String token = null;
                         try {
