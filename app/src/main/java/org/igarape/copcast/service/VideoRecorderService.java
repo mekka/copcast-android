@@ -120,6 +120,11 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 return false;
             }
 
+            if (camera == null) {
+                Log.e(TAG, "Failed to open camera.");
+                return false;
+            }
+
             Camera.Parameters params = camera.getParameters();
             params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
             camera.setParameters(params);

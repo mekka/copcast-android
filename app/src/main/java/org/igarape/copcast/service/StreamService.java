@@ -11,6 +11,7 @@ import android.opengl.GLSurfaceView;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.WindowManager;
@@ -43,7 +44,7 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
     private RendererCommon.ScalingType scalingType = RendererCommon.ScalingType.SCALE_ASPECT_FILL;
     private WindowManager mWindowManager;
     private GLSurfaceView mSurfaceView;
-
+    private static final String TAG = StreamService.class.getName();
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -52,6 +53,7 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.i(TAG, "onStartCommand()");
         if (intent == null){
             stopSelf();
             return START_STICKY;
@@ -170,7 +172,7 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
 
     @Override
     public void onStatusChanged(String newStatus) {
-
+        Log.w(TAG, "onStatusChanged(" + newStatus + ")");
     }
 
     @Override

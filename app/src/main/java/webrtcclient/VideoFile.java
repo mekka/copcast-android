@@ -58,22 +58,31 @@ public class VideoFile extends MediaCodec.Callback implements VideoRenderer.Call
     boolean videoFormatSetUp;
     ArrayDeque<Integer> mEncodeBuffers, mSaveBuffers;
     int mSkippedFrames;
-
+    private final static String VIDEO_FILE_FORMAT="video/x-vnd.on2.vp8";
 
     public VideoFile(int width, int height, int frame_rate) {
         try {
+            mEncodeBuffers = new ArrayDeque<Integer>();
+            mSaveBuffers = new ArrayDeque<Integer>();
             Log.d(TAG, "VideoFile(" + width + ", " + height + ", " + frame_rate + ")");
             mFrameRate = frame_rate;
             mFrameInterval = 1000000 / frame_rate;
             // Setup a save pipeline for incoming video frames.
-            mVideoEncoder = MediaCodec.createEncoderByType("video/x-vnd-on2.vp8");
-            MediaFormat mediaFormat = MediaFormat.createVideoFormat("video/x-vnd-on2.vp8", width, height);
+            mVideoEncoder = MediaCodec.createEncoderByType(VIDEO_FILE_FORMAT);
+            MediaFormat mediaFormat = MediaFormat.createVideoFormat(VIDEO_FILE_FORMAT, width, height);
             mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, frame_rate);
             // See if we can just set the color format to what we like.  Only get into checking
             // colorFormats if that doesn't work.
             //mVideoEncoder.getCodecInfo().getCapabilitiesForType(…).colorFormats;
             mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT,
-                    MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible);
+                                   MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible);
+            // This is from some example code at: https://android.googlesource.com/platform/cts/+/jb-mr2-release/tests/tests/media/src/android/media/cts/Vp8EncoderTest.java
+            // But the color format we've changed a bit.
+            mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 100000);
+            //        format.setInteger(MediaFormat.KEY_COLOR_FORMAT,
+            //                          CodecCapabilities.COLOR_FormatYUV420Planar);
+            mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 30);
+
             mVideoEncoder.setCallback(this);
             mVideoEncoder.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
             mVideoEncoder.start();

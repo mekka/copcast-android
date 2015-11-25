@@ -46,6 +46,8 @@ public class NetworkUtils {
         boolean first = true;
 
         for (NameValuePair pair : params) {
+            if (pair.getName() == null || pair.getValue() == null)
+                continue;
             if (first)
                 first = false;
             else

@@ -106,6 +106,10 @@ public class MainActivity extends Activity {
                     Intent intentAux = new Intent(MainActivity.this, VideoRecorderService.class);
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     stopService(intentAux);
+                    // This doesn't seem to start the StreamService, so do it by hand.
+                    intentAux = new Intent(MainActivity.this, StreamService.class);
+                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startService(intentAux);
                 } else {
                     HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this), null);
 
@@ -308,7 +312,7 @@ public class MainActivity extends Activity {
                                                      findViewById(R.id.recBall).setVisibility(View.INVISIBLE);
 
                                                      mStreamSwitch.setOnCheckedChangeListener(null);
-                                                     mStreamSwitch.setChecked(false);
+                                                     mStreamSwitch.setChecked(true);
                                                      mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
 
 
