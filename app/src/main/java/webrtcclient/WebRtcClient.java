@@ -248,6 +248,7 @@ public class WebRtcClient {
                 payload.put("id", candidate.sdpMid);
                 payload.put("candidate", candidate.sdp);
                 sendMessage(id, "candidate", payload);
+                Log.d(TAG, "onIceCandidate"+ payload.toString());
             } catch (JSONException e) {
                 Log.e(TAG, "error", e);
             }
