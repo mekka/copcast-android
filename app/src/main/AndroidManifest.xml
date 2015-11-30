@@ -59,7 +59,8 @@
             android:screenOrientation="portrait"
             android:name=".views.LoginActivity"/>
         <activity
-            android:name=".views.SettingsActivity" />
+            android:name=".views.SettingsActivity"
+            android:theme="@style/AppThemePreferences" />
         <!--<service android:name=".service.RecorderService" />-->
         <service android:name=".service.VideoRecorderService" />
         <service android:name=".service.LocationService" />
