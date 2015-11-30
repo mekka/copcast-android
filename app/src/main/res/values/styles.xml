@@ -8,6 +8,20 @@
         <item name="colorAccent">@color/summary_color</item>
         <item name="android:textColorSecondary">@color/summary_color</item>
         <item name="android:editTextStyle">@style/Widget.EditText.White</item>
+        <item name="android:popupMenuStyle">@style/MyPopupMenu</item>
+        <item name="android:itemTextAppearance">@style/TextAppearance</item>
+    </style>
+
+    <style name="AppThemePreferences" parent="android:Theme.Holo">
+        <!-- equals AppTheme, but with a dark parent to allow dark dialogs in preferences   -->
+        <item name="android:windowBackground">@color/bg_dark_block</item>
+        <item name="android:textColor">@color/text_dark_block</item>
+        <item name="android:buttonStyle">@style/button_default</item>
+        <item name="colorAccent">@color/summary_color</item>
+        <item name="android:textColorSecondary">@color/summary_color</item>
+        <item name="android:editTextStyle">@style/Widget.EditText.White</item>
+        <item name="android:popupMenuStyle">@style/MyPopupMenu</item>
+        <item name="android:itemTextAppearance">@style/TextAppearance</item>
     </style>
 
     <style name="button_default">
@@ -21,4 +35,13 @@
         <item name="android:textColor">@color/text_dark</item>
     </style>
 
+    <!-- Popup Menu Background Color styles -->
+    <style name="MyPopupMenu"
+        parent="@android:style/Theme.Holo">
+        <item name="android:popupBackground">@color/bg_button_default</item>
+    </style>
+    <!-- Popup Menu Text Color styles -->
+    <style name="TextAppearance">
+        <item name="android:textColor">@color/text_dark_block</item>
+    </style>
 </resources>

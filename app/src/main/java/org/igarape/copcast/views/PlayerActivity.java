@@ -149,7 +149,14 @@ public class PlayerActivity extends Activity {
         final String userLogin = Globals.getUserLogin(getApplicationContext());
 
         final android.widget.LinearLayout.LayoutParams params = (android.widget.LinearLayout.LayoutParams) videoView.getLayoutParams();
-        CamcorderProfile camcorderProfile = CamcorderProfile.get(Globals.appCamcoderProfile);
+
+        //try Globals default, otherwise set to LOW
+        CamcorderProfile camcorderProfile;
+        try {
+            camcorderProfile = CamcorderProfile.get(Globals.appCamcoderProfile);
+        } catch (RuntimeException ex) {
+            camcorderProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
+        }
         mainWidth = params.height * camcorderProfile.videoFrameHeight / camcorderProfile.videoFrameWidth;
         params.width = mainWidth;
         mainHeight = params.height;

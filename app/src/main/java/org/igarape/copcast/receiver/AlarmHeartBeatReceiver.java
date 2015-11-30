@@ -22,21 +22,17 @@ public class AlarmHeartBeatReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "onReceive...");
-        if(BatteryUtils.shouldUpload()){
-            Location lastKnownLocation = Globals.getLastKnownLocation();
+        Location lastKnownLocation = Globals.getLastKnownLocation();
 
-            if(null != lastKnownLocation){
-                try {
-                    HeartBeatUtils.sendHeartBeat(context, Globals.getUserLogin(context),
-                            LocationUtils.buildJson(lastKnownLocation), BatteryUtils.buildJson());
-                } catch (JSONException e) {
-                    Log.e(TAG, "error parsing location.", e);
-                }
-            }else{
-                Log.d(TAG, "no location found.");
+        if(null != lastKnownLocation){
+            try {
+                HeartBeatUtils.sendHeartBeat(context, Globals.getUserLogin(context),
+                        LocationUtils.buildJson(lastKnownLocation), BatteryUtils.buildJson());
+            } catch (JSONException e) {
+                Log.e(TAG, "error parsing location.", e);
             }
         }else{
-            Log.d(TAG, "low battery.");
+            Log.d(TAG, "no location found.");
         }
     }
 }
