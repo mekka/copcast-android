@@ -200,7 +200,10 @@ public class WebRtcClient {
         public void onSetSuccess() {}
 
         @Override
-        public void onCreateFailure(String s) {}
+        public void onCreateFailure(String s) {
+            mListener.onStatusChanged("DISCONNECTED");
+            removePeer(id);
+        }
 
         @Override
         public void onSetFailure(String s) {}
@@ -214,6 +217,17 @@ public class WebRtcClient {
             if(iceConnectionState == PeerConnection.IceConnectionState.DISCONNECTED) {
                 mListener.onStatusChanged("DISCONNECTED");
                 removePeer(id);
+            } else if(iceConnectionState == PeerConnection.IceConnectionState.FAILED) {
+                mListener.onStatusChanged("FAILED");
+                removePeer(id);
+                JSONObject message = new JSONObject();
+                try {
+                    message.put("to", id);
+                    client.emit("failed", message);
+                } catch (JSONException e) {
+                    Log.e(TAG, "error creating json", e);
+                }
+
             }
         }
 
@@ -234,6 +248,7 @@ public class WebRtcClient {
                 payload.put("id", candidate.sdpMid);
                 payload.put("candidate", candidate.sdp);
                 sendMessage(id, "candidate", payload);
+                Log.d(TAG, "onIceCandidate"+ payload.toString());
             } catch (JSONException e) {
                 Log.e(TAG, "error", e);
             }
