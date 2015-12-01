@@ -642,13 +642,13 @@ public class MainActivity extends Activity {
             }
             return true;
         } else if (id == R.id.action_logout) {
-            logout();
+            logout(null);
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void logout() {
+    private void logout(String reason) {
         //TODO needs current state?
         if (isStreaming()) {
             HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.NOT_LOGGED, Globals.getUserLogin(MainActivity.this), null);
@@ -662,6 +662,8 @@ public class MainActivity extends Activity {
         Globals.clear(MainActivity.this);
         killServices();
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        if (reason != null)
+            intent.putExtra("reason", reason);
         startActivity(intent);
         MainActivity.this.finish();
     }
@@ -713,8 +715,31 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         if (Globals.getAccessToken(getApplicationContext()) == null) {
-            logout();
+            logout(getString(R.string.invalid_token));
         }
+
+        NetworkUtils.get(getApplicationContext(), "/users/me", new HttpResponseCallback() {
+            @Override
+            public void unauthorized() {
+                logout(getString(R.string.token_expired));
+            }
+
+            @Override
+            public void failure(int statusCode) {}
+
+            @Override
+            public void noConnection() {}
+
+            @Override
+            public void badConnection() {}
+
+            @Override
+            public void badRequest() {}
+
+            @Override
+            public void badResponse() {}
+        });
+
         Globals.setRotation(getWindowManager().getDefaultDisplay().getRotation());
         updateProgressBar();
         WifiManager wifi = (WifiManager)getSystemService(Context.WIFI_SERVICE);

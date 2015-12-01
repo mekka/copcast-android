@@ -79,4 +79,6 @@
     <string name="action_playback">Reprodução de vídeos</string>
     <string name="no_video_message">Não há vídeos disponíveis para reprodução</string>
     <string name="registered_incident">Incidente Registrado</string>
+    <string name="token_expired">Sua chave de acesso expirou. Por favor, realize novo login</string>
+    <string name="invalid_token">Chave de acesso inválida. Por favor, realize novo login</string>
 </resources>
