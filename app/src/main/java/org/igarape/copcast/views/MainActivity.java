@@ -733,6 +733,7 @@ public class MainActivity extends Activity {
         }
         if (pDialog != null){
             pDialog.dismiss();
+            pDialog = null;
         }
         NetworkUtils.get(getApplicationContext(), "/users/me", new HttpResponseCallback() {
             @Override
