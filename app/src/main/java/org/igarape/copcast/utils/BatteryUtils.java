@@ -94,7 +94,8 @@ public class BatteryUtils {
                 json.put("temperature", temperature);
                 json.put("date", df.format(date));
             } catch (JSONException e) {
-                e.printStackTrace();
+                Log.e(TAG, "Error building battery JSON");
+                Log.d(TAG, e.toString());
             }
             return json;
         }

@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.view.Gravity.CENTER_HORIZONTAL;
 import static org.igarape.copcast.utils.NetworkUtils.post;
 
 public class LoginActivity extends Activity {
@@ -79,6 +80,16 @@ public class LoginActivity extends Activity {
                 makeLoginRequest(v);
             }
         });
+
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            String msg =extras.getString("reason");
+            if (msg != null && msg.length() > 0) {
+                Toast toast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG);
+                toast.setGravity(Gravity.TOP | CENTER_HORIZONTAL, 0, 100);
+                toast.show();
+            }
+        }
     }
 
     @Override

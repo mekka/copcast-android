@@ -99,4 +99,6 @@
     <string name="date">Data</string>
     <string name="time">Hora</string>
     <string name="registered_incident">Incidente Registrado</string>
+    <string name="token_expired">Sua chave de acesso expirou. Por favor, realize novo login</string>
+    <string name="invalid_token">Chave de acesso inválida. Por favor, realize novo login</string>
 </resources>

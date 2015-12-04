@@ -106,4 +106,6 @@
     <string name="form_sent">Form sent</string>
     <string name="error_sending_form">Error sending form to server, please retry!</string>
     <string name="registered_incident">Incident Registered</string>
+    <string name="token_expired">Your token expired. Please log in</string>
+    <string name="invalid_token">Invalid token. Please log in.</string>
 </resources>
