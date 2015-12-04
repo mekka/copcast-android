@@ -111,7 +111,12 @@ public class LoginActivity extends Activity {
     }
 
     public void makeLoginRequest(View view) {
-        pDialog = ProgressDialog.show(this, getString(R.string.login_in), getString(R.string.please_hold), true);
+
+        pDialog = new ProgressDialog(this, android.R.style.Theme_Holo_Dialog);
+        pDialog.setTitle(getString(R.string.login_in));
+        pDialog.setMessage(getString(R.string.please_hold));
+        pDialog.setIndeterminate(true);
+        pDialog.show();
 
         final String loginField = txtId.getText().toString().trim();
         final String passwordField = txtPwd.getText().toString();
