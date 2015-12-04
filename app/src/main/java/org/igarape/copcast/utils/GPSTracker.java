@@ -45,7 +45,7 @@ public class GPSTracker extends Service implements LocationListener {
     // flag for GPS Tracking is enabled
     boolean isGPSTrackingEnabled = false;
 
-    Location location;
+    Location location = null;
     double latitude;
     double longitude;
 
@@ -83,9 +83,14 @@ public class GPSTracker extends Service implements LocationListener {
             //getting network status
             isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
+            //Can not retrieve GPS
+            if (!isGPSEnabled && !isNetworkEnabled){
+                return;
+            }
+            this.isGPSTrackingEnabled = true;
+
             // Try to get location if you GPS Service is enabled
             if (isGPSEnabled) {
-                this.isGPSTrackingEnabled = true;
 
                 Log.d(TAG, "Application use GPS Service");
 
@@ -96,9 +101,17 @@ public class GPSTracker extends Service implements LocationListener {
                  */
 
                 provider_info = LocationManager.GPS_PROVIDER;
+                locationManager.requestLocationUpdates(
+                        provider_info,
+                        MIN_TIME_BW_UPDATES,
+                        MIN_DISTANCE_CHANGE_FOR_UPDATES,
+                        this
+                );
 
-            } else if (isNetworkEnabled) { // Try to get location if you Network Service is enabled
-                this.isGPSTrackingEnabled = true;
+                location = locationManager.getLastKnownLocation(provider_info);
+
+            }
+            if (isNetworkEnabled && location == null) { // Try to get location if you Network Service is enabled
 
                 Log.d(TAG, "Application use Network State to get GPS coordinates");
 
@@ -108,11 +121,6 @@ public class GPSTracker extends Service implements LocationListener {
                  * by means of a network lookup.
                  */
                 provider_info = LocationManager.NETWORK_PROVIDER;
-
-            }
-
-            // Application can use GPS or Network Provider
-            if (!provider_info.isEmpty()) {
                 locationManager.requestLocationUpdates(
                         provider_info,
                         MIN_TIME_BW_UPDATES,
@@ -120,11 +128,10 @@ public class GPSTracker extends Service implements LocationListener {
                         this
                 );
 
-                if (locationManager != null) {
-                    location = locationManager.getLastKnownLocation(provider_info);
-                    updateGPSCoordinates();
-                }
+                location = locationManager.getLastKnownLocation(provider_info);
             }
+            updateGPSCoordinates();
+
         }
         catch (Exception e)
         {

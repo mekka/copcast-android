@@ -44,8 +44,6 @@ public class FormIncidentReportActivity extends Activity {
     Context context;
 
     //UI Components
-    DatePicker datePicker;
-    TimePicker timePicker;
     TextView txtLocation;
     EditText txtAddress;
 
@@ -74,6 +72,7 @@ public class FormIncidentReportActivity extends Activity {
 
     private Button btnSendForm;
     private String TAG = FormIncidentReportActivity.class.getName();
+    private GPSTracker mGpsTracker;
 
 
     @Override
@@ -118,44 +117,6 @@ public class FormIncidentReportActivity extends Activity {
             }
         });
     }
-//    public void onClickTypeViolation(View view) {
-//        Log.d(TAG, "onClickTypeViolation");
-//        // Is the view now checked?
-//        boolean checked = ((CheckBox) view).isChecked();
-//
-//        // Check which checkbox was clicked
-//        switch (view.getId()) {
-//            case R.id.chkAccident:
-//                //if (checked) {
-//                //shows Gravity and Injured
-//                skbAccGravity.setEnabled(checked);
-//                txtAccNumInjured.setEnabled(checked);
-//
-//                break;
-//            case R.id.chkFine:
-//                //shows/hide
-//                txtFineType.setEnabled(checked);
-//                break;
-//            case R.id.chkArrest:
-//                //shows/hide
-//                chkArrResistance.setEnabled(checked);
-//                chkArrResArgument.setEnabled(checked);
-//                chkArrResUseForce.setEnabled(checked);
-//                chkArrResUseLetahlForce.setEnabled(checked);
-//
-//                break;
-//
-//            case R.id.chkArrResistance:
-//                //shows/hide
-//                chkArrResArgument.setEnabled(checked);
-//                chkArrResUseForce.setEnabled(checked);
-//                chkArrResUseLetahlForce.setEnabled(checked);
-//
-//                break;
-//        }
-//
-//
-//    }
 
     private boolean validateFormBeforeSend(View v) {
 
@@ -210,29 +171,29 @@ public class FormIncidentReportActivity extends Activity {
         chkArrResUseLetahlForce = (CheckBox) findViewById(R.id.chkArrResUseLetahlForce);
 
 
-        // check if GPS enabled
-        GPSTracker gpsTracker = new GPSTracker(this);
 
-        if (gpsTracker.getIsGPSTrackingEnabled()) {
-            String strLatitude = String.valueOf(gpsTracker.getLatitude());
-            String strLongitude = String.valueOf(gpsTracker.getLongitude());
+        mGpsTracker = new GPSTracker(this);
+
+        if (mGpsTracker.getIsGPSTrackingEnabled()) {
+            String strLatitude = String.valueOf(mGpsTracker.getLatitude());
+            String strLongitude = String.valueOf(mGpsTracker.getLongitude());
 
             txtLocation.setText(strLatitude + "/" + strLongitude);
             StringBuffer address = new StringBuffer();
-            if (gpsTracker.getAddressLine(this) != null){
-                address.append(gpsTracker.getAddressLine(this));
+            if (mGpsTracker.getAddressLine(this) != null){
+                address.append(mGpsTracker.getAddressLine(this));
             }
-            if (gpsTracker.getLocality(this) != null){
+            if (mGpsTracker.getLocality(this) != null){
                 address.append("\n");
-                address.append(gpsTracker.getLocality(this));
+                address.append(mGpsTracker.getLocality(this));
             }
-            if (gpsTracker.getPostalCode(this) != null){
+            if (mGpsTracker.getPostalCode(this) != null){
                 address.append("\n");
-                address.append(gpsTracker.getPostalCode(this));
+                address.append(mGpsTracker.getPostalCode(this));
             }
-            if (gpsTracker.getCountryName(this) != null){
+            if (mGpsTracker.getCountryName(this) != null){
                 address.append("\n");
-                address.append(gpsTracker.getCountryName(this));
+                address.append(mGpsTracker.getCountryName(this));
             }
 
             if (address.length() == 0)
@@ -247,9 +208,9 @@ public class FormIncidentReportActivity extends Activity {
             // can't get location
             // GPS or Network is not enabled
             // Ask user to enable GPS/network in settings
-            gpsTracker.showSettingsAlert();
+            mGpsTracker.showSettingsAlert();
         }
-
+        mGpsTracker.stopUsingGPS();
 
 
         chkAccident.setOnClickListener(new View.OnClickListener() {
@@ -376,8 +337,6 @@ public class FormIncidentReportActivity extends Activity {
             btnSendForm.setEnabled(true);
 
         }
-
-
 
     }
 
