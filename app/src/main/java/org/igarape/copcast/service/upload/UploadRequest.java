@@ -1,4 +1,4 @@
-package com.alexbbb.uploadservice;
+package org.igarape.copcast.service.upload;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -17,7 +17,6 @@ import android.content.Intent;
  */
 public class UploadRequest {
 
-    private UploadNotificationConfig notificationConfig;
     private String method = "POST";
     private final Context context;
     private String customUserAgent;
@@ -39,29 +38,11 @@ public class UploadRequest {
     public UploadRequest(final Context context, final String uploadId, final String serverUrl) {
         this.context = context;
         this.uploadId = uploadId;
-        notificationConfig = new UploadNotificationConfig();
         url = serverUrl;
-        filesToUpload = new ArrayList<FileToUpload>();
-        headers = new ArrayList<NameValue>();
-        parameters = new ArrayList<NameValue>();
+        filesToUpload = new ArrayList<>();
+        headers = new ArrayList<>();
+        parameters = new ArrayList<>();
         maxRetries = 0;
-    }
-
-    /**
-     * Sets custom notification configuration.
-     * 
-     * @param iconResourceID ID of the notification icon. You can use your own app's R.drawable.your_resource
-     * @param title Notification title
-     * @param message Text displayed in the notification when the upload is in progress
-     * @param completed Text displayed in the notification when the upload is completed successfully
-     * @param error Text displayed in the notification when an error occurs
-     * @param autoClearOnSuccess true if you want to automatically clear the notification when the upload gets completed
-     * successfully
-     */
-    public void setNotificationConfig(final int iconResourceID, final String title, final String message,
-                                      final String completed, final String error, final boolean autoClearOnSuccess) {
-        notificationConfig = new UploadNotificationConfig(iconResourceID, title, message, completed, error,
-                                                          autoClearOnSuccess);
     }
 
     /**
@@ -209,15 +190,6 @@ public class UploadRequest {
     }
 
     /**
-     * Gets the upload notification configuration.
-     * 
-     * @return
-     */
-    protected UploadNotificationConfig getNotificationConfig() {
-        return notificationConfig;
-    }
-
-    /**
      * Gets the application context.
      * 
      * @return
@@ -243,15 +215,6 @@ public class UploadRequest {
      */
     public final void setCustomUserAgent(String customUserAgent) {
         this.customUserAgent = customUserAgent;
-    }
-
-    /**
-     * Sets the intent to be executed when the user taps on the upload progress notification.
-     * 
-     * @param intent
-     */
-    public final void setNotificationClickIntent(Intent intent) {
-        notificationConfig.setClickIntent(intent);
     }
 
     /**

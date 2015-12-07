@@ -1,19 +1,16 @@
-package com.alexbbb.uploadservice;
+package org.igarape.copcast.service.upload;
 
 import android.annotation.SuppressLint;
-import android.app.IntentService;
-import android.app.NotificationManager;
+import android.app.Service;
 import android.content.Intent;
+import android.os.Binder;
+import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.SystemClock;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationCompat.Builder;
+import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import org.igarape.copcast.service.upload.FileToUpload;
-import org.igarape.copcast.service.upload.NameValue;
-import org.igarape.copcast.service.upload.UploadRequest;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.UploadManager;
 
@@ -36,10 +33,14 @@ import java.util.ArrayList;
  * @author alexbbb (Alex Gotev)
  * @author eliasnaur
  */
-public class UploadService extends IntentService {
+public class UploadService extends Service {
 
     private static final String SERVICE_NAME = UploadService.class.getName();
     private static final String TAG = "AndroidUploadService";
+    private static final String INTENT_EXTRA_KEY = "UploadService";
+
+    private final IBinder mBinder = new UploadBinder();
+    private UploadRequest request;
 
     private static final int UPLOAD_NOTIFICATION_ID = 1234; // Something unique
     private static final int UPLOAD_NOTIFICATION_ID_DONE = 1235; // Something unique
@@ -71,12 +72,6 @@ public class UploadService extends IntentService {
     public static final String SERVER_RESPONSE_CODE = "serverResponseCode";
     public static final String SERVER_RESPONSE_MESSAGE = "serverResponseMessage";
 
-    private NotificationManager notificationManager;
-    private Builder notification;
-    private PowerManager.WakeLock wakeLock;
-    private UploadNotificationConfig notificationConfig;
-    private int lastPublishedProgress;
-
     // indicates if the upload request should be continued
     private static volatile boolean shouldContinue = true;
 
@@ -90,7 +85,7 @@ public class UploadService extends IntentService {
 
     /**
      * Utility method that creates the intent that starts the background file upload service.
-     *
+      *
      * @param task object containing the upload request
      * @throws IllegalArgumentException if one or more arguments passed are invalid
      * @throws MalformedURLException    if the server URL is not valid
@@ -106,7 +101,6 @@ public class UploadService extends IntentService {
             final Intent intent = new Intent(task.getContext(), UploadService.class);
 
             intent.setAction(getActionUpload());
-            intent.putExtra(PARAM_NOTIFICATION_CONFIG, task.getNotificationConfig());
             intent.putExtra(PARAM_ID, task.getUploadId());
             intent.putExtra(PARAM_URL, task.getServerUrl());
             intent.putExtra(PARAM_METHOD, task.getMethod());
@@ -131,20 +125,30 @@ public class UploadService extends IntentService {
         super(SERVICE_NAME);
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
+//    @Override
+//    public void onCreate() {
+//        super.onCreate();
+//
+//        PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+//      //  wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+//    }
 
-        notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        notification = new NotificationCompat.Builder(this);
-        PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-      //  wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
-    }
+//    @Override
+//    public void onDestroy() {
+//        super.onDestroy();
+//        wakeLock.release();
+//    }
 
+    @Nullable
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-     //   wakeLock.release();
+    public IBinder onBind(Intent intent) {
+        if (intent.hasExtra(INTENT_EXTRA_KEY)) {
+            this.request = (UploadRequest) intent.getExtras().get(INTENT_EXTRA_KEY);
+            return mBinder;
+        } else {
+            Log.w(TAG, "Intent for UploadService without UploadRequest in extras");
+            return null;
+        }
     }
 
     @Override
@@ -158,7 +162,6 @@ public class UploadService extends IntentService {
             final String action = intent.getAction();
 
             if (getActionUpload().equals(action)) {
-                notificationConfig = intent.getParcelableExtra(PARAM_NOTIFICATION_CONFIG);
                 final String uploadId = intent.getStringExtra(PARAM_ID);
                 final String url = intent.getStringExtra(PARAM_URL);
                 final String method = intent.getStringExtra(PARAM_METHOD);
@@ -168,14 +171,11 @@ public class UploadService extends IntentService {
                 final ArrayList<NameValue> headers = intent.getParcelableArrayListExtra(PARAM_REQUEST_HEADERS);
                 final ArrayList<NameValue> parameters = intent.getParcelableArrayListExtra(PARAM_REQUEST_PARAMETERS);
 
-                lastPublishedProgress = 0;
                 shouldContinue = true;
                // wakeLock.acquire();
                 int attempts = 0;
                 int errorDelay = 1000;
                 int maxErrorDelay = 10 * 60 * 1000;
-
-                createNotification();
 
                 while (attempts <= maxRetries && shouldContinue) {
                     attempts++;
@@ -453,95 +453,11 @@ public class UploadService extends IntentService {
         }
     }
 
-    private void broadcastProgress(final String uploadId, final long uploadedBytes, final long totalBytes) {
-
-        final int progress = (int) (uploadedBytes * 100 / totalBytes);
-        if (progress <= lastPublishedProgress)
-            return;
-        lastPublishedProgress = progress;
-
-        updateNotificationProgress(progress);
-
-        final Intent intent = new Intent(getActionBroadcast());
-        intent.putExtra(UPLOAD_ID, uploadId);
-        intent.putExtra(STATUS, STATUS_IN_PROGRESS);
-        intent.putExtra(PROGRESS, progress);
-        sendBroadcast(intent);
-    }
-
-    private void broadcastCompleted(final String uploadId, final int responseCode, final String responseMessage) {
-
-        final String filteredMessage;
-        if (responseMessage == null) {
-            filteredMessage = "";
-        } else {
-            filteredMessage = responseMessage;
-        }
-
-        if (responseCode >= 200 && responseCode <= 299)
-            updateNotificationCompleted();
-        else
-            updateNotificationError();
-
-        final Intent intent = new Intent(UploadManager.UPLOAD_PROGRESS_ACTION);
-        intent.putExtra(UPLOAD_ID, uploadId);
-        intent.putExtra(STATUS, STATUS_COMPLETED);
-        intent.putExtra(SERVER_RESPONSE_CODE, responseCode);
-        intent.putExtra(SERVER_RESPONSE_MESSAGE, filteredMessage);
-        sendBroadcast(intent);
-        //wakeLock.release();
-    }
-
-    private void broadcastError(final String uploadId, final Exception exception) {
-
-        updateNotificationError();
-
-        final Intent intent = new Intent(getActionBroadcast());
-        intent.setAction(getActionBroadcast());
-        intent.putExtra(UPLOAD_ID, uploadId);
-        intent.putExtra(STATUS, STATUS_ERROR);
-        intent.putExtra(ERROR_EXCEPTION, exception);
-        sendBroadcast(intent);
-       // wakeLock.release();
-    }
-
-    private void createNotification() {
-        notification.setContentTitle(notificationConfig.getTitle()).setContentText(notificationConfig.getMessage())
-                .setContentIntent(notificationConfig.getPendingIntent(this))
-                .setSmallIcon(notificationConfig.getIconResourceID()).setProgress(100, 0, true).setOngoing(true);
-
-        startForeground(UPLOAD_NOTIFICATION_ID, notification.build());
-    }
-
-    private void updateNotificationProgress(final int progress) {
-        notification.setContentTitle(notificationConfig.getTitle()).setContentText(notificationConfig.getMessage())
-                .setContentIntent(notificationConfig.getPendingIntent(this))
-                .setSmallIcon(notificationConfig.getIconResourceID()).setProgress(100, progress, false)
-                .setOngoing(true);
-
-        startForeground(UPLOAD_NOTIFICATION_ID, notification.build());
-    }
-
-    private void updateNotificationCompleted() {
-        stopForeground(notificationConfig.isAutoClearOnSuccess());
-
-        if (!notificationConfig.isAutoClearOnSuccess()) {
-            notification.setContentTitle(notificationConfig.getTitle())
-                    .setContentText(notificationConfig.getCompleted())
-                    .setContentIntent(notificationConfig.getPendingIntent(this))
-                    .setSmallIcon(notificationConfig.getIconResourceID()).setProgress(0, 0, false).setOngoing(false);
-
-            notificationManager.notify(UPLOAD_NOTIFICATION_ID_DONE, notification.build());
+    public class UploadBinder extends Binder {
+        UploadService getService() {
+            // Return this instance of LocalService so clients can call public methods
+            return UploadService.this;
         }
     }
 
-    private void updateNotificationError() {
-        stopForeground(false);
-
-        notification.setContentTitle(notificationConfig.getTitle()).setContentText(notificationConfig.getError())
-                .setContentIntent(notificationConfig.getPendingIntent(this))
-                .setSmallIcon(notificationConfig.getIconResourceID()).setProgress(0, 0, false).setOngoing(false);
-
-        notificationManager.notify(UPLOAD_NOTIFICATION_ID_DONE, notification.build());
-    }
 }

@@ -1,4 +1,4 @@
-package com.alexbbb.uploadservice;
+package org.igarape.copcast.service.upload;
 
 /**
  * Static class containing string constants for the most common

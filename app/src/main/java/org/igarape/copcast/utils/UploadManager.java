@@ -5,11 +5,10 @@ import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.alexbbb.uploadservice.ContentType;
-import com.alexbbb.uploadservice.UploadRequest;
+import org.igarape.copcast.service.upload.ContentType;
+import org.igarape.copcast.service.upload.UploadRequest;
 import com.alexbbb.uploadservice.UploadService;
 
-import org.igarape.copcast.db.JsonDataContract;
 import org.igarape.copcast.db.JsonDataType;
 import org.igarape.copcast.views.MainActivity;
 import org.json.JSONArray;

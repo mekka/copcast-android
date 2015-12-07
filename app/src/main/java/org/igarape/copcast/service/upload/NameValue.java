@@ -1,4 +1,4 @@
-package com.alexbbb.uploadservice;
+package org.igarape.copcast.service.upload;
 
 import java.io.UnsupportedEncodingException;
 
