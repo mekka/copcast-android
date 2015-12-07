@@ -81,4 +81,8 @@
     <string name="registered_incident">Incidente Registrado</string>
     <string name="token_expired">Sua chave de acesso expirou. Por favor, realize novo login</string>
     <string name="invalid_token">Chave de acesso inválida. Por favor, realize novo login</string>
+    <string name="upload_state_not_charging">O dispositivo precisa estar carregando</string>
+    <string name="upload_denied">Envio negado</string>
+    <string name="upload_state_no_network">Rede de dados indisponível</string>
+    <string name="upload_state_wifi_required">É necessário estar conectado a uma rede wi-fi</string>
 </resources>

@@ -81,4 +81,8 @@
     <string name="registered_incident">Incident Registered</string>
     <string name="token_expired">Your token expired. Please log in</string>
     <string name="invalid_token">Invalid token. Please log in.</string>
+    <string name="upload_state_not_charging"> Device must be charging</string>
+    <string name="upload_state_no_network">No network available</string>
+    <string name="upload_denied">Upload denied</string>
+    <string name="upload_state_wifi_required">Wi-fi network required</string>
 </resources>

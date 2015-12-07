@@ -40,6 +40,8 @@ public class UploadManager {
     public static final String CANCEL_UPLOAD_ACTION = "org.igarape.copcast.CANCEL_UPLOAD";
     public static final String COMPLETED_UPLOAD_ACTION = "org.igarape.copcast.COMPLETED_UPLOAD";
     public static final String UPLOAD_FAILED_ACTION = "org.igarape.copcast.UPLOAD_FAILED_ACTION";
+    public static final String UPLOAD_ABORTED = "org.igarape.copcast.UPLOAD_ABORTED";
+
     private static final String TAG = UploadManager.class.getName();
 
     private final LocalBroadcastManager broadcaster;
@@ -184,13 +186,13 @@ public class UploadManager {
         // set the intent to perform when the user taps on the upload notification.
         // currently tested only with intents that launches an activity
         // if you comment this line, no action will be performed when the user taps on the notification
-        request.setNotificationClickIntent(new Intent(context, MainActivity.class));
+//        request.setNotificationClickIntent(new Intent(context, MainActivity.class));
 
         // set the maximum number of automatic upload retries on error
         request.setMaxRetries(2);
 
         try {
-            UploadService.startUpload(request);
+//            UploadService.startUpload(request);
 
             //add the file to hashmap to be deleted after upload
             //totFiles.put(request.getUploadId(), fileToUploadPath);

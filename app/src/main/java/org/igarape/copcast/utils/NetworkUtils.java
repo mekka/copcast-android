@@ -11,6 +11,7 @@ import android.os.Build;
 import android.util.Log;
 
 import org.apache.http.NameValuePair;
+import org.igarape.copcast.state.DeviceUploadState;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,6 +36,7 @@ import java.util.List;
 /**
  * Created by fcavalcanti on 31/10/2014.
  */
+
 public class NetworkUtils {
 
     private static final String TAG = NetworkUtils.class.getName();
@@ -103,17 +105,18 @@ public class NetworkUtils {
         return networkInfo != null && networkInfo.isConnected();
     }
 
-    public static boolean canUpload(Context context, Intent intent) {
+    public static DeviceUploadState checkUploadState(Context context) {
         ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
-        if (networkInfo == null || !networkInfo.isConnectedOrConnecting() || intent == null) {
-            return false;
+        if (networkInfo == null || !networkInfo.isConnectedOrConnecting()) {
+            return DeviceUploadState.NO_NETWORK;
         }
 
         boolean isWiFi = networkInfo.getType() == ConnectivityManager.TYPE_WIFI;
 
         IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        // intent is immediately returned, as ACTION_BATTERY_CHANGED is sticky.
         Intent batteryStatus = context.registerReceiver(null, iFilter);
 
         int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
@@ -121,7 +124,13 @@ public class NetworkUtils {
         boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
                 status == BatteryManager.BATTERY_STATUS_FULL;
 
-        return isCharging && (isWiFi || !Globals.isWifiOnly(context));
+        if (!isCharging)
+            return DeviceUploadState.NOT_CHARGING;
+
+        if (Globals.isWifiOnly(context) && !isWiFi)
+            return DeviceUploadState.WIFI_REQUIRED;
+
+        return DeviceUploadState.UPLOAD_OK;
     }
 
     public static void post(final Context context, boolean async, final String url, final List<NameValuePair> params, final File file, final HttpResponseCallback callback) {

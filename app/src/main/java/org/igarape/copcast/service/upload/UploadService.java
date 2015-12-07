@@ -2,15 +2,18 @@ package org.igarape.copcast.service.upload;
 
 import android.annotation.SuppressLint;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.os.PowerManager;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import org.igarape.copcast.R;
+import org.igarape.copcast.state.DeviceUploadState;
+import org.igarape.copcast.utils.DeviceUploadStatus;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.UploadManager;
 
@@ -85,7 +88,7 @@ public class UploadService extends Service {
 
     /**
      * Utility method that creates the intent that starts the background file upload service.
-      *
+     *
      * @param task object containing the upload request
      * @throws IllegalArgumentException if one or more arguments passed are invalid
      * @throws MalformedURLException    if the server URL is not valid
@@ -121,9 +124,9 @@ public class UploadService extends Service {
         shouldContinue = false;
     }
 
-    public UploadService() {
-        super(SERVICE_NAME);
-    }
+//    public UploadService() {
+//        super(SERVICE_NAME);
+//    }
 
 //    @Override
 //    public void onCreate() {
@@ -139,63 +142,93 @@ public class UploadService extends Service {
 //        wakeLock.release();
 //    }
 
-    @Nullable
     @Override
-    public IBinder onBind(Intent intent) {
+    public int onStartCommand(Intent intent, int flags, int startId) {
+
+        DeviceUploadState uploadState = NetworkUtils.checkUploadState(getApplicationContext());
+        if (uploadState != DeviceUploadState.UPLOAD_OK) {
+            String message = getString(R.string.upload_denied) + ". ";
+            switch (uploadState) {
+                case NOT_CHARGING:
+                    message += getString(R.string.upload_state_not_charging);
+                    break;
+                case NO_NETWORK:
+                    message += getString(R.string.upload_state_no_network);
+                    break;
+                case WIFI_REQUIRED:
+                    message += getString(R.string.upload_state_wifi_required);
+                    break;
+            }
+            message += ".";
+
+            broadcast(getApplicationContext(), (uploadState==DeviceUploadState.UPLOAD_OK), message);
+                    this.stopSelf();
+        }
+
         if (intent.hasExtra(INTENT_EXTRA_KEY)) {
             this.request = (UploadRequest) intent.getExtras().get(INTENT_EXTRA_KEY);
-            return mBinder;
+
+            try {
+                handleFileUpload(request.getServerUrl(), request.getMethod(), request.getFilesToUpload(), request.getHeaders(), request.getParameters(), request.getCustomUserAgent());
+            } catch (IOException e) {
+                Log.e(TAG, "Unable the handle upload request");
+                Log.d(TAG, e.toString());
+                this.stopSelf();
+                return null;
+            }
         } else {
             Log.w(TAG, "Intent for UploadService without UploadRequest in extras");
+            this.stopSelf();
             return null;
         }
     }
 
+    @Nullable
     @Override
-    protected void onHandleIntent(Intent intent) {
-        if (intent != null) {
-            if (!NetworkUtils.canUpload(getApplicationContext(), intent)) {
-                UploadManager.sendCancelToUI(LocalBroadcastManager.getInstance(getApplicationContext()));
-                this.stopSelf();
-                return;
-            }
-            final String action = intent.getAction();
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
 
-            if (getActionUpload().equals(action)) {
-                final String uploadId = intent.getStringExtra(PARAM_ID);
-                final String url = intent.getStringExtra(PARAM_URL);
-                final String method = intent.getStringExtra(PARAM_METHOD);
-                final String customUserAgent = intent.getStringExtra(PARAM_CUSTOM_USER_AGENT);
-                final int maxRetries = intent.getIntExtra(PARAM_MAX_RETRIES, 0);
-                final ArrayList<FileToUpload> files = intent.getParcelableArrayListExtra(PARAM_FILES);
-                final ArrayList<NameValue> headers = intent.getParcelableArrayListExtra(PARAM_REQUEST_HEADERS);
-                final ArrayList<NameValue> parameters = intent.getParcelableArrayListExtra(PARAM_REQUEST_PARAMETERS);
+    protected void handleIntent(UploadRequest request) {
+        if (!NetworkUtils.canUpload(getApplicationContext())) {
+            UploadManager.sendCancelToUI(LocalBroadcastManager.getInstance(getApplicationContext()));
+            this.stopSelf();
+            return;
+        }
+//        final String action = intent.getAction();
+//
+//        if (getActionUpload().equals(action)) {
+//            final String uploadId = intent.getStringExtra(PARAM_ID);
+//            final String url = intent.getStringExtra(PARAM_URL);
+//            final String method = intent.getStringExtra(PARAM_METHOD);
+//            final String customUserAgent = intent.getStringExtra(PARAM_CUSTOM_USER_AGENT);
+//            final int maxRetries = intent.getIntExtra(PARAM_MAX_RETRIES, 0);
+//            final ArrayList<FileToUpload> files = intent.getParcelableArrayListExtra(PARAM_FILES);
+//            final ArrayList<NameValue> headers = intent.getParcelableArrayListExtra(PARAM_REQUEST_HEADERS);
+//            final ArrayList<NameValue> parameters = intent.getParcelableArrayListExtra(PARAM_REQUEST_PARAMETERS);
 
-                shouldContinue = true;
-               // wakeLock.acquire();
-                int attempts = 0;
-                int errorDelay = 1000;
-                int maxErrorDelay = 10 * 60 * 1000;
+        shouldContinue = true;
+        int attempts = 0;
+        int errorDelay = 1000;
+        int maxErrorDelay = 10 * 60 * 1000;
 
-                while (attempts <= maxRetries && shouldContinue) {
-                    attempts++;
-                    try {
-                        handleFileUpload(uploadId, url, method, files, headers, parameters, customUserAgent);
-                        break;
-                    } catch (Exception exc) {
-                        if (attempts > maxRetries || !shouldContinue) {
-                            //broadcastError(uploadId, exc);
-                        } else {
-                            Log.w(getClass().getName(), "Error in uploadId " + uploadId + " on attempt " + attempts
-                                            + ". Waiting " + errorDelay / 1000 + "s before next attempt",
-                                    exc);
-                            SystemClock.sleep(errorDelay);
+        while (attempts <= request.getMaxRetries() && shouldContinue) {
+            attempts++;
+            try {
 
-                            errorDelay *= 10;
-                            if (errorDelay > maxErrorDelay) {
-                                errorDelay = maxErrorDelay;
-                            }
-                        }
+                break;
+            } catch (Exception exc) {
+                if (attempts > request.getMaxRetries() || !shouldContinue) {
+                    //broadcastError(uploadId, exc);
+                } else {
+                    Log.w(getClass().getName(), "Error in uploadId on attempt " + attempts
+                                    + ". Waiting " + errorDelay / 1000 + "s before next attempt",
+                            exc);
+                    SystemClock.sleep(errorDelay);
+
+                    errorDelay *= 10;
+                    if (errorDelay > maxErrorDelay) {
+                        errorDelay = maxErrorDelay;
                     }
                 }
             }
@@ -204,7 +237,7 @@ public class UploadService extends Service {
 
     @SuppressLint("NewApi")
     private void
-    handleFileUpload(final String uploadId, final String url, final String method,
+    handleFileUpload(final String url, final String method,
                      final ArrayList<FileToUpload> filesToUpload, final ArrayList<NameValue> requestHeaders,
                      final ArrayList<NameValue> requestParameters, final String customUserAgent)
             throws IOException {
@@ -247,7 +280,7 @@ public class UploadService extends Service {
             requestStream = conn.getOutputStream();
 
             setRequestParameters(requestStream, requestParameters, boundaryBytes);
-            uploadFiles(uploadId, requestStream, filesToUpload, boundaryBytes);
+            uploadFiles(requestStream, filesToUpload, boundaryBytes);
 
             requestStream.write(trailer, 0, trailer.length);
             try {
@@ -370,7 +403,7 @@ public class UploadService extends Service {
     }
 
     private void
-    uploadFiles(final String uploadId, final OutputStream requestStream,
+    uploadFiles(final OutputStream requestStream,
                 final ArrayList<FileToUpload> filesToUpload, final byte[] boundaryBytes)
             throws UnsupportedEncodingException,
             IOException,
@@ -459,5 +492,13 @@ public class UploadService extends Service {
             return UploadService.this;
         }
     }
+
+    public static void broadcast(Context context, final boolean successful, final String message) {
+        Intent intent = new UploadStatusIntent(action);
+        if (message != null || message.length() > 0)
+            intent.putExtra("message", message);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+    }
+
 
 }
