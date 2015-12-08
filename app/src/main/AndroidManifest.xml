@@ -67,15 +67,7 @@
 
         <service android:name=".service.StreamService" />
         <receiver android:name=".receiver.AlarmHeartBeatReceiver"/>
-        <service
-            tools:replace="android:exported"
-            android:name="com.alexbbb.uploadservice.UploadService"
-            android:enabled="true"
-            android:exported="false" >
-            <intent-filter>
-                <action android:name="org.igarape.copcast.uploadservice.action.upload"/>
-            </intent-filter>
-        </service>
+        <service android:name=".service.upload.UploadService" />
 
         <receiver
             android:name="com.google.android.gms.gcm.GcmReceiver"

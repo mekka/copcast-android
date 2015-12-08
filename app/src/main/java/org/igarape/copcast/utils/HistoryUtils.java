@@ -16,6 +16,11 @@ import java.util.TimeZone;
  * Created by brunosiqueira on 23/09/2014.
  */
 public class HistoryUtils {
+
+    interface HLogger {
+        public void log(String msg);
+    }
+
     private static final String TAG = HistoryUtils.class.getName();
 
     public static JSONObject buildJson(State currentState, State nextState, String extras) throws JSONException {
@@ -37,41 +42,44 @@ public class HistoryUtils {
 
         try {
             final JSONObject history = buildJson(currentState, nextState, extras);
+
+            final HLogger hlogger = new HLogger() {
+                public void log(String msg) {
+                    FileUtils.logTextFile(TextFileType.HISTORY, userLogin, history);
+                    Log.e(TAG, "History file upload: "+msg);
+
+                }
+            };
+
             NetworkUtils.post(context, "/histories", history, new HttpResponseCallback() {
                 @Override
                 public void unauthorized() {
-                    Log.e(TAG, "history not sent successfully");
-                    FileUtils.LogHistory(userLogin, history);
+                    hlogger.log("unauthorized");
                 }
 
                 @Override
                 public void failure(int statusCode) {
-                    Log.e(TAG, "history not sent successfully");
-                    FileUtils.LogHistory(userLogin, history);
+                    hlogger.log("failure");
                 }
 
                 @Override
                 public void noConnection() {
-                    Log.e(TAG, "history not sent successfully");
-                    FileUtils.LogHistory(userLogin, history);
+                    hlogger.log("no connection");
                 }
 
                 @Override
                 public void badConnection() {
-                    Log.e(TAG, "history not sent successfully");
-                    FileUtils.LogHistory(userLogin, history);
+                    hlogger.log("bad connection");
                 }
 
                 @Override
                 public void badRequest() {
-                    Log.e(TAG, "history not sent successfully");
-                    FileUtils.LogHistory(userLogin, history);
+                    hlogger.log("bad request");
                 }
 
                 @Override
                 public void badResponse() {
-                    Log.e(TAG, "history not sent successfully");
-                    FileUtils.LogHistory(userLogin, history);
+                    hlogger.log("bad response");
                 }
             });
 

@@ -1,187 +1,39 @@
 package org.igarape.copcast.service.upload;
 
-import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Binder;
+import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.IBinder;
-import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import org.igarape.copcast.R;
-import org.igarape.copcast.state.DeviceUploadState;
-import org.igarape.copcast.utils.DeviceUploadStatus;
+import org.igarape.copcast.state.DeviceUploadStatus;
 import org.igarape.copcast.utils.NetworkUtils;
-import org.igarape.copcast.utils.UploadManager;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.UUID;
 
-/**
- * Service to upload files as a multi-part form data in background using HTTP POST with notification center progress
- * display.
- *
- * @author alexbbb (Alex Gotev)
- * @author eliasnaur
- */
+
 public class UploadService extends Service {
 
-    private static final String SERVICE_NAME = UploadService.class.getName();
     private static final String TAG = "AndroidUploadService";
-    private static final String INTENT_EXTRA_KEY = "UploadService";
-
-    private final IBinder mBinder = new UploadBinder();
     private UploadRequest request;
 
-    private static final int UPLOAD_NOTIFICATION_ID = 1234; // Something unique
-    private static final int UPLOAD_NOTIFICATION_ID_DONE = 1235; // Something unique
-    private static final int BUFFER_SIZE = 4096;
-    private static final String NEW_LINE = "\r\n";
-    private static final String TWO_HYPHENS = "--";
 
-    public static String NAMESPACE = "com.alexbbb";
-
-    private static final String ACTION_UPLOAD_SUFFIX = ".uploadservice.action.upload";
-    protected static final String PARAM_NOTIFICATION_CONFIG = "notificationConfig";
-    protected static final String PARAM_ID = "id";
-    protected static final String PARAM_URL = "url";
-    protected static final String PARAM_METHOD = "method";
-    protected static final String PARAM_FILES = "files";
-    protected static final String PARAM_REQUEST_HEADERS = "requestHeaders";
-    protected static final String PARAM_REQUEST_PARAMETERS = "requestParameters";
-    protected static final String PARAM_CUSTOM_USER_AGENT = "customUserAgent";
-    protected static final String PARAM_MAX_RETRIES = "maxRetries";
-
+    public static final String PARAM_URL = "org.igarape.copcast.url";
+    public static final String PARAM_FILES = "org.igarape.copcast.to_upload_files";
+    public static final String PARAM_TOKEN = "org.igarape.copcast.token";
+    public static final String PARAM_MAX_RETRIES = "org.igarape.copcast.maxRetries";
     private static final String BROADCAST_ACTION_SUFFIX = ".uploadservice.broadcast.status";
-    public static final String UPLOAD_ID = "id";
-    public static final String STATUS = "status";
-    public static final int STATUS_IN_PROGRESS = 1;
-    public static final int STATUS_COMPLETED = 2;
-    public static final int STATUS_ERROR = 3;
-    public static final String PROGRESS = "progress";
-    public static final String ERROR_EXCEPTION = "errorException";
-    public static final String SERVER_RESPONSE_CODE = "serverResponseCode";
-    public static final String SERVER_RESPONSE_MESSAGE = "serverResponseMessage";
-
-    // indicates if the upload request should be continued
-    private static volatile boolean shouldContinue = true;
-
-    public static String getActionUpload() {
-        return NAMESPACE + ACTION_UPLOAD_SUFFIX;
-    }
-
-    public static String getActionBroadcast() {
-        return NAMESPACE + BROADCAST_ACTION_SUFFIX;
-    }
-
-    /**
-     * Utility method that creates the intent that starts the background file upload service.
-     *
-     * @param task object containing the upload request
-     * @throws IllegalArgumentException if one or more arguments passed are invalid
-     * @throws MalformedURLException    if the server URL is not valid
-     */
-    public static void startUpload(final UploadRequest task) throws IllegalArgumentException, MalformedURLException {
-
-        if (task == null) {
-            throw new IllegalArgumentException("Can't pass an empty task!");
-
-        } else {
-            task.validate();
-
-            final Intent intent = new Intent(task.getContext(), UploadService.class);
-
-            intent.setAction(getActionUpload());
-            intent.putExtra(PARAM_ID, task.getUploadId());
-            intent.putExtra(PARAM_URL, task.getServerUrl());
-            intent.putExtra(PARAM_METHOD, task.getMethod());
-            intent.putExtra(PARAM_CUSTOM_USER_AGENT, task.getCustomUserAgent());
-            intent.putExtra(PARAM_MAX_RETRIES, task.getMaxRetries());
-            intent.putParcelableArrayListExtra(PARAM_FILES, task.getFilesToUpload());
-            intent.putParcelableArrayListExtra(PARAM_REQUEST_HEADERS, task.getHeaders());
-            intent.putParcelableArrayListExtra(PARAM_REQUEST_PARAMETERS, task.getParameters());
-
-            task.getContext().startService(intent);
-        }
-    }
-
-    /**
-     * Stops the currently active upload task.
-     */
-    public static void stopCurrentUpload() {
-        shouldContinue = false;
-    }
-
-//    public UploadService() {
-//        super(SERVICE_NAME);
-//    }
-
-//    @Override
-//    public void onCreate() {
-//        super.onCreate();
-//
-//        PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-//      //  wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
-//    }
-
-//    @Override
-//    public void onDestroy() {
-//        super.onDestroy();
-//        wakeLock.release();
-//    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-
-        DeviceUploadState uploadState = NetworkUtils.checkUploadState(getApplicationContext());
-        if (uploadState != DeviceUploadState.UPLOAD_OK) {
-            String message = getString(R.string.upload_denied) + ". ";
-            switch (uploadState) {
-                case NOT_CHARGING:
-                    message += getString(R.string.upload_state_not_charging);
-                    break;
-                case NO_NETWORK:
-                    message += getString(R.string.upload_state_no_network);
-                    break;
-                case WIFI_REQUIRED:
-                    message += getString(R.string.upload_state_wifi_required);
-                    break;
-            }
-            message += ".";
-
-            broadcast(getApplicationContext(), (uploadState==DeviceUploadState.UPLOAD_OK), message);
-                    this.stopSelf();
-        }
-
-        if (intent.hasExtra(INTENT_EXTRA_KEY)) {
-            this.request = (UploadRequest) intent.getExtras().get(INTENT_EXTRA_KEY);
-
-            try {
-                handleFileUpload(request.getServerUrl(), request.getMethod(), request.getFilesToUpload(), request.getHeaders(), request.getParameters(), request.getCustomUserAgent());
-            } catch (IOException e) {
-                Log.e(TAG, "Unable the handle upload request");
-                Log.d(TAG, e.toString());
-                this.stopSelf();
-                return null;
-            }
-        } else {
-            Log.w(TAG, "Intent for UploadService without UploadRequest in extras");
-            this.stopSelf();
-            return null;
-        }
-    }
 
     @Nullable
     @Override
@@ -189,316 +41,89 @@ public class UploadService extends Service {
         return null;
     }
 
-    protected void handleIntent(UploadRequest request) {
-        if (!NetworkUtils.canUpload(getApplicationContext())) {
-            UploadManager.sendCancelToUI(LocalBroadcastManager.getInstance(getApplicationContext()));
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+
+        Log.d(TAG, "UPLOAD Service STARTED!");
+
+        DeviceUploadStatus uploadState = NetworkUtils.checkUploadState(getApplicationContext());
+        if (uploadState != DeviceUploadStatus.UPLOAD_OK) {
+//            String message = getString(R.string.upload_denied) + ". ";
+//            switch (uploadState) {
+//                case NOT_CHARGING:
+//                    message += getString(R.string.upload_state_not_charging);
+//                    break;
+//                case NO_NETWORK:
+//                    message += getString(R.string.upload_state_no_network);
+//                    break;
+//                case WIFI_REQUIRED:
+//                    message += getString(R.string.upload_state_wifi_required);
+//                    break;
+//            }
+//            message += ".";
+
+            broadcast(getApplicationContext(), uploadState, null);
             this.stopSelf();
-            return;
+            return START_NOT_STICKY;
         }
-//        final String action = intent.getAction();
-//
-//        if (getActionUpload().equals(action)) {
-//            final String uploadId = intent.getStringExtra(PARAM_ID);
-//            final String url = intent.getStringExtra(PARAM_URL);
-//            final String method = intent.getStringExtra(PARAM_METHOD);
-//            final String customUserAgent = intent.getStringExtra(PARAM_CUSTOM_USER_AGENT);
-//            final int maxRetries = intent.getIntExtra(PARAM_MAX_RETRIES, 0);
-//            final ArrayList<FileToUpload> files = intent.getParcelableArrayListExtra(PARAM_FILES);
-//            final ArrayList<NameValue> headers = intent.getParcelableArrayListExtra(PARAM_REQUEST_HEADERS);
-//            final ArrayList<NameValue> parameters = intent.getParcelableArrayListExtra(PARAM_REQUEST_PARAMETERS);
 
-        shouldContinue = true;
-        int attempts = 0;
-        int errorDelay = 1000;
-        int maxErrorDelay = 10 * 60 * 1000;
+        Bundle b = intent.getExtras();
 
-        while (attempts <= request.getMaxRetries() && shouldContinue) {
-            attempts++;
-            try {
+        final ArrayList<FileToUpload> files = b.getParcelableArrayList(PARAM_FILES);
+        if (files != null)
+            Log.e(TAG, ">>"+files.size());
+        else
+            Log.e(TAG, "Empty files");
 
-                break;
-            } catch (Exception exc) {
-                if (attempts > request.getMaxRetries() || !shouldContinue) {
-                    //broadcastError(uploadId, exc);
-                } else {
-                    Log.w(getClass().getName(), "Error in uploadId on attempt " + attempts
-                                    + ". Waiting " + errorDelay / 1000 + "s before next attempt",
-                            exc);
-                    SystemClock.sleep(errorDelay);
+        request = new UploadRequest(getApplicationContext(), UUID.randomUUID().toString());
+        request.setMaxRetries(intent.getIntExtra(PARAM_MAX_RETRIES, 0));
+        request.setMethod("POST");
+        request.addHeader("Authorization", intent.getStringExtra(PARAM_TOKEN));
+        request.setFilesToUpload(files);
 
-                    errorDelay *= 10;
-                    if (errorDelay > maxErrorDelay) {
-                        errorDelay = maxErrorDelay;
-                    }
+        if (request.getFilesToUpload() == null) {
+            Log.w(TAG, "no uploads. exiting.");
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+
+        Log.d(TAG, request.toString());
+
+        new runUpload().execute();
+
+        return START_NOT_STICKY;
+    }
+
+    class runUpload extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... flags) {
+            ArrayList<String> copied = new ArrayList<>();
+            int num_files = request.getFilesToUpload().size();
+
+            for (int i=0; i<num_files; i++) {
+                FileToUpload fileToUpload = request.getFilesToUpload().get(i);
+                String returnmsg = "File failed: ";
+                if (VideoUploader.uploadSingleFile(request.getMethod(), fileToUpload, request.getHeaders(), (num_files==i+1), request.getCustomUserAgent())) {
+                    copied.add(fileToUpload.getFileName());
+                    returnmsg = "File uploaded: ";
                 }
+                Log.d(TAG, returnmsg+fileToUpload.getFileName());
             }
+            Log.d(TAG, "Files uploaded: "+copied.size());
+            stopSelf();
+            return null;
         }
     }
 
-    @SuppressLint("NewApi")
-    private void
-    handleFileUpload(final String url, final String method,
-                     final ArrayList<FileToUpload> filesToUpload, final ArrayList<NameValue> requestHeaders,
-                     final ArrayList<NameValue> requestParameters, final String customUserAgent)
-            throws IOException {
+    public static void broadcast(Context context, final DeviceUploadStatus status, final Integer percentCompleted) {
+        Intent intent = new UploadStatusIntent();
 
+        intent.putExtra("status", status);
 
-        final String boundary = getBoundary();
-        final byte[] boundaryBytes = getBoundaryBytes(boundary);
+        if (status == DeviceUploadStatus.UPLOAD_RUNNING && percentCompleted != null)
+            intent.putExtra("percentCompleted", percentCompleted);
 
-        HttpURLConnection conn = null;
-        OutputStream requestStream = null;
-        InputStream responseStream = null;
-
-        try {
-            // get the content length of the entire HTTP/Multipart request body
-            long parameterBytes = getRequestParametersBytes(requestParameters, boundaryBytes.length);
-            final long totalFileBytes = getFileBytes(filesToUpload, boundaryBytes.length);
-            final byte[] trailer = getTrailerBytes(boundary);
-            final long bodyLength = parameterBytes + totalFileBytes + trailer.length;
-
-            if (android.os.Build.VERSION.SDK_INT < 19 && bodyLength > Integer.MAX_VALUE)
-                throw new IOException("You need Android API version 19 or newer to "
-                        + "upload more than 2GB in a single request using "
-                        + "fixed size content length. Try switching to "
-                        + "chunked mode instead, but make sure your server side supports it!");
-
-            conn = getMultipartHttpURLConnection(url, method, boundary, filesToUpload.size());
-
-            if (customUserAgent != null && !customUserAgent.equals("")) {
-                requestHeaders.add(new NameValue("User-Agent", customUserAgent));
-            }
-
-            setRequestHeaders(conn, requestHeaders);
-
-            if (android.os.Build.VERSION.SDK_INT >= 19) {
-                conn.setFixedLengthStreamingMode(bodyLength);
-            } else {
-                conn.setFixedLengthStreamingMode((int) bodyLength);
-            }
-
-            requestStream = conn.getOutputStream();
-
-            setRequestParameters(requestStream, requestParameters, boundaryBytes);
-            uploadFiles(requestStream, filesToUpload, boundaryBytes);
-
-            requestStream.write(trailer, 0, trailer.length);
-            try {
-                final int serverResponseCode = conn.getResponseCode();
-                if (serverResponseCode / 100 == 2) {
-                    UploadManager.sendUpdateToUI(getApplicationContext(), LocalBroadcastManager.getInstance(getApplicationContext()), totalFileBytes);
-                } else { // getErrorStream if the response code is not 2xx
-                    UploadManager.sendFailedToUI(LocalBroadcastManager.getInstance(getApplicationContext()));
-                }
-            } catch(Exception e){
-                Log.e(TAG, "error receiving code status", e);
-                UploadManager.sendFailedToUI(LocalBroadcastManager.getInstance(getApplicationContext()));
-            }
-
-        } finally {
-            closeOutputStream(requestStream);
-            closeInputStream(responseStream);
-            closeConnection(conn);
-        }
-    }
-
-    private String getResponseBodyAsString(final InputStream inputStream) {
-        StringBuilder outString = new StringBuilder();
-
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new InputStreamReader(inputStream));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                outString.append(line);
-            }
-        } catch (Exception exc) {
-            try {
-                if (reader != null)
-                    reader.close();
-            } catch (Exception readerExc) {
-            }
-        }
-
-        return outString.toString();
-    }
-
-    private String getBoundary() {
-        final StringBuilder builder = new StringBuilder();
-
-        builder.append("---------------------------").append(System.currentTimeMillis());
-
-        return builder.toString();
-    }
-
-    private byte[] getBoundaryBytes(final String boundary) throws UnsupportedEncodingException {
-        final StringBuilder builder = new StringBuilder();
-
-        builder.append(NEW_LINE).append(TWO_HYPHENS).append(boundary).append(NEW_LINE);
-
-        return builder.toString().getBytes("US-ASCII");
-    }
-
-    private byte[] getTrailerBytes(final String boundary) throws UnsupportedEncodingException {
-        final StringBuilder builder = new StringBuilder();
-
-        builder.append(NEW_LINE).append(TWO_HYPHENS).append(boundary).append(TWO_HYPHENS).append(NEW_LINE);
-
-        return builder.toString().getBytes("US-ASCII");
-    }
-
-    private HttpURLConnection getMultipartHttpURLConnection(final String url, final String method,
-                                                            final String boundary, int totalFiles) throws IOException {
-        final HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-
-        conn.setDoInput(true);
-        conn.setDoOutput(true);
-        conn.setUseCaches(false);
-        conn.setRequestMethod(method);
-        if (totalFiles <= 1) {
-            conn.setRequestProperty("Connection", "close");
-        } else {
-            conn.setRequestProperty("Connection", "Keep-Alive");
-        }
-        conn.setRequestProperty("ENCTYPE", "multipart/form-data");
-        conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
-
-        return conn;
-    }
-
-    private void setRequestHeaders(final HttpURLConnection conn, final ArrayList<NameValue> requestHeaders) {
-        if (!requestHeaders.isEmpty()) {
-            for (final NameValue param : requestHeaders) {
-                conn.setRequestProperty(param.getName(), param.getValue());
-            }
-        }
-    }
-
-    private void setRequestParameters(final OutputStream requestStream, final ArrayList<NameValue> requestParameters,
-                                      final byte[] boundaryBytes) throws IOException, UnsupportedEncodingException {
-        if (!requestParameters.isEmpty()) {
-
-            for (final NameValue parameter : requestParameters) {
-                requestStream.write(boundaryBytes, 0, boundaryBytes.length);
-                byte[] formItemBytes = parameter.getBytes();
-                requestStream.write(formItemBytes, 0, formItemBytes.length);
-            }
-        }
-    }
-
-    private long
-    getRequestParametersBytes(final ArrayList<NameValue> requestParameters, final long boundaryBytesLength)
-            throws UnsupportedEncodingException {
-        long parametersBytes = 0;
-
-        if (!requestParameters.isEmpty()) {
-            for (final NameValue parameter : requestParameters) {
-                // the bytes needed for every parameter are the sum of the boundary bytes
-                // and the bytes occupied by the parameter. Check setRequestParameters method
-                parametersBytes += boundaryBytesLength + parameter.getBytes().length;
-            }
-        }
-
-        return parametersBytes;
-    }
-
-    private void
-    uploadFiles(final OutputStream requestStream,
-                final ArrayList<FileToUpload> filesToUpload, final byte[] boundaryBytes)
-            throws UnsupportedEncodingException,
-            IOException,
-            FileNotFoundException {
-
-        final long totalBytes = getTotalBytes(filesToUpload);
-        long uploadedBytes = 0;
-
-        for (FileToUpload file : filesToUpload) {
-            if (!shouldContinue)
-                continue;
-
-            requestStream.write(boundaryBytes, 0, boundaryBytes.length);
-            byte[] headerBytes = file.getMultipartHeader();
-            requestStream.write(headerBytes, 0, headerBytes.length);
-
-            final InputStream stream = file.getStream();
-            byte[] buffer = new byte[BUFFER_SIZE];
-            int bytesRead;
-
-            try {
-                while ((bytesRead = stream.read(buffer, 0, buffer.length)) > 0 && shouldContinue) {
-                    requestStream.write(buffer, 0, bytesRead);
-                    uploadedBytes += bytesRead;
-                    //broadcastProgress(uploadId, uploadedBytes, totalBytes);
-                }
-            } finally {
-                closeInputStream(stream);
-            }
-        }
-    }
-
-    private long getTotalBytes(final ArrayList<FileToUpload> filesToUpload) {
-        long total = 0;
-
-        for (FileToUpload file : filesToUpload) {
-            total += file.length();
-        }
-
-        return total;
-    }
-
-    private long
-    getFileBytes(final ArrayList<FileToUpload> filesToUpload, long boundaryBytesLength)
-            throws UnsupportedEncodingException {
-        long total = 0;
-
-        for (FileToUpload file : filesToUpload) {
-            total += file.getTotalMultipartBytes(boundaryBytesLength);
-        }
-
-        return total;
-    }
-
-    private void closeInputStream(final InputStream stream) {
-        if (stream != null) {
-            try {
-                stream.close();
-            } catch (Exception exc) {
-            }
-        }
-    }
-
-    private void closeOutputStream(final OutputStream stream) {
-        if (stream != null) {
-            try {
-                stream.flush();
-                stream.close();
-            } catch (Exception exc) {
-            }
-        }
-    }
-
-    private void closeConnection(final HttpURLConnection connection) {
-        if (connection != null) {
-            try {
-                connection.disconnect();
-            } catch (Exception exc) {
-            }
-        }
-    }
-
-    public class UploadBinder extends Binder {
-        UploadService getService() {
-            // Return this instance of LocalService so clients can call public methods
-            return UploadService.this;
-        }
-    }
-
-    public static void broadcast(Context context, final boolean successful, final String message) {
-        Intent intent = new UploadStatusIntent(action);
-        if (message != null || message.length() > 0)
-            intent.putExtra("message", message);
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
-
-
 }

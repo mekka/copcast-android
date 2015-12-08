@@ -3,12 +3,8 @@ package org.igarape.copcast.utils;
 import android.content.Context;
 import android.util.Log;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
 
 /**
  * Created by brunosiqueira on 13/10/15.
@@ -16,7 +12,20 @@ import java.util.ArrayList;
 public class HeartBeatUtils {
     private static final String TAG = HeartBeatUtils.class.getName();
 
+    interface HBLogger {
+        public void log();
+    }
+
     public static void sendHeartBeat(Context context, final String login, final JSONObject locationJson, final JSONObject batteryJson){
+
+        final HBLogger hblogger = new HBLogger() {
+            public void log() {
+                if (batteryJson != null) {
+                    FileUtils.logTextFile(TextFileType.BATTERY, login, batteryJson);
+                }
+                FileUtils.logTextFile(TextFileType.LOCATIONS, login, locationJson);
+            }
+        };
 
         try {
             JSONObject json = new JSONObject();
@@ -27,50 +36,33 @@ public class HeartBeatUtils {
             NetworkUtils.post(context, "/heartbeats", json, new HttpResponseCallback() {
                 @Override
                 public void unauthorized() {
-                    if (batteryJson != null) {
-                        FileUtils.logBattery(login, batteryJson);
-                    }
-                    FileUtils.logLocation(login, locationJson);
+                    hblogger.log();
                 }
+
 
                 @Override
                 public void failure(int statusCode) {
-                    if (batteryJson != null) {
-                        FileUtils.logBattery(login, batteryJson);
-                    }
-                    FileUtils.logLocation(login, locationJson);
+                    hblogger.log();
                 }
 
                 @Override
                 public void noConnection() {
-                    if (batteryJson != null) {
-                        FileUtils.logBattery(login, batteryJson);
-                    }
-                    FileUtils.logLocation(login, locationJson);
+                    hblogger.log();
                 }
 
                 @Override
                 public void badConnection() {
-                    if (batteryJson != null) {
-                        FileUtils.logBattery(login, batteryJson);
-                    }
-                    FileUtils.logLocation(login, locationJson);
+                    hblogger.log();
                 }
 
                 @Override
                 public void badRequest() {
-                    if (batteryJson != null) {
-                        FileUtils.logBattery(login, batteryJson);
-                    }
-                    FileUtils.logLocation(login, locationJson);
+                    hblogger.log();
                 }
 
                 @Override
                 public void badResponse() {
-                    if (batteryJson != null) {
-                        FileUtils.logBattery(login, batteryJson);
-                    }
-                    FileUtils.logLocation(login, locationJson);
+                    hblogger.log();
                 }
             });
         } catch (JSONException e) {
@@ -78,4 +70,5 @@ public class HeartBeatUtils {
         }
 
     }
+
 }

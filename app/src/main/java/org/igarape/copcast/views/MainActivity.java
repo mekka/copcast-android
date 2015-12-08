@@ -35,8 +35,6 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.alexbbb.uploadservice.UploadService;
-
 import org.igarape.copcast.R;
 import org.igarape.copcast.receiver.AlarmHeartBeatReceiver;
 import org.igarape.copcast.receiver.BatteryReceiver;
@@ -44,6 +42,8 @@ import org.igarape.copcast.service.CopcastGcmListenerService;
 import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.service.StreamService;
 import org.igarape.copcast.service.VideoRecorderService;
+import org.igarape.copcast.service.upload.UploadService;
+import org.igarape.copcast.state.DeviceUploadStatus;
 import org.igarape.copcast.state.IncidentFlagState;
 import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.FileUtils;
@@ -134,14 +134,14 @@ public class MainActivity extends Activity {
                 }
                 else if (intent.getAction().equals(UploadManager.UPLOAD_FAILED_ACTION)) {
                     if (uploadManager != null) {
-                        uploadManager.runUpload();
+//                        uploadManager.runUpload();
                     }
                 }
                 else if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
                     updateProgressBar();
                     if (uploadManager != null) {
-                        uploadManager.deleteVideoFile();
-                        uploadManager.runUpload();
+//                        uploadManager.deleteVideoFile();
+//                        uploadManager.runUpload();
                     }
 
                 } else if (intent.getAction().equals(CopcastGcmListenerService.START_STREAMING_ACTION)) {
@@ -344,13 +344,13 @@ public class MainActivity extends Activity {
         ((Button) findViewById(R.id.uploadButton)).setOnClickListener(new View.OnClickListener() {
                                                                           @Override
                                                                           public void onClick(View view) {
-                                                                              if (NetworkUtils.canUpload(getApplicationContext(), getIntent())) {
+                                                                              if (NetworkUtils.checkUploadState(getApplicationContext()) == DeviceUploadStatus.UPLOAD_OK) {
                                                                                   findViewById(R.id.uploadLayout).setVisibility(View.GONE);
                                                                                   findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
                                                                                   findViewById(R.id.streamLayout).setVisibility(View.GONE);
 
                                                                                   uploadManager = new UploadManager(getApplicationContext());
-                                                                                  uploadManager.runUpload();
+                                                                                  uploadManager.runUpload(getApplicationContext());
 
                                                                                   HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this), null);
                                                                                   updateProgressBar();

@@ -3,11 +3,25 @@ package org.igarape.copcast.db;
 /**
  * Created by martelli on 10/21/15.
  */
-public interface JsonDataType {
+public enum JsonDataType {
 
-    String TYPE_INCIDENT_FLAG = "INCIDENT_FLAG";
-    String TYPE_FLAGGED_VIDEO = "FLAGGED_VIDEO";
-    String TYPE_BATTERY_STATUS = "BATERRY_STATUS";
-    String TYPE_LOCATION_INFO = "LOCATION_INFO";
+    TYPE_INCIDENT_FLAG("INCIDENT_FLAG", "/incidents"),
+    TYPE_FLAGGED_VIDEO("FLAGGED_VIDEO", "/incidents"),
+    TYPE_BATTERY_STATUS("BATERRY_STATUS", "/batteries"),
+    TYPE_LOCATION_INFO("LOCATION_INFO", "/locations");
 
+    private final String type;
+    private final String url;
+    JsonDataType(String type, String url) {
+        this.type = type;
+        this.url = url;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getUrl() {
+        return url;
+    }
 }

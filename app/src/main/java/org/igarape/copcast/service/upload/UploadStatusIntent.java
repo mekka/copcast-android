@@ -7,6 +7,10 @@ import android.content.Intent;
  */
 public class UploadStatusIntent extends Intent {
 
+    public UploadStatusIntent() {
+        super();
+    }
+
     public UploadStatusIntent(String action) {
         super(action);
     }

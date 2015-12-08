@@ -16,7 +16,7 @@ import android.os.Parcelable;
  * @author eliasnaur
  * 
  */
-class FileToUpload implements Parcelable {
+public class FileToUpload implements Parcelable {
 
     private static final String NEW_LINE = "\r\n";
 
@@ -24,6 +24,7 @@ class FileToUpload implements Parcelable {
     private final String fileName;
     private final String paramName;
     private String contentType;
+    public String url;
 
     /**
      * Create a new {@link FileToUpload} object.
@@ -32,10 +33,11 @@ class FileToUpload implements Parcelable {
      * @param parameterName parameter name to use in the multipart form
      * @param contentType content type of the file to send
      */
-    public FileToUpload(final String path, final String parameterName, final String fileName, final String contentType) {
+    public FileToUpload(final String url, final String path, final String parameterName, final String fileName, final String contentType) {
         this.file = new File(path);
         this.paramName = parameterName;
         this.contentType = contentType;
+        this.url = url;
 
         if (fileName == null || "".equals(fileName)) {
             this.fileName = this.file.getName();
@@ -105,6 +107,7 @@ class FileToUpload implements Parcelable {
         parcel.writeString(paramName);
         parcel.writeString(contentType);
         parcel.writeString(fileName);
+        parcel.writeString(url);
     }
 
     private FileToUpload(Parcel in) {
@@ -112,5 +115,18 @@ class FileToUpload implements Parcelable {
         paramName = in.readString();
         contentType = in.readString();
         fileName = in.readString();
+        url = in.readString();
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 }

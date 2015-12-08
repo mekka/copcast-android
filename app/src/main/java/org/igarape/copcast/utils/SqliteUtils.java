@@ -29,23 +29,23 @@ public class SqliteUtils {
         return dbHelper.getWritableDatabase();
     }
 
-    public static void storeToDb(Context context, String user, String type, String value) {
+    public static void storeToDb(Context context, String user, JsonDataType type, String value) {
         long newRowId;
 
         SQLiteDatabase db = SqliteUtils.getWriteDb(context);
 
         ContentValues values = new ContentValues();
         values.put(JsonDataEntry.COLUMN_USER, user);
-        values.put(JsonDataEntry.COLUMN_TYPE, type);
+        values.put(JsonDataEntry.COLUMN_TYPE, type.getType());
         values.put(JsonDataEntry.COLUMN_DATA, value);
 
         newRowId = db.insert(JsonDataEntry.TABLE_NAME, null, values);
 
-        Log.d(TAG, "INSERTED "+value+" OF TYPE "+type+" FOR USER "+user+" WITH ID "+newRowId);
+        Log.d(TAG, "INSERTED "+value+" OF TYPE "+type.getType()+" FOR USER "+user+" WITH ID "+newRowId);
         db.close();
     }
 
-    public static void storeToDb(Context context, String user, String type, JSONObject obj) {
+    public static void storeToDb(Context context, String user, JsonDataType type, JSONObject obj) {
         storeToDb(context, user, type, obj.toString());
     }
 
@@ -58,7 +58,7 @@ public class SqliteUtils {
         db.close();
     }
 
-    public static JSONArray getFromDb(Context context, String user, String type) throws JSONException {
+    public static JSONArray getFromDb(Context context, String user, JsonDataType type) throws JSONException {
         SQLiteDatabase db = SqliteUtils.getReadDb(context);
 
         String[] projection = {
@@ -70,7 +70,7 @@ public class SqliteUtils {
                 projection,
                 JsonDataEntry.COLUMN_USER+"=? AND " +
                         JsonDataEntry.COLUMN_TYPE+"=?",
-                new String[] {user, type},
+                new String[] {user, type.getType()},
                 null,
                 null,
                 JsonDataEntry.COLUMN_TIMESTAMP+" DESC"

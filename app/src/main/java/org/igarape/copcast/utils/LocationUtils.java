@@ -44,36 +44,45 @@ public class LocationUtils {
     private static final String TAG = LocationUtils.class.getName();
     public static final float SMALLEST_DISPLACEMENT = 0;
 
+    private static void logLocation(String login, Location location) {
+        try {
+            FileUtils.logTextFile(TextFileType.LOCATIONS, login, LocationUtils.buildJson(location));
+        } catch (JSONException e) {
+            Log.e(TAG, "Unable to persist unsent location");
+            Log.d(TAG, e.toString());
+        }
+    }
+
     public static void sendLocation(Context context, final String login, final Location location) {
         HttpResponseCallback callback = new HttpResponseCallback() {
             @Override
             public void failure(int statusCode) {
-                FileUtils.logLocation(login, location);
+                logLocation(login, location);
             }
 
             @Override
             public void unauthorized() {
-                FileUtils.logLocation(login, location);
+                logLocation(login, location);
             }
 
             @Override
             public void noConnection() {
-                FileUtils.logLocation(login, location);
+                logLocation(login, location);
             }
 
             @Override
             public void badConnection() {
-                FileUtils.logLocation(login, location);
+                logLocation(login, location);
             }
 
             @Override
             public void badRequest() {
-                FileUtils.logLocation(login, location);
+                logLocation(login, location);
             }
 
             @Override
             public void badResponse() {
-                FileUtils.logLocation(login, location);
+                logLocation(login, location);
             }
 
             @Override

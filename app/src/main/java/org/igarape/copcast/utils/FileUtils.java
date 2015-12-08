@@ -1,23 +1,15 @@
 package org.igarape.copcast.utils;
 
 import android.content.Context;
-import android.location.Location;
 import android.os.Environment;
 import android.util.Log;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,56 +40,43 @@ public class FileUtils {
         FileUtils.path = path;
     }
 
-    public static void logLocation(String userLogin, Location location) {
-        try {
-            logLocation(userLogin, LocationUtils.buildJson(location));
-        } catch (JSONException e) {
-            Log.e(TAG, "error recording location in file", e);
+//    public static void logLocation(String userLogin, Location location) {
+//        try {
+//            logLocation(userLogin, LocationUtils.buildJson(location));
+//        } catch (JSONException e) {
+//            Log.e(TAG, "error recording location in file", e);
+//
+//        }
+//    }
 
-        }
-    }
-
-    public static void LogIncident(String userLogin, JSONObject incident) {
-        LogToFile(userLogin, INCIDENTS_TXT, incident.toString());
-    }
-
-    public static void logLocation(String userLogin, JSONObject locationJson) {
-            LogToFile(userLogin, LOCATIONS_TXT, locationJson.toString());
-    }
-
-    public static void LogHistory(String userLogin, JSONObject history) {
-        LogToFile(userLogin, HISTORY_TXT, history.toString());
-    }
-
-    public static String getHistoriesFilePath(String userLogin) {
-        String userPath = getUserPath(userLogin);
-
-        return userPath + HISTORY_TXT;
-    }
-
-    public static String getLocationsFilePath(String userLogin) {
-        return getUserPath(userLogin) + LOCATIONS_TXT;
-    }
-
-    public static String getIncidentsFilePath(String userLogin) {
-        return getUserPath(userLogin) + INCIDENTS_TXT;
-    }
-
-    private static void LogToFile(String userLogin, String file, String data) {
-        String userPath = getUserPath(userLogin);
-        try {
-            FileWriter writer = new FileWriter(userPath + file, true);
-            writer.write(data + "\n");
-            writer.close();
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage());
-        }
-    }
+//    public static void LogIncident(String userLogin, JSONObject incident) {
+//        LogToFile(userLogin, INCIDENTS_TXT, incident.toString());
+//    }
+//
+//    public static void logLocation(String userLogin, JSONObject locationJson) {
+//            LogToFile(userLogin, LOCATIONS_TXT, locationJson.toString());
+//    }
+//
+//    public static void LogHistory(String userLogin, JSONObject history) {
+//        LogToFile(userLogin, HISTORY_TXT, history.toString());
+//    }
+//
+//    public static String getHistoriesFilePath(String userLogin) {
+//        String userPath = getUserPath(userLogin);
+//
+//        return userPath + HISTORY_TXT;
+//    }
+//
+//    public static String getLocationsFilePath(String userLogin) {
+//        return getUserPath(userLogin) + LOCATIONS_TXT;
+//    }
+//
+//    public static String getIncidentsFilePath(String userLogin) {
+//        return getUserPath(userLogin) + INCIDENTS_TXT;
+//    }
 
     private static String getUserPath(String userLogin) {
         String userPath = path + userLogin + File.separator;
-        //String userPath = path;
-
 
         File f = new File(userPath);
         if (!f.exists()) {
@@ -178,12 +157,35 @@ public class FileUtils {
         return videoList;
     }
 
-    public static void logBattery(String login, JSONObject batteryJson) {
-        LogToFile(login, BATTERY_TXT, batteryJson.toString());
+//    public static void logBattery(String login, JSONObject batteryJson) {
+//        LogToFile(login, BATTERY_TXT, batteryJson.toString());
+//    }
+//
+//    public static String getBatteriesFilePath(String userLogin) {
+//        return getUserPath(userLogin) + BATTERY_TXT;
+//    }
+
+
+
+
+
+    private static void LogToFile(String userLogin, String file, String data) {
+        String userPath = getUserPath(userLogin);
+        try {
+            FileWriter writer = new FileWriter(userPath + file, true);
+            writer.write(data + "\n");
+            writer.close();
+        } catch (IOException e) {
+            Log.e(TAG, e.getMessage());
+        }
     }
 
-    public static String getBatteriesFilePath(String userLogin) {
-        return getUserPath(userLogin) + BATTERY_TXT;
+    public static void logTextFile(TextFileType textFileType, String login, JSONObject dataJson) {
+        LogToFile(login, textFileType.getName(), dataJson.toString());
+    }
 
+
+    public static String getTextFilePath(TextFileType text, String userLogin) {
+        return getUserPath(userLogin) + text.getName();
     }
 }

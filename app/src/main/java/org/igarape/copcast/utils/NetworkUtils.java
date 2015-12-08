@@ -11,7 +11,7 @@ import android.os.Build;
 import android.util.Log;
 
 import org.apache.http.NameValuePair;
-import org.igarape.copcast.state.DeviceUploadState;
+import org.igarape.copcast.state.DeviceUploadStatus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -105,12 +105,12 @@ public class NetworkUtils {
         return networkInfo != null && networkInfo.isConnected();
     }
 
-    public static DeviceUploadState checkUploadState(Context context) {
+    public static DeviceUploadStatus checkUploadState(Context context) {
         ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
         if (networkInfo == null || !networkInfo.isConnectedOrConnecting()) {
-            return DeviceUploadState.NO_NETWORK;
+            return DeviceUploadStatus.NO_NETWORK;
         }
 
         boolean isWiFi = networkInfo.getType() == ConnectivityManager.TYPE_WIFI;
@@ -125,12 +125,12 @@ public class NetworkUtils {
                 status == BatteryManager.BATTERY_STATUS_FULL;
 
         if (!isCharging)
-            return DeviceUploadState.NOT_CHARGING;
+            return DeviceUploadStatus.NOT_CHARGING;
 
         if (Globals.isWifiOnly(context) && !isWiFi)
-            return DeviceUploadState.WIFI_REQUIRED;
+            return DeviceUploadStatus.WIFI_REQUIRED;
 
-        return DeviceUploadState.UPLOAD_OK;
+        return DeviceUploadStatus.UPLOAD_OK;
     }
 
     public static void post(final Context context, boolean async, final String url, final List<NameValuePair> params, final File file, final HttpResponseCallback callback) {

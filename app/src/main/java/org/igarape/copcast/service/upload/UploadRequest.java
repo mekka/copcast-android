@@ -1,12 +1,11 @@
 package org.igarape.copcast.service.upload;
 
+import android.content.Context;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-
-import android.content.Context;
-import android.content.Intent;
 
 /**
  * Represents an upload request.
@@ -22,8 +21,7 @@ public class UploadRequest {
     private String customUserAgent;
     private int maxRetries;
     private final String uploadId;
-    private final String url;
-    private final ArrayList<FileToUpload> filesToUpload;
+    private ArrayList<FileToUpload> filesToUpload;
     private final ArrayList<NameValue> headers;
     private final ArrayList<NameValue> parameters;
 
@@ -33,39 +31,14 @@ public class UploadRequest {
      * @param context application context
      * @param uploadId unique ID to assign to this upload request. It's used in the broadcast receiver when receiving
      * updates.
-     * @param serverUrl URL of the server side script that handles the multipart form upload
      */
-    public UploadRequest(final Context context, final String uploadId, final String serverUrl) {
+    public UploadRequest(final Context context, final String uploadId) {
         this.context = context;
         this.uploadId = uploadId;
-        url = serverUrl;
         filesToUpload = new ArrayList<>();
         headers = new ArrayList<>();
         parameters = new ArrayList<>();
         maxRetries = 0;
-    }
-
-    /**
-     * Validates the upload request and throws exceptions if one or more parameters are not properly set.
-     * 
-     * @throws IllegalArgumentException if request protocol or URL are not correctly set
-     * @throws MalformedURLException if the provided server URL is not valid
-     */
-    public void validate() throws IllegalArgumentException, MalformedURLException {
-        if (url == null || "".equals(url)) {
-            throw new IllegalArgumentException("Request URL cannot be either null or empty");
-        }
-
-        if (!url.startsWith("http")) {
-            throw new IllegalArgumentException("Specify either http:// or https:// as protocol");
-        }
-
-        // Check if the URL is valid
-        new URL(url);
-
-        if (filesToUpload.isEmpty()) {
-            throw new IllegalArgumentException("You have to add at least one file to upload");
-        }
     }
 
     /**
@@ -74,11 +47,9 @@ public class UploadRequest {
      * @param path Absolute path to the file that you want to upload
      * @param parameterName Name of the form parameter that will contain file's data
      * @param fileName File name seen by the server side script
-     * @param contentType Content type of the file. Set this to null if you don't want to set a content type.
      */
-    public void addFileToUpload(final String path, final String parameterName, final String fileName,
-                                final String contentType) {
-        filesToUpload.add(new FileToUpload(path, parameterName, fileName, contentType));
+    public void addFileToUpload(final String url, final String path, final String parameterName, final String fileName) {
+        filesToUpload.add(new FileToUpload(url, path, parameterName, fileName, ContentType.VIDEO_MPEG));
     }
 
     /**
@@ -154,21 +125,16 @@ public class UploadRequest {
     }
 
     /**
-     * Gets the URL of the server side script that will handle the multipart form upload.
-     * 
-     * @return
-     */
-    protected String getServerUrl() {
-        return url;
-    }
-
-    /**
      * Gets the list of the files that has to be uploaded.
      * 
      * @return
      */
-    protected ArrayList<FileToUpload> getFilesToUpload() {
+    public ArrayList<FileToUpload> getFilesToUpload() {
         return filesToUpload;
+    }
+
+    public void setFilesToUpload(ArrayList<FileToUpload> filesToUpload) {
+        this.filesToUpload = filesToUpload;
     }
 
     /**
@@ -238,4 +204,14 @@ public class UploadRequest {
             this.maxRetries = maxRetries;
     }
 
+    @Override
+    public String toString() {
+        StringBuffer str = new StringBuffer();
+        str.append("Headers: "+this.headers+"\n");
+        if (filesToUpload != null)
+            for(FileToUpload f: filesToUpload)
+                str.append("File: "+f.getFileName()+" -> "+f.getUrl()+"\n");
+        str.append("Retries: "+this.maxRetries+"\n");
+        return str.toString();
+    }
 }
