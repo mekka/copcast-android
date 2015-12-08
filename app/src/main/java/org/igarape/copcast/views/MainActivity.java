@@ -122,54 +122,9 @@ public class MainActivity extends Activity {
         ab.setSubtitle(Globals.getUserLogin(this));
         FileUtils.init(getApplicationContext());
 
-        broadcastReceiver
-                = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if (intent.getAction().equals(BatteryReceiver.BATTERY_LOW_MESSAGE)) {
-                    stopUploading();
-                    stopAlarmReceiver();
-                } else if (intent.getAction().equals(BatteryReceiver.BATTERY_OKAY_MESSAGE)) {
-                    //TODO check if it's already running. if not, start startAlarmLocationReceiver()
-                }
-                else if (intent.getAction().equals(UploadManager.UPLOAD_FAILED_ACTION)) {
-                    if (uploadManager != null) {
-                        uploadManager.runUpload();
-                    }
-                }
-                else if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
-                    updateProgressBar();
-                    if (uploadManager != null) {
-                        uploadManager.deleteVideoFile();
-                        uploadManager.runUpload();
-                    }
 
-                } else if (intent.getAction().equals(CopcastGcmListenerService.START_STREAMING_ACTION)) {
-                    if (isMissionStarted()) {
-                        mStreamSwitch.setChecked(true);
-                    }
-                } else if (intent.getAction().equals(CopcastGcmListenerService.STOP_STREAMING_ACTION)) {
-                    if (isMissionStarted()) {
-                        mStreamSwitch.setChecked(false);
-                    }
-                } else {
-                    findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
-                    findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
-                    findViewById(R.id.streamLayout).setVisibility(View.GONE);
 
-                    Intent intentAux = new Intent(MainActivity.this, UploadService.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    stopService(intentAux);
-                    uploadManager = null;
-                    if (intent.getAction().equals(UploadManager.CANCEL_UPLOAD_ACTION)) {
-                        Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
-                    }
-                    resetStatusUpload();
-                }
-            }
-        };
+        registerMyReceiver();
 
         NetworkUtils.get(getApplicationContext(), "/pictures/icon/show", NetworkUtils.Response.BYTEARRAY, new HttpResponseCallback() {
             @Override
@@ -689,6 +644,58 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
+    }
+
+    private void registerMyReceiver() {
+        broadcastReceiver
+                = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent.getAction().equals(BatteryReceiver.BATTERY_LOW_MESSAGE)) {
+                    stopUploading();
+                    stopAlarmReceiver();
+                } else if (intent.getAction().equals(BatteryReceiver.BATTERY_OKAY_MESSAGE)) {
+                    //TODO check if it's already running. if not, start startAlarmLocationReceiver()
+                }
+                else if (intent.getAction().equals(UploadManager.UPLOAD_FAILED_ACTION)) {
+                    if (uploadManager != null) {
+                        uploadManager.runUpload();
+                    }
+                }
+                else if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
+                    updateProgressBar();
+                    if (uploadManager != null) {
+                        uploadManager.deleteVideoFile();
+                        uploadManager.runUpload();
+                    }
+
+                } else if (intent.getAction().equals(CopcastGcmListenerService.START_STREAMING_ACTION)) {
+                    if (isMissionStarted()) {
+                        mStreamSwitch.setChecked(true);
+                    }
+                } else if (intent.getAction().equals(CopcastGcmListenerService.STOP_STREAMING_ACTION)) {
+                    if (isMissionStarted()) {
+                        mStreamSwitch.setChecked(false);
+                    }
+                } else {
+                    findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
+                    findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
+                    findViewById(R.id.streamLayout).setVisibility(View.GONE);
+
+                    Intent intentAux = new Intent(MainActivity.this, UploadService.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    stopService(intentAux);
+                    uploadManager = null;
+                    if (intent.getAction().equals(UploadManager.CANCEL_UPLOAD_ACTION)) {
+                        Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
+                    }
+                    resetStatusUpload();
+                }
+            }
+        };
+
         IntentFilter filter = new IntentFilter(UploadManager.UPLOAD_PROGRESS_ACTION);
         filter.addAction(UploadManager.CANCEL_UPLOAD_ACTION);
         filter.addAction(UploadManager.UPLOAD_FAILED_ACTION);
@@ -703,7 +710,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onStop() {
         super.onStop();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
         //Log.d("state","onStop");
     }
 
