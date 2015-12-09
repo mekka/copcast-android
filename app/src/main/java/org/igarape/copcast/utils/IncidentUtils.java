@@ -12,8 +12,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class IncidentUtils {
@@ -22,8 +26,12 @@ public class IncidentUtils {
     private static final String TAG = IncidentUtils.class.getName();
 
     public static JSONObject buildJson() throws JSONException {
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        DateFormat df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
+        df.setTimeZone(tz);
+
         JSONObject json = new JSONObject();
-        json.put("date", TimeUtils.getTimestamp().toString());
+        json.put("date", df.format(new Date()));
         json.put("lat", Globals.getLastKnownLocation().getLatitude());
         json.put("lng", Globals.getLastKnownLocation().getLongitude());
         return json;
