@@ -63,10 +63,9 @@ public class IncidentUtils {
                 @Override
                 protected Void doInBackground(Void... params) {
                     try{
-                        Thread.sleep(5000);
-                        Log.d(TAG, "Build JSON, second try.");
+                        Thread.sleep(2000);
+                        Log.d(TAG, "TRYING AGAIN");
                         incident[0] = buildJson();
-                        Log.d(TAG, "JSON successfully built");
                         sendIncident(context, incident[0]);
                     } catch (Exception e) {
                         Log.e(TAG, "Failed second try");
@@ -118,7 +117,7 @@ public class IncidentUtils {
             }
 
             @Override
-            public void success(JSONObject response) {
+            public void success(byte[] output) {
                 Log.d(TAG, "enviado!!!");
             }
         });

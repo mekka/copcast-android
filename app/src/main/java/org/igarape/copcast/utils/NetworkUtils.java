@@ -227,10 +227,8 @@ public class NetworkUtils {
                     }
                     // handle issues
 
-                    Log.d("NetworkUtils", "antes de conectar");
-                    urlConnection.connect();
-                    Log.d("NetworkUtils", "depois de conectar");
 
+                    urlConnection.connect();
                     statusCode = urlConnection.getResponseCode();
                     if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
                         callback.unauthorized();
