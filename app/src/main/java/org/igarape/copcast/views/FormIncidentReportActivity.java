@@ -25,6 +25,7 @@ import org.igarape.copcast.R;
 import org.igarape.copcast.bo.IncidentForm;
 import org.igarape.copcast.fragments.DatePickerFragment;
 import org.igarape.copcast.fragments.TimePickerFragment;
+import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.GPSTracker;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.IncidentFormCallback;
@@ -37,6 +38,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.TimeZone;
 
 public class FormIncidentReportActivity extends Activity {
 
@@ -384,7 +386,7 @@ public class FormIncidentReportActivity extends Activity {
 
 
         try {
-            DateFormat format = new SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.ENGLISH);
+            DateFormat format = new SimpleDateFormat("yyyy/MM/dd HH:mm");
             Date date = format.parse(txtDate.getText().toString()+" "+txtTime.getText().toString());
             incidentForm.setDate(date);
         } catch (ParseException e) {
