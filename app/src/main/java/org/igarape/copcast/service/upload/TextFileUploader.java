@@ -5,6 +5,7 @@ import android.util.Log;
 
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.HttpResponseCallback;
+import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.TextFileType;
 import org.json.JSONArray;
@@ -25,7 +26,7 @@ public class TextFileUploader {
     private static final String TAG = TextFileUploader.class.getName();
 
     private static void errlog(TextFileType textFileType, String m) {
-        Log.e(TAG, textFileType.getName()+": "+m);
+        ILog.e(TAG, textFileType.getName() + ": " + m);
     }
 
     public static void upload(Context context, final TextFileType textFileType, String userLogin) {
@@ -33,7 +34,8 @@ public class TextFileUploader {
         if (!file.exists()) {
             return;
         }
-        Log.d(TAG, "File size ("+ textFileType.getName()+"): " + file.length());
+
+        ILog.d(TAG, "File size ("+ textFileType.getName()+"): " + file.length());
 
         FileInputStream is = null;
         try {
@@ -48,7 +50,7 @@ public class TextFileUploader {
                 entries.put(json);
             }
 
-            Log.d(TAG, entries.toString());
+            ILog.d(TAG, entries.toString(2));
 
             NetworkUtils.post(context, textFileType.getUrl() + "/" + userLogin, entries, new HttpResponseCallback() {
                 @Override
@@ -88,9 +90,9 @@ public class TextFileUploader {
                 }
             });
         } catch (java.io.IOException e) {
-            Log.e(TAG, "location file error", e);
+            ILog.e(TAG, "Could not upload text file", e);
         } catch (JSONException e) {
-            Log.e(TAG, "location file error", e);
+            ILog.e(TAG, "Could not upload text file", e);
         }
     }
 

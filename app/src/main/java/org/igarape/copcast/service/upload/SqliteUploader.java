@@ -1,12 +1,11 @@
 package org.igarape.copcast.service.upload;
 
 import android.content.Context;
-import android.util.Log;
 
 import org.igarape.copcast.db.JsonDataType;
 import org.igarape.copcast.utils.HttpResponseCallback;
+import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.NetworkUtils;
-import org.igarape.copcast.utils.TextFileType;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -21,16 +20,16 @@ public class SqliteUploader {
     private static final String TAG = SqliteUploader.class.getName();
 
     private static void errlog(JsonDataType jsonDataType, String m) {
-        Log.e(TAG, jsonDataType.getType()+": "+m);
+        ILog.e(TAG, jsonDataType.getType()+": "+m);
     }
 
-    public static void upload(Context context, final JsonDataType sqlite_key, String userLogin) {
+    public static void upload(final Context context, final JsonDataType sqlite_key, final String userLogin) {
         try {
 
             JSONArray entries = getFromDb(context, userLogin, sqlite_key);
             String line;
 
-            Log.d(TAG, entries.toString());
+            ILog.d(TAG, entries.toString(2));
 
             NetworkUtils.post(context, sqlite_key.getUrl() + "/" + userLogin, entries, new HttpResponseCallback() {
                 @Override
@@ -45,7 +44,8 @@ public class SqliteUploader {
 
                 @Override
                 public void success(JSONObject response) {
-                    Log.e(TAG, "would delete entries");
+                    //SqliteUtils.clearByType(context, userLogin, sqlite_key.getType());
+                    ILog.e(TAG, "would delete entries");
                 }
 
                 @Override
@@ -69,7 +69,7 @@ public class SqliteUploader {
                 }
             });
         } catch (JSONException e) {
-            Log.e(TAG, "location file error", e);
+            ILog.e(TAG, "Could not upload json data", e);
         }
     }
 

@@ -8,10 +8,9 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Build;
-import android.util.Log;
 
 import org.apache.http.NameValuePair;
-import org.igarape.copcast.state.DeviceUploadStatus;
+import org.igarape.copcast.state.NetworkState;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -105,12 +104,12 @@ public class NetworkUtils {
         return networkInfo != null && networkInfo.isConnected();
     }
 
-    public static DeviceUploadStatus checkUploadState(Context context) {
+    public static NetworkState checkUploadState(Context context) {
         ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
         if (networkInfo == null || !networkInfo.isConnectedOrConnecting()) {
-            return DeviceUploadStatus.NO_NETWORK;
+            return NetworkState.NO_NETWORK;
         }
 
         boolean isWiFi = networkInfo.getType() == ConnectivityManager.TYPE_WIFI;
@@ -125,12 +124,12 @@ public class NetworkUtils {
                 status == BatteryManager.BATTERY_STATUS_FULL;
 
         if (!isCharging)
-            return DeviceUploadStatus.NOT_CHARGING;
+            return NetworkState.NOT_CHARGING;
 
         if (Globals.isWifiOnly(context) && !isWiFi)
-            return DeviceUploadStatus.WIFI_REQUIRED;
+            return NetworkState.WIFI_REQUIRED;
 
-        return DeviceUploadStatus.UPLOAD_OK;
+        return NetworkState.NETWORK_OK;
     }
 
     public static void post(final Context context, boolean async, final String url, final List<NameValuePair> params, final File file, final HttpResponseCallback callback) {
@@ -218,7 +217,7 @@ public class NetworkUtils {
 
 
                     if (params != null) {
-                        Log.d("log1-app", "p1");
+                        ILog.d("log1-app", "p1");
                         os = urlConnection.getOutputStream();
                         writer = new BufferedWriter(
                                 new OutputStreamWriter(os, "UTF-8"));
@@ -274,13 +273,13 @@ public class NetworkUtils {
 
                 } catch (MalformedURLException e) {
                     callback.badRequest();
-                    Log.e(TAG, "Url error ", e);
+                    ILog.e(TAG, "Url error ", e);
                 } catch (SocketTimeoutException e) {
                     callback.badConnection();
-                    Log.e(TAG, "Timeout error ", e);
+                    ILog.e(TAG, "Timeout error ", e);
                 } catch (IOException e) {
                     callback.badResponse();
-                    Log.e(TAG, "Could not read response body ", e);
+                    ILog.e(TAG, "Could not read response body ", e);
                 } finally {
                     try {
                         if (writer != null) {

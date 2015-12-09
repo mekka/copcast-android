@@ -43,7 +43,6 @@ import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.service.StreamService;
 import org.igarape.copcast.service.VideoRecorderService;
 import org.igarape.copcast.service.upload.UploadService;
-import org.igarape.copcast.state.DeviceUploadStatus;
 import org.igarape.copcast.state.IncidentFlagState;
 import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.FileUtils;
@@ -52,7 +51,6 @@ import org.igarape.copcast.utils.HistoryUtils;
 import org.igarape.copcast.utils.HttpResponseCallback;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.NetworkUtils;
-import org.igarape.copcast.utils.UploadManager;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -76,7 +74,7 @@ public class MainActivity extends Activity {
     private CompoundButton.OnCheckedChangeListener mStreamListener;
 
     private MediaPlayer mySongclick;
-    private UploadManager uploadManager;
+    //private UploadManager uploadManager;
     private Long first_keydown;
     private final int FLAG_TRIGGER_WAIT_TIME = 1000;
 
@@ -84,6 +82,17 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        IntentFilter filter = new IntentFilter();
+//        IntentFilter filter = new IntentFilter(UploadManager.UPLOAD_PROGRESS_ACTION);
+//        filter.addAction(UploadManager.CANCEL_UPLOAD_ACTION);
+//        filter.addAction(UploadManager.UPLOAD_FAILED_ACTION);
+//        filter.addAction(UploadManager.COMPLETED_UPLOAD_ACTION);
+        filter.addAction(CopcastGcmListenerService.START_STREAMING_ACTION);
+        filter.addAction(CopcastGcmListenerService.STOP_STREAMING_ACTION);
+        filter.addAction(BatteryReceiver.BATTERY_LOW_MESSAGE);
+        filter.addAction(BatteryReceiver.BATTERY_OKAY_MESSAGE);
+        LocalBroadcastManager.getInstance(this).registerReceiver((broadcastReceiver), filter);
 
 
         mStreamSwitch = (Switch) findViewById(R.id.streamSwitch);
@@ -131,18 +140,18 @@ public class MainActivity extends Activity {
                     stopAlarmReceiver();
                 } else if (intent.getAction().equals(BatteryReceiver.BATTERY_OKAY_MESSAGE)) {
                     //TODO check if it's already running. if not, start startAlarmLocationReceiver()
-                }
-                else if (intent.getAction().equals(UploadManager.UPLOAD_FAILED_ACTION)) {
-                    if (uploadManager != null) {
-//                        uploadManager.runUpload();
-                    }
-                }
-                else if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
-                    updateProgressBar();
-                    if (uploadManager != null) {
-//                        uploadManager.deleteVideoFile();
-//                        uploadManager.runUpload();
-                    }
+//                }
+//                else if (intent.getAction().equals(UploadManager.UPLOAD_FAILED_ACTION)) {
+//                    if (uploadManager != null) {
+////                        uploadManager.runUpload();
+//                    }
+//                }
+//                else if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
+//                    updateProgressBar();
+//                    if (uploadManager != null) {
+////                        uploadManager.deleteVideoFile();
+////                        uploadManager.runUpload();
+//                    }
 
                 } else if (intent.getAction().equals(CopcastGcmListenerService.START_STREAMING_ACTION)) {
                     if (isMissionStarted()) {
@@ -152,21 +161,21 @@ public class MainActivity extends Activity {
                     if (isMissionStarted()) {
                         mStreamSwitch.setChecked(false);
                     }
-                } else {
-                    findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
-                    findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
-                    findViewById(R.id.streamLayout).setVisibility(View.GONE);
-
-                    Intent intentAux = new Intent(MainActivity.this, UploadService.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    stopService(intentAux);
-                    uploadManager = null;
-                    if (intent.getAction().equals(UploadManager.CANCEL_UPLOAD_ACTION)) {
-                        Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
-                    }
-                    resetStatusUpload();
+//                } else {
+//                    findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
+//                    findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
+//                    findViewById(R.id.streamLayout).setVisibility(View.GONE);
+//
+//                    Intent intentAux = new Intent(MainActivity.this, UploadService.class);
+//                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                    stopService(intentAux);
+//                    uploadManager = null;
+//                    if (intent.getAction().equals(UploadManager.CANCEL_UPLOAD_ACTION)) {
+//                        Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
+//                    } else {
+//                        Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
+//                    }
+//                    resetStatusUpload();
                 }
             }
         };
@@ -349,8 +358,8 @@ public class MainActivity extends Activity {
                                                                                   findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
                                                                                   findViewById(R.id.streamLayout).setVisibility(View.GONE);
 
-                                                                                  uploadManager = new UploadManager(getApplicationContext());
-                                                                                  uploadManager.runUpload(getApplicationContext());
+                                                                                  //uploadManager = new UploadManager(getApplicationContext());
+                                                                                  UploadService.doUpload(getApplicationContext());
 
                                                                                   HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this), null);
                                                                                   updateProgressBar();
@@ -543,7 +552,7 @@ public class MainActivity extends Activity {
         Intent intent = new Intent(MainActivity.this, UploadService.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         stopService(intent);
-        uploadManager = null;
+        //uploadManager = null;
 
         HistoryUtils.registerHistory(getApplicationContext(), State.UPLOADING, State.LOGGED, Globals.getUserLogin(MainActivity.this), null);
     }
@@ -562,7 +571,6 @@ public class MainActivity extends Activity {
     private void vibrate(int mili)
     {
         Vibrator v = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
-        // Vibrate for (mili) milliseconds
         v.vibrate(mili);
 
     }
@@ -687,15 +695,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        IntentFilter filter = new IntentFilter(UploadManager.UPLOAD_PROGRESS_ACTION);
-        filter.addAction(UploadManager.CANCEL_UPLOAD_ACTION);
-        filter.addAction(UploadManager.UPLOAD_FAILED_ACTION);
-        filter.addAction(UploadManager.COMPLETED_UPLOAD_ACTION);
-        filter.addAction(CopcastGcmListenerService.START_STREAMING_ACTION);
-        filter.addAction(CopcastGcmListenerService.STOP_STREAMING_ACTION);
-        filter.addAction(BatteryReceiver.BATTERY_LOW_MESSAGE);
-        filter.addAction(BatteryReceiver.BATTERY_OKAY_MESSAGE);
-        LocalBroadcastManager.getInstance(this).registerReceiver((broadcastReceiver), filter);
     }
 
     @Override
