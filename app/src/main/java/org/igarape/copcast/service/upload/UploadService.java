@@ -16,6 +16,7 @@ import org.igarape.copcast.state.UploadServiceEvent;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.GenericExtFilter;
 import org.igarape.copcast.utils.Globals;
+import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.TextFileType;
 
@@ -152,6 +153,7 @@ public class UploadService extends Service {
     class RunUpload extends AsyncTask<Void, Void, Void> {
 
         UploadRequest uploadRequest;
+        Context context;
 
         public RunUpload(UploadRequest request) {
             super();
@@ -172,7 +174,7 @@ public class UploadService extends Service {
                 Log.d(TAG, returnmsg+fileToUpload.getFileName());
             }
             Log.d(TAG, "Files uploaded: "+copied.size());
-            feedback(getApplicationContext(), UploadServiceEvent.FINISHED, 100);
+            feedback(UploadService.this, UploadServiceEvent.FINISHED, 100);
             stopSelf();
             return null;
         }
@@ -181,14 +183,15 @@ public class UploadService extends Service {
 
     private static void feedback(Context context, final UploadServiceEvent event, final Integer percentCompleted) {
 
+        Log.d(TAG, context.getApplicationContext().toString());
+
         Intent intent = new Intent(UPLOAD_FEEDBACK_ACTION);
         intent.putExtra("event", event);
 
         if (event.getRunning() && percentCompleted != null)
             intent.putExtra("percentCompleted", percentCompleted);
 
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-
+        LocalBroadcastManager b = LocalBroadcastManager.getInstance(context);
+//        b.sendBroadcast(intent);
     }
-
 }

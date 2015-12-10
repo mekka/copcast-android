@@ -32,6 +32,7 @@ public class TextFileUploader {
     public static void upload(Context context, final TextFileType textFileType, String userLogin) {
         final File file = new File(FileUtils.getTextFilePath(textFileType, userLogin));
         if (!file.exists()) {
+            ILog.d(TAG, "No file available for: "+textFileType.getName());
             return;
         }
 

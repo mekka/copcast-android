@@ -50,6 +50,7 @@ import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.HistoryUtils;
 import org.igarape.copcast.utils.HttpResponseCallback;
+import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.NetworkUtils;
 
@@ -64,6 +65,7 @@ public class MainActivity extends Activity {
 
     private static final String TAG = MainActivity.class.getName();
     private BroadcastReceiver broadcastReceiver;
+    private BroadcastReceiver uploadFeedbackReceiver;
     private Button mStarMissionButton;
     private Button mEndMissionButton;
     private Button mPauseRecordingButton;
@@ -84,17 +86,10 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        IntentFilter filter = new IntentFilter();
-//        IntentFilter filter = new IntentFilter(UploadManager.UPLOAD_PROGRESS_ACTION);
-//        filter.addAction(UploadManager.CANCEL_UPLOAD_ACTION);
-//        filter.addAction(UploadManager.UPLOAD_FAILED_ACTION);
-//        filter.addAction(UploadManager.COMPLETED_UPLOAD_ACTION);
-        filter.addAction(CopcastGcmListenerService.START_STREAMING_ACTION);
-        filter.addAction(CopcastGcmListenerService.STOP_STREAMING_ACTION);
-        filter.addAction(BatteryReceiver.BATTERY_LOW_MESSAGE);
-        filter.addAction(BatteryReceiver.BATTERY_OKAY_MESSAGE);
-        LocalBroadcastManager.getInstance(this).registerReceiver((broadcastReceiver), filter);
-
+        ActionBar ab = getActionBar(); //needs  import android.app.ActionBar;
+        ab.setTitle(Globals.getUserName(getApplicationContext()));
+        ab.setSubtitle(Globals.getUserLogin(this));
+        FileUtils.init(getApplicationContext());
 
         mStreamSwitch = (Switch) findViewById(R.id.streamSwitch);
         mStarMissionButton = (Button) findViewById(R.id.startMissionButton);
@@ -105,6 +100,9 @@ public class MainActivity extends Activity {
 
         mCountDownThirtyPaused = new CountDownPausedTimer(1800000, 1000);
         mCountDownTenPaused = new CountDownPausedTimer(600000, 1000);
+
+        if (1+1==2) return;
+
         mStreamListener = new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -127,33 +125,16 @@ public class MainActivity extends Activity {
             }
         };
 
-        ActionBar ab = getActionBar(); //needs  import android.app.ActionBar;
-        ab.setTitle(Globals.getUserName(getApplicationContext()));
-        ab.setSubtitle(Globals.getUserLogin(this));
-        FileUtils.init(getApplicationContext());
-
         broadcastReceiver
                 = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
+                ILog.d(TAG, "received generic");
                 if (intent.getAction().equals(BatteryReceiver.BATTERY_LOW_MESSAGE)) {
                     stopUploading();
                     stopAlarmReceiver();
                 } else if (intent.getAction().equals(BatteryReceiver.BATTERY_OKAY_MESSAGE)) {
                     //TODO check if it's already running. if not, start startAlarmLocationReceiver()
-//                }
-//                else if (intent.getAction().equals(UploadManager.UPLOAD_FAILED_ACTION)) {
-//                    if (uploadManager != null) {
-////                        uploadManager.runUpload();
-//                    }
-//                }
-//                else if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
-//                    updateProgressBar();
-//                    if (uploadManager != null) {
-////                        uploadManager.deleteVideoFile();
-////                        uploadManager.runUpload();
-//                    }
-
                 } else if (intent.getAction().equals(CopcastGcmListenerService.START_STREAMING_ACTION)) {
                     if (isMissionStarted()) {
                         mStreamSwitch.setChecked(true);
@@ -180,6 +161,34 @@ public class MainActivity extends Activity {
                 }
             }
         };
+
+        uploadFeedbackReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                ILog.d(TAG, "receiving uploadReceiver");
+                if (intent.getAction().equals(UploadService.UPLOAD_FEEDBACK_ACTION)) {
+                    ILog.d(TAG, "Chegou feedback");
+                    if (intent.getExtras() != null && intent.getExtras().get("event")!=null)
+                        ILog.d(TAG, intent.getExtras().get("event").toString());
+                }
+            }
+        };
+
+        IntentFilter filter = new IntentFilter();
+//        IntentFilter filter = new IntentFilter(UploadManager.UPLOAD_PROGRESS_ACTION);
+//        filter.addAction(UploadManager.CANCEL_UPLOAD_ACTION);
+//        filter.addAction(UploadManager.UPLOAD_FAILED_ACTION);
+//        filter.addAction(UploadManager.COMPLETED_UPLOAD_ACTION);
+        filter.addAction(CopcastGcmListenerService.START_STREAMING_ACTION);
+        filter.addAction(CopcastGcmListenerService.STOP_STREAMING_ACTION);
+        filter.addAction(BatteryReceiver.BATTERY_LOW_MESSAGE);
+        filter.addAction(BatteryReceiver.BATTERY_OKAY_MESSAGE);
+        Log.d(TAG, broadcastReceiver.toString());
+        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, filter);
+        IntentFilter filterUploadFeedback = new IntentFilter(UploadService.UPLOAD_FEEDBACK_ACTION);
+        Log.d(TAG, uploadFeedbackReceiver.toString());
+        //LocalBroadcastManager.getInstance(this).registerReceiver(uploadFeedbackReceiver, filterUploadFeedback);
+
 
         NetworkUtils.get(getApplicationContext(), "/pictures/icon/show", NetworkUtils.Response.BYTEARRAY, new HttpResponseCallback() {
             @Override
@@ -360,7 +369,7 @@ public class MainActivity extends Activity {
 //                                                                                  findViewById(R.id.streamLayout).setVisibility(View.GONE);
 
                                                                                   //uploadManager = new UploadManager(getApplicationContext());
-                                                                                  UploadService.doUpload(getApplicationContext());
+                                                                                  //UploadService.doUpload(getApplicationContext());
 
 //                                                                                  HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this), null);
 //                                                                                  updateProgressBar();
@@ -617,6 +626,7 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         killServices();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(uploadFeedbackReceiver);
         Globals.clear(MainActivity.this);
         super.onDestroy();
     }
@@ -696,12 +706,25 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
+//        IntentFilter filter = new IntentFilter();
+////        IntentFilter filter = new IntentFilter(UploadManager.UPLOAD_PROGRESS_ACTION);
+////        filter.addAction(UploadManager.CANCEL_UPLOAD_ACTION);
+////        filter.addAction(UploadManager.UPLOAD_FAILED_ACTION);
+////        filter.addAction(UploadManager.COMPLETED_UPLOAD_ACTION);
+//        filter.addAction(CopcastGcmListenerService.START_STREAMING_ACTION);
+//        filter.addAction(CopcastGcmListenerService.STOP_STREAMING_ACTION);
+//        filter.addAction(BatteryReceiver.BATTERY_LOW_MESSAGE);
+//        filter.addAction(BatteryReceiver.BATTERY_OKAY_MESSAGE);
+//        LocalBroadcastManager.getInstance(this).registerReceiver((broadcastReceiver), filter);
+//        IntentFilter filterUploadFeedback = new IntentFilter(UploadService.UPLOAD_FEEDBACK_ACTION);
+//        LocalBroadcastManager.getInstance(this).registerReceiver((uploadFeedbackReceiver), filterUploadFeedback);
+//
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
+        //LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
         //Log.d("state","onStop");
     }
 

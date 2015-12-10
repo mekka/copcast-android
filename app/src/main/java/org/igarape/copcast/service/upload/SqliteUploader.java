@@ -27,9 +27,11 @@ public class SqliteUploader {
         try {
 
             JSONArray entries = getFromDb(context, userLogin, sqlite_key);
-            String line;
 
-            ILog.d(TAG, entries.toString(2));
+            if (entries.length() == 0)
+                ILog.d(TAG, "No data available for: "+sqlite_key.getType());
+            else
+                ILog.d(TAG, entries.toString(2));
 
             NetworkUtils.post(context, sqlite_key.getUrl() + "/" + userLogin, entries, new HttpResponseCallback() {
                 @Override
