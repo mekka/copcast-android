@@ -2,6 +2,8 @@ package org.igarape.copcast.utils;
 
 import android.content.Context;
 import android.content.Intent;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -180,7 +182,10 @@ public class UploadManager {
         request.addHeader("Authorization", Globals.getAccessToken(context));
 
         // add param Date
-        request.addParameter("date", df.format(new Date(nextVideo.lastModified())));
+        MediaPlayer mp = MediaPlayer.create(context, Uri.parse(nextVideo.getAbsolutePath()));
+        int duration = mp.getDuration();
+        mp.release();
+        request.addParameter("date", df.format(new Date(nextVideo.lastModified() - duration)));
 
         request.addFileToUpload(nextVideo.getAbsolutePath(), "video", nextVideo.getName(), ContentType.VIDEO_MPEG);
 
