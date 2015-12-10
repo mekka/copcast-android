@@ -7,16 +7,17 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import org.igarape.copcast.db.JsonDataType;
 import org.igarape.copcast.state.NetworkState;
 import org.igarape.copcast.state.UploadServiceEvent;
 import org.igarape.copcast.utils.FileUtils;
+import org.igarape.copcast.utils.GenericExtFilter;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.TextFileType;
-import org.igarape.copcast.utils.GenericExtFilter;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ public class UploadService extends Service {
     public static final String PARAM_FILES = "org.igarape.copcast.to_upload_files";
     public static final String PARAM_TOKEN = "org.igarape.copcast.token";
     public static final String PARAM_MAX_RETRIES = "org.igarape.copcast.maxRetries";
+    public static final String UPLOAD_FEEDBACK_ACTION = "org.igarape.copcast.service.upload.feedback";
 
     public static void doUpload(Context context) {
 
@@ -179,16 +181,14 @@ public class UploadService extends Service {
 
     private static void feedback(Context context, final UploadServiceEvent event, final Integer percentCompleted) {
 
+        Intent intent = new Intent(UPLOAD_FEEDBACK_ACTION);
+        intent.putExtra("event", event);
+
+        if (event.getRunning() && percentCompleted != null)
+            intent.putExtra("percentCompleted", percentCompleted);
+
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+
     }
-//    public static void broadcast(Context context, final DeviceUploadStatus status, final Integer percentCompleted) {
-//        Intent intent = new UploadStatusIntent();
-//
-//        intent.putExtra("status", status);
-//
-//        if (status == DeviceUploadStatus.UPLOAD_RUNNING && percentCompleted != null)
-//            intent.putExtra("percentCompleted", percentCompleted);
-//
-//        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-//    }
 
 }

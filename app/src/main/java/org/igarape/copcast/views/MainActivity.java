@@ -44,6 +44,7 @@ import org.igarape.copcast.service.StreamService;
 import org.igarape.copcast.service.VideoRecorderService;
 import org.igarape.copcast.service.upload.UploadService;
 import org.igarape.copcast.state.IncidentFlagState;
+import org.igarape.copcast.state.NetworkState;
 import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
@@ -353,16 +354,16 @@ public class MainActivity extends Activity {
         ((Button) findViewById(R.id.uploadButton)).setOnClickListener(new View.OnClickListener() {
                                                                           @Override
                                                                           public void onClick(View view) {
-                                                                              if (NetworkUtils.checkUploadState(getApplicationContext()) == DeviceUploadStatus.UPLOAD_OK) {
-                                                                                  findViewById(R.id.uploadLayout).setVisibility(View.GONE);
-                                                                                  findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
-                                                                                  findViewById(R.id.streamLayout).setVisibility(View.GONE);
+                                                                              if (NetworkUtils.checkUploadState(getApplicationContext()) == NetworkState.NETWORK_OK) {
+//                                                                                  findViewById(R.id.uploadLayout).setVisibility(View.GONE);
+//                                                                                  findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
+//                                                                                  findViewById(R.id.streamLayout).setVisibility(View.GONE);
 
                                                                                   //uploadManager = new UploadManager(getApplicationContext());
                                                                                   UploadService.doUpload(getApplicationContext());
 
-                                                                                  HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this), null);
-                                                                                  updateProgressBar();
+//                                                                                  HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this), null);
+//                                                                                  updateProgressBar();
                                                                               } else {
                                                                                   Toast.makeText(getApplicationContext(), getString(R.string.upload_disabled), Toast.LENGTH_LONG).show();
                                                                               }
