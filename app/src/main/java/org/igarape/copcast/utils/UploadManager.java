@@ -48,6 +48,13 @@ public class UploadManager {
     private List<String> users = null;
     private final GenericExtFilter filter = new GenericExtFilter(".mp4");
     private ArrayList<File> videos;
+    private static final SimpleDateFormat df;
+
+    static{
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
+        df.setTimeZone(tz);
+    }
     private Context context;
     private String userLogin;
     private String userPath;
