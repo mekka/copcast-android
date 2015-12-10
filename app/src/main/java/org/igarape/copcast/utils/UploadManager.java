@@ -55,6 +55,7 @@ public class UploadManager {
         df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
         df.setTimeZone(tz);
     }
+
     private Context context;
     private String userLogin;
     private String userPath;
