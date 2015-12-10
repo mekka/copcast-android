@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
 import java.util.UUID;
 
 import static org.igarape.copcast.utils.Globals.getDirectoryUploadedSize;
@@ -48,6 +47,8 @@ public class UploadManager {
     private List<String> users = null;
     private final GenericExtFilter filter = new GenericExtFilter(".mp4");
     private ArrayList<File> videos;
+    private DateFormat df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
+
     private Context context;
     private String userLogin;
     private String userPath;
