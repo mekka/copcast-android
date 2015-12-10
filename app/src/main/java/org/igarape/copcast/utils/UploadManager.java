@@ -181,11 +181,18 @@ public class UploadManager {
 
         request.addHeader("Authorization", Globals.getAccessToken(context));
 
+        long lastModified = nextVideo.lastModified();
+
         // add param Date
         MediaPlayer mp = MediaPlayer.create(context, Uri.parse(nextVideo.getAbsolutePath()));
-        int duration = mp.getDuration();
-        mp.release();
-        request.addParameter("date", df.format(new Date(nextVideo.lastModified() - duration)));
+        if (mp != null) {
+            lastModified = lastModified - mp.getDuration();
+            mp.release();
+        } else {
+            Log.e(TAG, "NO duration for video "+nextVideo.getName() );
+        }
+
+        request.addParameter("date", df.format(new Date(lastModified)));
 
         request.addFileToUpload(nextVideo.getAbsolutePath(), "video", nextVideo.getName(), ContentType.VIDEO_MPEG);
 
