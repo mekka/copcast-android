@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 import org.igarape.copcast.db.JsonDataType;
 import org.igarape.copcast.state.NetworkState;
@@ -33,6 +32,7 @@ public class UploadService extends Service {
     public static final String PARAM_TOKEN = "org.igarape.copcast.token";
     public static final String PARAM_MAX_RETRIES = "org.igarape.copcast.maxRetries";
     public static final String UPLOAD_FEEDBACK_ACTION = "org.igarape.copcast.service.upload.feedback";
+    public static long uploadedBytes = 0;
 
     public static void doUpload(Context context) {
 
@@ -85,7 +85,7 @@ public class UploadService extends Service {
             return;
         }
 
-        Log.d(TAG, "Num of files: " + filesToUpload.size());
+        ILog.d(TAG, "Num of files: " + filesToUpload.size());
 
         Intent videoUploadIntent = new Intent(context, UploadService.class);
         Bundle b = new Bundle();
@@ -95,7 +95,7 @@ public class UploadService extends Service {
 
         videoUploadIntent.putExtras(b);
 
-        Log.d(TAG, "calling service...");
+        ILog.d(TAG, "calling service...");
         videoUploadIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startService(videoUploadIntent);
     }
@@ -111,7 +111,7 @@ public class UploadService extends Service {
 
         UploadRequest request;
 
-        Log.d(TAG, "UPLOAD Service STARTED!");
+        ILog.d(TAG, "UPLOAD Service STARTED!");
 
 //            String message = getString(R.string.upload_denied) + ". ";
 //            switch (uploadState) {
@@ -133,9 +133,9 @@ public class UploadService extends Service {
 
         final ArrayList<FileToUpload> files = b.getParcelableArrayList(PARAM_FILES);
         if (files != null)
-            Log.e(TAG, ">>"+files.size());
+            ILog.e(TAG, ">>"+files.size());
         else
-            Log.e(TAG, "Empty files");
+            ILog.e(TAG, "Empty files");
 
         request = new UploadRequest(getApplicationContext(), UUID.randomUUID().toString());
         request.setMaxRetries(intent.getIntExtra(PARAM_MAX_RETRIES, 0));
@@ -143,7 +143,7 @@ public class UploadService extends Service {
         request.addHeader("Authorization", intent.getStringExtra(PARAM_TOKEN));
         request.setFilesToUpload(files);
 
-        Log.d(TAG, request.toString());
+        ILog.d(TAG, request.toString());
 
         new RunUpload(request).execute();
 
@@ -164,34 +164,44 @@ public class UploadService extends Service {
             ArrayList<String> copied = new ArrayList<>();
             int num_files = this.uploadRequest.getFilesToUpload().size();
 
+            uploadedBytes = 0;
+
             for (int i=0; i<num_files; i++) {
                 FileToUpload fileToUpload = this.uploadRequest.getFilesToUpload().get(i);
                 String returnmsg = "File failed: ";
                 if (VideoUploader.uploadSingleFile(this.uploadRequest.getMethod(), fileToUpload, this.uploadRequest.getHeaders(), (num_files == i + 1), this.uploadRequest.getCustomUserAgent())) {
-                    copied.add(fileToUpload.getFileName());
+                    uploadedBytes += fileToUpload.getSize();
+                    feedback(context, UploadServiceEvent.RUNNING, uploadedBytes);
+
+                    fileToUpload.length();
                     returnmsg = "File uploaded: ";
                 }
-                Log.d(TAG, returnmsg+fileToUpload.getFileName());
+                ILog.d(TAG, returnmsg+fileToUpload.getFileName());
             }
-            Log.d(TAG, "Files uploaded: "+copied.size());
-            feedback(UploadService.this, UploadServiceEvent.FINISHED, 100);
+            ILog.d(TAG, "Files uploaded: "+copied.size());
+            feedback(UploadService.this, UploadServiceEvent.FINISHED, null);
             stopSelf();
             return null;
         }
     }
 
 
-    private static void feedback(Context context, final UploadServiceEvent event, final Integer percentCompleted) {
+    private static void feedback(Context context, final UploadServiceEvent event, final Long uploadedBytes) {
 
-        Log.d(TAG, context.getApplicationContext().toString());
+        ILog.d(TAG, context+"");
 
         Intent intent = new Intent(UPLOAD_FEEDBACK_ACTION);
         intent.putExtra("event", event);
 
-        if (event.getRunning() && percentCompleted != null)
-            intent.putExtra("percentCompleted", percentCompleted);
+        if (event.getRunning() && uploadedBytes != null)
+            intent.putExtra("uploadedBytes", uploadedBytes);
 
         LocalBroadcastManager b = LocalBroadcastManager.getInstance(context);
-//        b.sendBroadcast(intent);
+        b.sendBroadcast(intent);
+    }
+
+    public static void stop(Context context) {
+        Intent videoUploadIntent = new Intent(context, UploadService.class);
+        context.stopService(videoUploadIntent);
     }
 }

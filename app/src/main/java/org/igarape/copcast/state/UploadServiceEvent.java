@@ -5,6 +5,7 @@ package org.igarape.copcast.state;
  */
 public enum UploadServiceEvent {
     FINISHED(false),
+    RUNNING(false),
     NO_DATA(false),
     STARTED(true),
     ABORTED_USER(false),

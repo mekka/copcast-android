@@ -29,7 +29,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -46,6 +45,7 @@ import org.igarape.copcast.service.upload.UploadService;
 import org.igarape.copcast.state.IncidentFlagState;
 import org.igarape.copcast.state.NetworkState;
 import org.igarape.copcast.state.State;
+import org.igarape.copcast.state.UploadServiceEvent;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.HistoryUtils;
@@ -100,8 +100,6 @@ public class MainActivity extends Activity {
 
         mCountDownThirtyPaused = new CountDownPausedTimer(1800000, 1000);
         mCountDownTenPaused = new CountDownPausedTimer(600000, 1000);
-
-        if (1+1==2) return;
 
         mStreamListener = new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -168,8 +166,32 @@ public class MainActivity extends Activity {
                 ILog.d(TAG, "receiving uploadReceiver");
                 if (intent.getAction().equals(UploadService.UPLOAD_FEEDBACK_ACTION)) {
                     ILog.d(TAG, "Chegou feedback");
-                    if (intent.getExtras() != null && intent.getExtras().get("event")!=null)
-                        ILog.d(TAG, intent.getExtras().get("event").toString());
+                    if (intent.getExtras() != null && intent.getExtras().get("event")!=null) {
+                        ILog.d(TAG, "feedback:" + intent.getExtras().get("event").toString());
+                        UploadServiceEvent use = (UploadServiceEvent) intent.getExtras().get("event");
+                        switch (use) {
+                            case RUNNING:
+                                //
+                                break;
+                            case STARTED:
+                                displayUploadBar();
+                                HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this), null);
+//                                updateProgressBar();
+                                break;
+                            case ABORTED_NO_NETWORK:
+                            case FINISHED:
+                                Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
+                            case ABORTED_USER:
+                                Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
+                            case NO_DATA:
+                                Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
+                            default:
+                                ILog.e(TAG, "Unexpected feedback status: "+use);
+                        }
+
+                        if (!use.getRunning())
+                            resetStatusUpload();
+                    }
                 }
             }
         };
@@ -187,7 +209,7 @@ public class MainActivity extends Activity {
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, filter);
         IntentFilter filterUploadFeedback = new IntentFilter(UploadService.UPLOAD_FEEDBACK_ACTION);
         Log.d(TAG, uploadFeedbackReceiver.toString());
-        //LocalBroadcastManager.getInstance(this).registerReceiver(uploadFeedbackReceiver, filterUploadFeedback);
+        LocalBroadcastManager.getInstance(this).registerReceiver(uploadFeedbackReceiver, filterUploadFeedback);
 
 
         NetworkUtils.get(getApplicationContext(), "/pictures/icon/show", NetworkUtils.Response.BYTEARRAY, new HttpResponseCallback() {
@@ -360,32 +382,40 @@ public class MainActivity extends Activity {
         );
 
 
-        ((Button) findViewById(R.id.uploadButton)).setOnClickListener(new View.OnClickListener() {
-                                                                          @Override
-                                                                          public void onClick(View view) {
-                                                                              if (NetworkUtils.checkUploadState(getApplicationContext()) == NetworkState.NETWORK_OK) {
-//                                                                                  findViewById(R.id.uploadLayout).setVisibility(View.GONE);
-//                                                                                  findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
-//                                                                                  findViewById(R.id.streamLayout).setVisibility(View.GONE);
-
-                                                                                  //uploadManager = new UploadManager(getApplicationContext());
-                                                                                  //UploadService.doUpload(getApplicationContext());
-
-//                                                                                  HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this), null);
-//                                                                                  updateProgressBar();
-                                                                              } else {
-                                                                                  Toast.makeText(getApplicationContext(), getString(R.string.upload_disabled), Toast.LENGTH_LONG).show();
-                                                                              }
-                                                                          }
-                                                                      }
+        findViewById(R.id.uploadButton).setOnClickListener(new View.OnClickListener() {
+                                                               @Override
+                                                               public void onClick(View view) {
+                                                                   NetworkState networkState = NetworkUtils.checkUploadState(getApplicationContext());
+                                                                   if (networkState == NetworkState.NETWORK_OK) {
+                                                                       UploadService.doUpload(getApplicationContext());
+                                                                   } else {
+                                                                       int msgid = -1;
+                                                                       switch (networkState) {
+                                                                           case NO_NETWORK:
+                                                                               msgid = R.string.network_state_no_network;
+                                                                               break;
+                                                                           case WIFI_REQUIRED:
+                                                                               msgid = R.string.network_state_wifi_required;
+                                                                               break;
+                                                                           case NOT_CHARGING:
+                                                                               msgid = R.string.network_state_not_charging;
+                                                                               break;
+                                                                       }
+                                                                       if (msgid == -1)
+                                                                           Log.e(TAG, "Unexpected network state: " + networkState.name());
+                                                                       else
+                                                                           Toast.makeText(getApplicationContext(), getString(msgid), Toast.LENGTH_LONG).show();
+                                                                   }
+                                                               }
+                                                           }
         );
 
-        ((ImageView) findViewById(R.id.uploadCancelButton)).setOnClickListener(new View.OnClickListener() {
-                                                                                   @Override
-                                                                                   public void onClick(View view) {
-                                                                                       stopUploading();
-                                                                                   }
-                                                                               }
+        findViewById(R.id.uploadCancelButton).setOnClickListener(new View.OnClickListener() {
+                                                                     @Override
+                                                                     public void onClick(View view) {
+                                                                         stopUploading();
+                                                                     }
+                                                                 }
         );
 
 
@@ -398,7 +428,7 @@ public class MainActivity extends Activity {
                                                  }
         );
 
-        ((Button) findViewById(R.id.tenMinutesButton)).
+        findViewById(R.id.tenMinutesButton).
                 setOnClickListener(new View.OnClickListener() {
                                        @Override
                                        public void onClick(View view) {
@@ -408,7 +438,7 @@ public class MainActivity extends Activity {
                                    }
                 );
 
-        ((Button) findViewById(R.id.thirtyMinutesButton)).
+        findViewById(R.id.thirtyMinutesButton).
                 setOnClickListener(new View.OnClickListener() {
                                        @Override
                                        public void onClick(View view) {
@@ -425,13 +455,13 @@ public class MainActivity extends Activity {
                                                     }
                                                 }
         );
-        ((Button) findViewById(R.id.pauseCancelButton)).setOnClickListener(new View.OnClickListener() {
-                                                                               @Override
-                                                                               public void onClick(View view) {
-                                                                                   mPauseRecordingButton.setVisibility(View.VISIBLE);
-                                                                                   findViewById(R.id.pausedLayout).setVisibility(View.GONE);
-                                                                               }
-                                                                           }
+        findViewById(R.id.pauseCancelButton).setOnClickListener(new View.OnClickListener() {
+                                                                    @Override
+                                                                    public void onClick(View view) {
+                                                                        mPauseRecordingButton.setVisibility(View.VISIBLE);
+                                                                        findViewById(R.id.pausedLayout).setVisibility(View.GONE);
+                                                                    }
+                                                                }
         );
 
         mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
@@ -444,6 +474,7 @@ public class MainActivity extends Activity {
 
         ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, 0, formatMegaBytes(getDirectorySize(getApplicationContext()))));
         ((TextView) findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, formatMegaBytes(getDirectorySize(getApplicationContext()))));
+        displayUploadButton();
     }
 
     private void stopAlarmReceiver(){
@@ -876,5 +907,16 @@ public class MainActivity extends Activity {
         alertDialog.show();
     }
 
+    private void displayUploadButton() {
+        findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
+        findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
+        findViewById(R.id.streamLayout).setVisibility(View.GONE);
+    }
+
+    private void displayUploadBar() {
+        findViewById(R.id.uploadLayout).setVisibility(View.GONE);
+        findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
+        findViewById(R.id.streamLayout).setVisibility(View.GONE);
+    }
 
 }

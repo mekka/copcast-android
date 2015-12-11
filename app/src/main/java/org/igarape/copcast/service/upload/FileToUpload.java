@@ -129,4 +129,8 @@ public class FileToUpload implements Parcelable {
     public void setUrl(String url) {
         this.url = url;
     }
+
+    public long getSize() {
+        return this.file.length();
+    }
 }
