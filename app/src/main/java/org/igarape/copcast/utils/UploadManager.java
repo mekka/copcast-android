@@ -2,6 +2,8 @@ package org.igarape.copcast.utils;
 
 import android.content.Context;
 import android.content.Intent;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -29,6 +31,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.UUID;
 
 import static org.igarape.copcast.utils.Globals.getDirectoryUploadedSize;
@@ -47,8 +50,13 @@ public class UploadManager {
     private List<String> users = null;
     private final GenericExtFilter filter = new GenericExtFilter(".mp4");
     private ArrayList<File> videos;
-    private DateFormat df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
+    private static final SimpleDateFormat df;
 
+    static{
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
+        df.setTimeZone(tz);
+    }
     private Context context;
     private String userLogin;
     private String userPath;
@@ -173,8 +181,18 @@ public class UploadManager {
 
         request.addHeader("Authorization", Globals.getAccessToken(context));
 
+        long lastModified = nextVideo.lastModified();
+
         // add param Date
-        request.addParameter("date", df.format(new Date(nextVideo.lastModified())));
+        MediaPlayer mp = MediaPlayer.create(context, Uri.parse(nextVideo.getAbsolutePath()));
+        if (mp != null) {
+            lastModified = lastModified - mp.getDuration();
+            mp.release();
+        } else {
+            Log.e(TAG, "NO duration for video "+nextVideo.getName() );
+        }
+
+        request.addParameter("date", df.format(new Date(lastModified)));
 
         request.addFileToUpload(nextVideo.getAbsolutePath(), "video", nextVideo.getName(), ContentType.VIDEO_MPEG);
 
