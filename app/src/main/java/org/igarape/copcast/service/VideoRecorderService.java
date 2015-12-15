@@ -148,7 +148,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             }
 
             // tune video parameters to reduce size
-            profile.videoBitRate = 128000;
+            profile.videoBitRate = 156000;
             profile.videoFrameRate = 12;
             profile.audioBitRate = 24000;
             profile.audioChannels = 1;
