@@ -1,6 +1,9 @@
 package org.igarape.copcast.service.upload;
 
+import android.os.AsyncTask;
 import android.util.Log;
+
+import org.igarape.copcast.utils.ILog;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,14 +19,14 @@ import java.util.ArrayList;
 public class VideoUploader {
 
     private static final String TAG = "AndroidVideoFileUpload";
-    private static final int BUFFER_SIZE = 4096;
+    private static final int BUFFER_SIZE = 16384;
     private static final String NEW_LINE = "\r\n";
     private static final String TWO_HYPHENS = "--";
     private static volatile boolean shouldContinue = true;
 
     public static boolean uploadSingleFile(final String method,
-                     final FileToUpload fileToUpload, final ArrayList<NameValue> requestHeaders,
-                     boolean keepalive, final String customUserAgent) {
+                                           final FileToUpload fileToUpload, final ArrayList<NameValue> requestHeaders,
+                                           boolean keepalive, final String customUserAgent, UploadService.RunUpload runUpload) throws IOException {
 
         HttpURLConnection conn = null;
         OutputStream requestStream = null;
@@ -72,7 +75,12 @@ public class VideoUploader {
 
             try {
                 while ((bytesRead = stream.read(buffer, 0, buffer.length)) > 0 && shouldContinue) {
+                    if (runUpload.isCancelled()) {
+                        ILog.d(TAG, "aborting....");
+                        return false;
+                    }
                     requestStream.write(buffer, 0, bytesRead);
+                    runUpload.updateCounter(bytesRead/1024);
                 }
             } catch (Exception e) {
                 Log.e(TAG, "error piping file bytes");
@@ -83,19 +91,8 @@ public class VideoUploader {
 
             requestStream.write(trailer, 0, trailer.length);
 
-            try {
                 final int serverResponseCode = conn.getResponseCode();
                 return (serverResponseCode / 100 == 2);
-            } catch (Exception e) {
-                Log.e(TAG, "error receiving code status");
-                Log.d(TAG, e.toString());
-                return false;
-            }
-
-        } catch (Exception e) {
-            Log.e(TAG, "Error trying to upload single file");
-            Log.d(TAG, e.toString());
-            return false;
         } finally {
             closeOutputStream(requestStream);
             closeConnection(conn);
@@ -182,4 +179,6 @@ public class VideoUploader {
             }
         }
     }
+
+
 }

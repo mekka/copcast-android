@@ -210,7 +210,7 @@ public class Globals {
             SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
             directorySize = sharedPrefs.getLong(DIRECTORY_SIZE, 0);
         }
-        return directorySize;
+        return directorySize/1024;
     }
 
     public static void setToggling(boolean value) {

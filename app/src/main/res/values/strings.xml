@@ -86,4 +86,5 @@
     <string name="upload_denied">Upload denied</string>
     <string name="network_state_wifi_required">Wi-fi network required</string>
     <string name="upload_state_unknown">Unexpected upload state.</string>
+    <string name="upload_error">Error during upload. Please try again.</string>
 </resources>

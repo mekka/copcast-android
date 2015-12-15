@@ -20,6 +20,7 @@ import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.TextFileType;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.UUID;
@@ -32,7 +33,10 @@ public class UploadService extends Service {
     public static final String PARAM_TOKEN = "org.igarape.copcast.token";
     public static final String PARAM_MAX_RETRIES = "org.igarape.copcast.maxRetries";
     public static final String UPLOAD_FEEDBACK_ACTION = "org.igarape.copcast.service.upload.feedback";
-    public static long uploadedBytes = 0;
+    public static Long uploadedBytes = 0L;
+    private RunUpload uploadTask;
+    private boolean errorOccured = false;
+
 
     public static void doUpload(Context context) {
 
@@ -145,12 +149,13 @@ public class UploadService extends Service {
 
         ILog.d(TAG, request.toString());
 
-        new RunUpload(request).execute();
+        uploadTask = new RunUpload(request);
+        uploadTask.execute();
 
         return START_NOT_STICKY;
     }
 
-    class RunUpload extends AsyncTask<Void, Void, Void> {
+    class RunUpload extends AsyncTask<Void, Long, Void> {
 
         UploadRequest uploadRequest;
         Context context;
@@ -159,42 +164,88 @@ public class UploadService extends Service {
             super();
             this.uploadRequest = request;
         }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+
+            if (errorOccured)
+                feedback(UploadService.this, UploadServiceEvent.FAILED, null);
+            else
+                feedback(UploadService.this, UploadServiceEvent.FINISHED, null);
+
+            stopSelf();
+
+        }
+
+        @Override
+        protected void onCancelled(Void aVoid) {
+            feedback(UploadService.this, UploadServiceEvent.ABORTED_USER, null);
+            stopSelf();
+
+        }
+
         @Override
         protected Void doInBackground(Void... flags) {
-            ArrayList<String> copied = new ArrayList<>();
             int num_files = this.uploadRequest.getFilesToUpload().size();
+            long totalSize;
 
-            uploadedBytes = 0;
+            uploadedBytes = 0L;
+            totalSize = 0L;
 
+            for(FileToUpload f : this.uploadRequest.getFilesToUpload())
+                totalSize += f.length();
+            totalSize = totalSize / 1024; // store in KB
+
+            if (isCancelled())
+                return null;
+
+            feedback(context, UploadServiceEvent.RUNNING, uploadedBytes, totalSize);
+
+            boolean res;
             for (int i=0; i<num_files; i++) {
                 FileToUpload fileToUpload = this.uploadRequest.getFilesToUpload().get(i);
-                String returnmsg = "File failed: ";
-                if (VideoUploader.uploadSingleFile(this.uploadRequest.getMethod(), fileToUpload, this.uploadRequest.getHeaders(), (num_files == i + 1), this.uploadRequest.getCustomUserAgent())) {
-                    uploadedBytes += fileToUpload.getSize();
-                    feedback(context, UploadServiceEvent.RUNNING, uploadedBytes);
-
-                    fileToUpload.length();
-                    returnmsg = "File uploaded: ";
+                try {
+                    res = VideoUploader.uploadSingleFile(this.uploadRequest.getMethod(), fileToUpload, this.uploadRequest.getHeaders(), (num_files == i + 1), this.uploadRequest.getCustomUserAgent(), this);
+                    errorOccured = !res || errorOccured;
+                    if (isCancelled()) break;
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                ILog.d(TAG, returnmsg+fileToUpload.getFileName());
             }
-            ILog.d(TAG, "Files uploaded: "+copied.size());
-            feedback(UploadService.this, UploadServiceEvent.FINISHED, null);
-            stopSelf();
             return null;
+        }
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+            ILog.d(TAG, "Task upload cancel!");
+        }
+
+        @Override
+        protected void onProgressUpdate(Long... values) {
+            uploadedBytes += values[0];
+            if (!isCancelled())
+                feedback(context, UploadServiceEvent.RUNNING, uploadedBytes);
+        }
+
+        public void updateCounter(long val) {
+            ILog.d(TAG, "counter set:"+val);
+            publishProgress(val);
         }
     }
 
 
-    private static void feedback(Context context, final UploadServiceEvent event, final Long uploadedBytes) {
-
-        ILog.d(TAG, context+"");
+    private static void feedback(Context context, final UploadServiceEvent event, final Long... uploadedBytes) {
 
         Intent intent = new Intent(UPLOAD_FEEDBACK_ACTION);
         intent.putExtra("event", event);
 
-        if (event.getRunning() && uploadedBytes != null)
-            intent.putExtra("uploadedBytes", uploadedBytes);
+        if (event.getRunning() && uploadedBytes != null) {
+            if (uploadedBytes.length>=1)
+                intent.putExtra("uploadedBytes", uploadedBytes[0]);
+            if (uploadedBytes.length==2)
+                intent.putExtra("totalBytes", uploadedBytes[1]);
+        }
 
         LocalBroadcastManager b = LocalBroadcastManager.getInstance(context);
         b.sendBroadcast(intent);
@@ -203,5 +254,13 @@ public class UploadService extends Service {
     public static void stop(Context context) {
         Intent videoUploadIntent = new Intent(context, UploadService.class);
         context.stopService(videoUploadIntent);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (uploadTask != null && !uploadTask.isCancelled())
+            uploadTask.cancel(true);
+        ILog.d(TAG, "service exiting...");
     }
 }

@@ -169,28 +169,42 @@ public class MainActivity extends Activity {
                     if (intent.getExtras() != null && intent.getExtras().get("event")!=null) {
                         ILog.d(TAG, "feedback:" + intent.getExtras().get("event").toString());
                         UploadServiceEvent use = (UploadServiceEvent) intent.getExtras().get("event");
-                        switch (use) {
-                            case RUNNING:
-                                //
-                                break;
-                            case STARTED:
-                                displayUploadBar();
-                                HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this), null);
-//                                updateProgressBar();
-                                break;
-                            case ABORTED_NO_NETWORK:
-                            case FINISHED:
-                                Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
-                            case ABORTED_USER:
-                                Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
-                            case NO_DATA:
-                                Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
-                            default:
-                                ILog.e(TAG, "Unexpected feedback status: "+use);
-                        }
 
                         if (!use.getRunning())
                             resetStatusUpload();
+                        else
+                            displayUploadBar();
+
+                        switch (use) {
+                            case RUNNING:
+                                ProgressBar p = (ProgressBar) findViewById(R.id.progressBar);
+                                int prog = (int) intent.getExtras().getLong("uploadedBytes");
+                                ILog.d(TAG, ">:"+prog);
+                                ILog.d(TAG, ">>:"+p.getMax());
+                                p.setProgress(prog);
+                                ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes((long) prog), formatMegaBytes((long)p.getMax())));
+                                break;
+                            case STARTED:
+                                HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this), null);
+                                break;
+                            case ABORTED_NO_NETWORK:
+                                // todo MENSAGE DE sem rede
+                                break;
+                            case FAILED:
+                                Toast.makeText(getApplicationContext(), getString(R.string.upload_error), Toast.LENGTH_LONG).show();
+                                break;
+                            case FINISHED:
+                                Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
+                                break;
+                            case ABORTED_USER:
+                                ILog.d(TAG, "user aborted upload");
+                                break;
+                            case NO_DATA:
+                                Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
+                                break;
+                            default:
+                                ILog.e(TAG, "Unexpected feedback status: "+use);
+                        }
                     }
                 }
             }
@@ -387,6 +401,7 @@ public class MainActivity extends Activity {
                                                                public void onClick(View view) {
                                                                    NetworkState networkState = NetworkUtils.checkUploadState(getApplicationContext());
                                                                    if (networkState == NetworkState.NETWORK_OK) {
+                                                                       resetStatusUpload(); // prevent ghost information from appearing
                                                                        UploadService.doUpload(getApplicationContext());
                                                                    } else {
                                                                        int msgid = -1;
@@ -471,8 +486,9 @@ public class MainActivity extends Activity {
         Globals.setDirectorySize(getApplicationContext(), FileUtils.getDirectorySize());
 
         ((ProgressBar) findViewById(R.id.progressBar)).setMax(getDirectorySize(getApplicationContext()).intValue());
+        ((ProgressBar) findViewById(R.id.progressBar)).setProgress(0);
 
-        ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, 0, formatMegaBytes(getDirectorySize(getApplicationContext()))));
+        ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes(0L), formatMegaBytes(getDirectorySize(getApplicationContext()))));
         ((TextView) findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, formatMegaBytes(getDirectorySize(getApplicationContext()))));
         displayUploadButton();
     }
@@ -580,19 +596,17 @@ public class MainActivity extends Activity {
     }
 
     private void updateProgressBar() {
-        ((ProgressBar) findViewById(R.id.progressBar)).setProgress(Globals.getDirectoryUploadedSize(getApplicationContext()).intValue());
-        ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes(Globals.getDirectoryUploadedSize(getApplicationContext())), formatMegaBytes(getDirectorySize(getApplicationContext()))));
+//        ((ProgressBar) findViewById(R.id.progressBar)).setProgress(Globals.getDirectoryUploadedSize(getApplicationContext()).intValue());
+//        ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes(Globals.getDirectoryUploadedSize(getApplicationContext())), formatMegaBytes(getDirectorySize(getApplicationContext()))));
     }
 
     private void stopUploading() {
-        resetStatusUpload();
-
-        findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
-        findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
-        findViewById(R.id.streamLayout).setVisibility(View.GONE);
-        Intent intent = new Intent(MainActivity.this, UploadService.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        stopService(intent);
+//        resetStatusUpload();
+//
+//        findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
+//        findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
+        findViewById(R.id.uploadCancelButton).setVisibility(View.INVISIBLE);
+        UploadService.stop(getApplicationContext());
         //uploadManager = null;
 
         HistoryUtils.registerHistory(getApplicationContext(), State.UPLOADING, State.LOGGED, Globals.getUserLogin(MainActivity.this), null);
@@ -780,23 +794,28 @@ public class MainActivity extends Activity {
             }
 
             @Override
-            public void failure(int statusCode) {}
+            public void failure(int statusCode) {
+            }
 
             @Override
-            public void noConnection() {}
+            public void noConnection() {
+            }
 
             @Override
-            public void badConnection() {}
+            public void badConnection() {
+            }
 
             @Override
-            public void badRequest() {}
+            public void badRequest() {
+            }
 
             @Override
-            public void badResponse() {}
+            public void badResponse() {
+            }
         });
 
         Globals.setRotation(getWindowManager().getDefaultDisplay().getRotation());
-        updateProgressBar();
+        //updateProgressBar();
         WifiManager wifi = (WifiManager)getSystemService(Context.WIFI_SERVICE);
         if (!wifi.isWifiEnabled()){
             showSettingsAlert();
@@ -914,6 +933,7 @@ public class MainActivity extends Activity {
     }
 
     private void displayUploadBar() {
+        findViewById(R.id.uploadCancelButton).setVisibility(View.VISIBLE);
         findViewById(R.id.uploadLayout).setVisibility(View.GONE);
         findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
         findViewById(R.id.streamLayout).setVisibility(View.GONE);

@@ -138,7 +138,7 @@ public class FileUtils {
     }
 
     public static String formatMegaBytes(Long size) {
-        return new DecimalFormat("##.##").format((float) size / 1000000);
+        return new DecimalFormat("#0.00").format((float) size / 1024);
     }
 
     public static List<String> getVideoPathList(String user) {

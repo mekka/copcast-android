@@ -46,7 +46,7 @@
     <string name="live_stream">Transmitindo ao Vivo</string>
     <string name="live_stream_desc">Transmitindo para a central</string>
     <string name="uploading">Enviando</string>
-    <string name="uploading_size">Enviando (%1$sMB of %2$sMB)</string>
+    <string name="uploading_size">Enviando (%1$sMB de %2$sMB)</string>
     <string name="notification_upload_title">Enviando dados.</string>
     <string name="notification_upload_description">Enviando dados para o servidor ... </string>
     <string name="upload_disabled">Não é possível enviar neste momento. É necessário que o celular esteja carregando ou com bateria cheia.</string>
@@ -85,5 +85,6 @@
     <string name="upload_denied">Envio negado</string>
     <string name="network_state_no_network">Rede de dados indisponível</string>
     <string name="network_state_wifi_required">É necessário estar conectado a uma rede wi-fi</string>
-    <string name="upload_state_unknown">Estado de upload inesperado.</string>
+    <string name="upload_state_unknown">Estado de envio inesperado.</string>
+    <string name="upload_error">Ocorreu um erro durante o envio. Por favor, tente novamente.</string>
 </resources>
