@@ -382,6 +382,7 @@ public class MainActivity extends Activity {
 
                                                      mCountDownTenPaused.cancel();
                                                      mCountDownThirtyPaused.cancel();
+                                                     mPauseCounter.setText("");
 
                                                      //reset upload values
                                                      resetStatusUpload();
@@ -576,6 +577,7 @@ public class MainActivity extends Activity {
         ((TextView) findViewById(R.id.welcomeDesc)).setText(getString(R.string.mission_start_desc));
         mCountDownTenPaused.cancel();
         mCountDownThirtyPaused.cancel();
+        mPauseCounter.setText("");
 
         Intent intent = new Intent(MainActivity.this, VideoRecorderService.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -751,6 +753,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
+
 //        IntentFilter filter = new IntentFilter();
 ////        IntentFilter filter = new IntentFilter(UploadManager.UPLOAD_PROGRESS_ACTION);
 ////        filter.addAction(UploadManager.CANCEL_UPLOAD_ACTION);
@@ -856,6 +859,7 @@ public class MainActivity extends Activity {
         }
 
         public void onFinish() {
+            mPauseCounter.setText("");
             resumeMission();
         }
     }
