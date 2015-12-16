@@ -644,6 +644,27 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
+        NetworkUtils.get(getApplicationContext(), "/users/me", new HttpResponseCallback() {
+            @Override
+            public void unauthorized() {
+                logout(getString(R.string.token_expired));
+            }
+
+            @Override
+            public void failure(int statusCode) {}
+
+            @Override
+            public void noConnection() {}
+
+            @Override
+            public void badConnection() {}
+
+            @Override
+            public void badRequest() {}
+
+            @Override
+            public void badResponse() {}
+        });
     }
 
     private void registerMyReceiver() {
@@ -727,27 +748,6 @@ public class MainActivity extends Activity {
             logout(getString(R.string.invalid_token));
         }
 
-        NetworkUtils.get(getApplicationContext(), "/users/me", new HttpResponseCallback() {
-            @Override
-            public void unauthorized() {
-                logout(getString(R.string.token_expired));
-            }
-
-            @Override
-            public void failure(int statusCode) {}
-
-            @Override
-            public void noConnection() {}
-
-            @Override
-            public void badConnection() {}
-
-            @Override
-            public void badRequest() {}
-
-            @Override
-            public void badResponse() {}
-        });
 
         Globals.setRotation(getWindowManager().getDefaultDisplay().getRotation());
         updateProgressBar();
