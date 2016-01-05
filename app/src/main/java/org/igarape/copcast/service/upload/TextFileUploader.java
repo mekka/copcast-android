@@ -66,7 +66,7 @@ public class TextFileUploader {
 
                 @Override
                 public void success(JSONObject response) {
-                    //file.delete();
+                    file.delete();
                     Log.e(TAG, "would delete file");
                 }
 

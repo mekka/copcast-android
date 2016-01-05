@@ -64,7 +64,6 @@ public class VideoUploader {
 
             requestStream = conn.getOutputStream();
 
-
             requestStream.write(boundaryBytes, 0, boundaryBytes.length);
             byte[] headerBytes = fileToUpload.getMultipartHeader();
             requestStream.write(headerBytes, 0, headerBytes.length);
@@ -91,14 +90,14 @@ public class VideoUploader {
 
             requestStream.write(trailer, 0, trailer.length);
 
-                final int serverResponseCode = conn.getResponseCode();
-                return (serverResponseCode / 100 == 2);
+            final int serverResponseCode = conn.getResponseCode();
+            ILog.d(TAG, "return code: "+serverResponseCode);
+            return (serverResponseCode / 100 == 2);
         } finally {
             closeOutputStream(requestStream);
             closeConnection(conn);
         }
     }
-
 
     private static String getBoundary() {
         final StringBuilder builder = new StringBuilder();
@@ -125,7 +124,7 @@ public class VideoUploader {
     }
 
     private static HttpURLConnection getMultipartHttpURLConnection(final String url, final String method,
-                                                            final String boundary, boolean keepalive) throws IOException {
+                                                                   final String boundary, boolean keepalive) throws IOException {
         final HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
 
         conn.setDoInput(true);

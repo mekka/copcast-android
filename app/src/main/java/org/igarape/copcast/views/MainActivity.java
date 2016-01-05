@@ -163,11 +163,8 @@ public class MainActivity extends Activity {
         uploadFeedbackReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                ILog.d(TAG, "receiving uploadReceiver");
                 if (intent.getAction().equals(UploadService.UPLOAD_FEEDBACK_ACTION)) {
-                    ILog.d(TAG, "Chegou feedback");
                     if (intent.getExtras() != null && intent.getExtras().get("event")!=null) {
-                        ILog.d(TAG, "feedback:" + intent.getExtras().get("event").toString());
                         UploadServiceEvent use = (UploadServiceEvent) intent.getExtras().get("event");
 
                         if (!use.getRunning())
@@ -179,8 +176,6 @@ public class MainActivity extends Activity {
                             case RUNNING:
                                 ProgressBar p = (ProgressBar) findViewById(R.id.progressBar);
                                 int prog = (int) intent.getExtras().getLong("uploadedBytes");
-                                ILog.d(TAG, ">:"+prog);
-                                ILog.d(TAG, ">>:"+p.getMax());
                                 p.setProgress(prog);
                                 ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes((long) prog), formatMegaBytes((long)p.getMax())));
                                 break;

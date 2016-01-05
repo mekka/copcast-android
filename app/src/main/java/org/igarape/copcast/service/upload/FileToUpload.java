@@ -133,4 +133,8 @@ public class FileToUpload implements Parcelable {
     public long getSize() {
         return this.file.length();
     }
+
+    public File getFile() {
+        return file;
+    }
 }

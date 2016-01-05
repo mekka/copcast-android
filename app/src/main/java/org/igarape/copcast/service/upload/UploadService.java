@@ -137,9 +137,9 @@ public class UploadService extends Service {
 
         final ArrayList<FileToUpload> files = b.getParcelableArrayList(PARAM_FILES);
         if (files != null)
-            ILog.e(TAG, ">>"+files.size());
+            ILog.d(TAG, "# of files: "+files.size());
         else
-            ILog.e(TAG, "Empty files");
+            ILog.d(TAG, "No files to upload");
 
         request = new UploadRequest(getApplicationContext(), UUID.randomUUID().toString());
         request.setMaxRetries(intent.getIntExtra(PARAM_MAX_RETRIES, 0));
@@ -206,6 +206,16 @@ public class UploadService extends Service {
                 FileToUpload fileToUpload = this.uploadRequest.getFilesToUpload().get(i);
                 try {
                     res = VideoUploader.uploadSingleFile(this.uploadRequest.getMethod(), fileToUpload, this.uploadRequest.getHeaders(), (num_files == i + 1), this.uploadRequest.getCustomUserAgent(), this);
+                    if (res) {
+                        try {
+                            fileToUpload.getFile().delete();
+                            ILog.i(TAG, "File deleted: " + fileToUpload.getFileName());
+                        } catch (Exception ex) {
+                            ILog.e(TAG, "Unable to remove uploaded file", ex);
+                        }
+                    } else {
+                        ILog.w(TAG, "Error ocurred with "+fileToUpload.getFileName());
+                    }
                     errorOccured = !res || errorOccured;
                     if (isCancelled()) break;
                 } catch (IOException e) {
@@ -229,7 +239,6 @@ public class UploadService extends Service {
         }
 
         public void updateCounter(long val) {
-            ILog.d(TAG, "counter set:"+val);
             publishProgress(val);
         }
     }
