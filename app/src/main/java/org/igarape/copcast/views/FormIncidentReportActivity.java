@@ -88,7 +88,7 @@ public class FormIncidentReportActivity extends Activity {
         form = (LinearLayout) findViewById(R.id.form);
         btnSetDate = (ImageButton) findViewById(R.id.btnSetDate);
         btnSetTime = (ImageButton) findViewById(R.id.btnSetTime);
-        visitedCheckboxes = new HashSet<View>();
+        visitedCheckboxes = new HashSet<>();
         initForm();
 
         btnSendForm = (Button) findViewById(R.id.btnFormSend);

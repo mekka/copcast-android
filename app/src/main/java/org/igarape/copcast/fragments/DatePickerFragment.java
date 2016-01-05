@@ -32,7 +32,7 @@ public class DatePickerFragment extends DialogFragment
 
     public static String asString() {
         getCurrentDate();
-        return year+"/"+month+"/"+day;
+        return year+"/"+(month+1)+"/"+day;
     }
 
     public void setTxtView(TextView view) {
@@ -47,6 +47,6 @@ public class DatePickerFragment extends DialogFragment
 
     @Override
     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-        txtview.setText(year+"/"+monthOfYear+"/"+dayOfMonth);
+        txtview.setText(year+"/"+(monthOfYear+1)+"/"+dayOfMonth);
     }
 }
