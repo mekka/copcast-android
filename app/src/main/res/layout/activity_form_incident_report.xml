@@ -113,7 +113,6 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:textColor="@color/text_dark_block"
-                android:text="@string/location"
                 android:layout_marginBottom = "10dp"
                 android:layout_marginLeft= "10dp"
                 android:id="@+id/txtLocation"

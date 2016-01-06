@@ -11,21 +11,18 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.TimePicker;
 import android.widget.Toast;
 
 import org.igarape.copcast.R;
 import org.igarape.copcast.bo.IncidentForm;
 import org.igarape.copcast.fragments.DatePickerFragment;
 import org.igarape.copcast.fragments.TimePickerFragment;
-import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.GPSTracker;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.IncidentFormCallback;
@@ -36,9 +33,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Set;
-import java.util.TimeZone;
 
 public class FormIncidentReportActivity extends Activity {
 
@@ -115,7 +110,7 @@ public class FormIncidentReportActivity extends Activity {
             public void onGlobalLayout() {
                 sv.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 int bottom = form.getBottom();
-                sv.scrollTo(0, bottom+20);
+                sv.scrollTo(0, bottom + 20);
             }
         });
     }
@@ -158,6 +153,7 @@ public class FormIncidentReportActivity extends Activity {
 
         txtLocation = (TextView) findViewById(R.id.txtLocation);
         txtAddress = (EditText) findViewById(R.id.txtAddress);
+        txtAddress.setHint(getString(R.string.address_not_detected));
 
         chkAccident = (CheckBox) findViewById(R.id.chkAccident);
         skbAccGravity = (SeekBar) findViewById(R.id.skbAccGravity);
@@ -174,13 +170,17 @@ public class FormIncidentReportActivity extends Activity {
 
 
 
+        String strLatitude = "--";
+        String strLongitude = "--";
         mGpsTracker = new GPSTracker(this);
 
         if (mGpsTracker.getIsGPSTrackingEnabled()) {
-            String strLatitude = String.valueOf(mGpsTracker.getLatitude());
-            String strLongitude = String.valueOf(mGpsTracker.getLongitude());
 
-            txtLocation.setText(strLatitude + "/" + strLongitude);
+            if (mGpsTracker.getLatitude() != null) {
+                strLatitude = String.valueOf(mGpsTracker.getLatitude());
+                strLongitude = String.valueOf(mGpsTracker.getLongitude());
+            }
+
             StringBuffer address = new StringBuffer();
             if (mGpsTracker.getAddressLine(this) != null){
                 address.append(mGpsTracker.getAddressLine(this));
@@ -198,13 +198,8 @@ public class FormIncidentReportActivity extends Activity {
                 address.append(mGpsTracker.getCountryName(this));
             }
 
-            if (address.length() == 0)
-            {
-                txtAddress.setHint(getString(R.string.address_not_detected));
-            }
-            else {
+            if (address.length() > 0)
                 txtAddress.setText(address.toString());
-            }
 
         } else {
             // can't get location
@@ -212,8 +207,11 @@ public class FormIncidentReportActivity extends Activity {
             // Ask user to enable GPS/network in settings
             mGpsTracker.showSettingsAlert();
         }
+        txtLocation.setText(strLatitude + " / " + strLongitude);
+
         mGpsTracker.stopUsingGPS();
 
+        txtLocation.setText(strLatitude + " / " + strLongitude);
 
         chkAccident.setOnClickListener(new View.OnClickListener() {
             @Override

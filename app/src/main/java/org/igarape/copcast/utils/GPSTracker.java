@@ -46,8 +46,8 @@ public class GPSTracker extends Service implements LocationListener {
     boolean isGPSTrackingEnabled = false;
 
     Location location = null;
-    double latitude;
-    double longitude;
+    Double latitude;
+    Double longitude;
 
     // How many Geocoder should return our GPSTracker
     int geocoderMaxResults = 1;
@@ -111,6 +111,7 @@ public class GPSTracker extends Service implements LocationListener {
                 location = locationManager.getLastKnownLocation(provider_info);
 
             }
+
             if (isNetworkEnabled && location == null) { // Try to get location if you Network Service is enabled
 
                 Log.d(TAG, "Application use Network State to get GPS coordinates");
@@ -154,7 +155,7 @@ public class GPSTracker extends Service implements LocationListener {
      * GPSTracker latitude getter and setter
      * @return latitude
      */
-    public double getLatitude() {
+    public Double getLatitude() {
         if (location != null) {
             latitude = location.getLatitude();
         }
@@ -166,7 +167,7 @@ public class GPSTracker extends Service implements LocationListener {
      * GPSTracker longitude getter and setter
      * @return
      */
-    public double getLongitude() {
+    public Double getLongitude() {
         if (location != null) {
             longitude = location.getLongitude();
         }
