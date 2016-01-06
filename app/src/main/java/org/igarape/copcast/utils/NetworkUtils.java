@@ -169,6 +169,7 @@ public class NetworkUtils {
         if (!hasConnection(context)) {
             if (callback != null) {
                 callback.noConnection();
+                return null;
             }
         }
         new AsyncTask<Void, Void, Void>() {
@@ -288,16 +289,6 @@ public class NetworkUtils {
                     }
                 }
                 return null;
-            }
-
-
-            @Override
-            protected void onPostExecute(Void unused) {
-                if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                    callback.unauthorized();
-                } else if (statusCode != HttpURLConnection.HTTP_OK) {
-                    callback.failure(statusCode);
-                }
             }
         }.execute();
         return null;
