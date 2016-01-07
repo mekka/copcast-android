@@ -195,7 +195,7 @@ public class MainActivity extends Activity {
                                 ILog.d(TAG, "user aborted upload");
                                 break;
                             case NO_DATA:
-                                Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
+                                Toast.makeText(getApplicationContext(), getString(R.string.upload_no_data), Toast.LENGTH_LONG).show();
                                 break;
                             default:
                                 ILog.e(TAG, "Unexpected feedback status: "+use);

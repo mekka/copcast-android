@@ -61,6 +61,7 @@ public class LocationService extends Service implements LocationListener, Google
     public void onLocationChanged(Location location) {
         //LocationUtils.sendLocation(this, Globals.getUserLogin(getApplicationContext()), location);
         if(null != location){
+            Log.d(TAG, "location set");
             Globals.setLastKnownLocation(location);
         }
     }

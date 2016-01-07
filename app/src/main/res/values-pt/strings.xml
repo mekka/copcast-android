@@ -87,4 +87,6 @@
     <string name="network_state_wifi_required">É necessário estar conectado a uma rede wi-fi</string>
     <string name="upload_state_unknown">Estado de envio inesperado.</string>
     <string name="upload_error">Ocorreu um erro durante o envio. Por favor, tente novamente.</string>
+    <string name="upload_no_data">Não há dados a serem enviados</string>
+
 </resources>

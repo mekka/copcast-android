@@ -41,39 +41,9 @@ public class HistoryUtils {
         try {
             final JSONObject history = buildJson(currentState, nextState, extras);
 
-            final GenericSqliteLogger hlogger = new GenericSqliteLogger(context, JsonDataType.TYPE_HISTORY_DATA, history, TAG);
+            final LoggedHTTPResponseCallback hlogger = new LoggedHTTPResponseCallback(context, JsonDataType.TYPE_HISTORY_DATA, history, TAG);
 
-            NetworkUtils.post(context, "/histories", history, new HttpResponseCallback() {
-                @Override
-                public void unauthorized() {
-                    hlogger.logFailedData("unauthorized");
-                }
-
-                @Override
-                public void failure(int statusCode) {
-                    hlogger.logFailedData("failure");
-                }
-
-                @Override
-                public void noConnection() {
-                    hlogger.logFailedData("no connection");
-                }
-
-                @Override
-                public void badConnection() {
-                    hlogger.logFailedData("bad connection");
-                }
-
-                @Override
-                public void badRequest() {
-                    hlogger.logFailedData("bad request");
-                }
-
-                @Override
-                public void badResponse() {
-                    hlogger.logFailedData("bad response");
-                }
-            });
+            NetworkUtils.post(context, "/histories", history, hlogger);
 
         } catch (JSONException e) {
             Log.e(TAG, "error sending history", e);

@@ -2,12 +2,9 @@ package org.igarape.copcast.utils;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Vibrator;
 import android.util.Log;
 
 import org.igarape.copcast.db.JsonDataType;
-import org.igarape.copcast.state.IncidentFlagState;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -76,45 +73,9 @@ public class IncidentUtils {
 
         failureLogged.set(false);
 
-        final GenericSqliteLogger ilogger = new GenericSqliteLogger(context, JsonDataType.TYPE_INCIDENT_FLAG, incident, TAG);
+        final LoggedHTTPResponseCallback ilogger = new LoggedHTTPResponseCallback(context, JsonDataType.TYPE_INCIDENT_FLAG, incident, TAG);
 
-        NetworkUtils.post(context, "/incidents", incident, new HttpResponseCallback() {
-
-            @Override
-            public void unauthorized() {
-                ilogger.logFailedData("unauthorized");
-            }
-
-            @Override
-            public void failure(int statusCode) {
-                ilogger.logFailedData("failure");
-            }
-
-            @Override
-            public void noConnection() {
-                ilogger.logFailedData("noConnection");
-            }
-
-            @Override
-            public void badConnection() {
-                ilogger.logFailedData("badConnection");
-            }
-
-            @Override
-            public void badRequest() {
-                ilogger.logFailedData("badRequest");
-            }
-
-            @Override
-            public void badResponse() {
-                ilogger.logFailedData("badResponse");
-            }
-
-            @Override
-            public void success(byte[] output) {
-                Log.d(TAG, "enviado!!!");
-            }
-        });
+        NetworkUtils.post(context, "/incidents", incident, ilogger);
     }
 
     public static void saveVideoPath(Context context, String videoPath) {

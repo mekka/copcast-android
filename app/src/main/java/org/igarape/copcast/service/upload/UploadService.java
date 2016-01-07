@@ -17,11 +17,13 @@ import org.igarape.copcast.utils.GenericExtFilter;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.NetworkUtils;
+import org.igarape.copcast.utils.SqliteUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.UUID;
 
 
@@ -46,13 +48,17 @@ public class UploadService extends Service {
 
 
         ArrayList<String> users = new ArrayList<>();
-        ArrayList<File> videos = new ArrayList<>();
+        ArrayList<String> dbUsers = SqliteUtils.getUsersInDb(context);
         String userPath;
         GenericExtFilter filter = new GenericExtFilter(".mp4");
 
-        Collections.addAll(users, FileUtils.getUserFolders());
 
-        if ((users == null || users.isEmpty())){
+        Collections.addAll(users, FileUtils.getUserFolders());
+        ILog.d(TAG, "from user folders:"+users.toString());
+        ILog.d(TAG, "from sqlite:" + dbUsers.toString());
+        Collections.addAll(users, dbUsers.toArray(new String[dbUsers.size()]));
+
+        if ((users == null || users.isEmpty()) && SqliteUtils.countEntries(context) == 0){
             feedback(context, UploadServiceEvent.NO_DATA, null);
             return;
         }
@@ -61,7 +67,9 @@ public class UploadService extends Service {
 
         feedback(context, UploadServiceEvent.STARTED, null);
 
-        for (String userLogin : users) {
+        for (String userLogin : new LinkedHashSet<>(users)) {
+
+            SqliteUtils.dumpTypesFromUser(context, userLogin);
 
             userPath = FileUtils.getPath(userLogin);
             File dir = new File(userPath);
@@ -70,16 +78,22 @@ public class UploadService extends Service {
                 dir.delete();
             }
 
+            ILog.d(TAG, "Uploading JSONs for user: "+userLogin);
             SqliteUploader.upload(context, JsonDataType.TYPE_HISTORY_DATA, userLogin);
-            SqliteUploader.upload(context, JsonDataType.TYPE_HEARTBEAT_DATA, userLogin);
+            SqliteUploader.upload(context, JsonDataType.TYPE_LOCATION_INFO, userLogin);
+            SqliteUploader.upload(context, JsonDataType.TYPE_BATTERY_STATUS, userLogin);
             SqliteUploader.upload(context, JsonDataType.TYPE_INCIDENT_FLAG, userLogin);
 
             File[] videos2go = dir.listFiles(filter);
 
-            for (File nextVideo : videos2go) {
-                filesToUpload.add(new FileToUpload(Globals.getServerUrl(context) + "/videos/" + userLogin,
-                        nextVideo.getAbsolutePath(), "video", nextVideo.getName(), ContentType.VIDEO_MPEG));
-            }
+            if (videos2go != null)
+                for (File nextVideo : videos2go) {
+                    filesToUpload.add(new FileToUpload(Globals.getServerUrl(context) + "/videos/" + userLogin,
+                            nextVideo.getAbsolutePath(), "video", nextVideo.getName(), ContentType.VIDEO_MPEG));
+                }
+
+            SqliteUtils.clearByType(context, userLogin, JsonDataType.TYPE_FLAGGED_VIDEO);
+
         }
 
         if (filesToUpload.isEmpty()) {
@@ -220,6 +234,7 @@ public class UploadService extends Service {
                     e.printStackTrace();
                 }
             }
+
             return null;
         }
 
