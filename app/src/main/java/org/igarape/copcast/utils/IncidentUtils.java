@@ -37,14 +37,6 @@ public class IncidentUtils {
         return json;
     }
 
-    private static void failedRegisterIncident(Context context, JSONObject incident, String tag) {
-        Log.e(TAG, "incident not sent successfully: " + tag);
-        if (!failureLogged.getAndSet(true)) {
-            String userLogin = Globals.getUserLogin(context);
-            SqliteUtils.storeToDb(context, userLogin, JsonDataType.TYPE_INCIDENT_FLAG, incident);
-        }
-    }
-
     public static void registerIncident(final Context context, final String videoPath) {
 
         final JSONObject[] incident = new JSONObject[1];
@@ -84,36 +76,38 @@ public class IncidentUtils {
 
         failureLogged.set(false);
 
+        final GenericSqliteLogger ilogger = new GenericSqliteLogger(context, JsonDataType.TYPE_INCIDENT_FLAG, incident, TAG);
+
         NetworkUtils.post(context, "/incidents", incident, new HttpResponseCallback() {
 
             @Override
             public void unauthorized() {
-                failedRegisterIncident(context, incident, "unauthorized");
+                ilogger.logFailedData("unauthorized");
             }
 
             @Override
             public void failure(int statusCode) {
-                failedRegisterIncident(context, incident, "failure");
+                ilogger.logFailedData("failure");
             }
 
             @Override
             public void noConnection() {
-                failedRegisterIncident(context, incident, "noConnection");
+                ilogger.logFailedData("noConnection");
             }
 
             @Override
             public void badConnection() {
-                failedRegisterIncident(context, incident, "badConnection");
+                ilogger.logFailedData("badConnection");
             }
 
             @Override
             public void badRequest() {
-                failedRegisterIncident(context, incident, "badRequest");
+                ilogger.logFailedData("badRequest");
             }
 
             @Override
             public void badResponse() {
-                failedRegisterIncident(context, incident, "badResponse");
+                ilogger.logFailedData("badResponse");
             }
 
             @Override

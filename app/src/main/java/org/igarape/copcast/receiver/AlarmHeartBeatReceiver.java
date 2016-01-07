@@ -26,8 +26,7 @@ public class AlarmHeartBeatReceiver extends BroadcastReceiver {
 
         if(null != lastKnownLocation){
             try {
-                HeartBeatUtils.sendHeartBeat(context, Globals.getUserLogin(context),
-                        LocationUtils.buildJson(lastKnownLocation), BatteryUtils.buildJson());
+                HeartBeatUtils.sendHeartBeat(context, LocationUtils.buildJson(lastKnownLocation), BatteryUtils.buildJson());
             } catch (JSONException e) {
                 Log.e(TAG, "error parsing location.", e);
             }

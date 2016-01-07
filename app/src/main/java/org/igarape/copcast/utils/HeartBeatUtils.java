@@ -1,8 +1,8 @@
 package org.igarape.copcast.utils;
 
 import android.content.Context;
-import android.util.Log;
 
+import org.igarape.copcast.db.JsonDataType;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -12,20 +12,7 @@ import org.json.JSONObject;
 public class HeartBeatUtils {
     private static final String TAG = HeartBeatUtils.class.getName();
 
-    interface HBLogger {
-        public void log();
-    }
-
-    public static void sendHeartBeat(Context context, final String login, final JSONObject locationJson, final JSONObject batteryJson){
-
-        final HBLogger hblogger = new HBLogger() {
-            public void log() {
-                if (batteryJson != null) {
-                    FileUtils.logTextFile(TextFileType.BATTERY, login, batteryJson);
-                }
-                FileUtils.logTextFile(TextFileType.LOCATIONS, login, locationJson);
-            }
-        };
+    public static void sendHeartBeat(Context context, final JSONObject locationJson, final JSONObject batteryJson){
 
         try {
             JSONObject json = new JSONObject();
@@ -33,40 +20,42 @@ public class HeartBeatUtils {
             if (batteryJson != null) {
                 json.put("battery", batteryJson);
             }
+
+            final GenericSqliteLogger hblogger = new GenericSqliteLogger(context, JsonDataType.TYPE_HEARTBEAT_DATA, json, TAG);
+
             NetworkUtils.post(context, "/heartbeats", json, new HttpResponseCallback() {
                 @Override
                 public void unauthorized() {
-                    hblogger.log();
+                    hblogger.logFailedData("unauthorized");
                 }
-
 
                 @Override
                 public void failure(int statusCode) {
-                    hblogger.log();
+                    hblogger.logFailedData("failure");
                 }
 
                 @Override
                 public void noConnection() {
-                    hblogger.log();
+                    hblogger.logFailedData("noConnection");
                 }
 
                 @Override
                 public void badConnection() {
-                    hblogger.log();
+                    hblogger.logFailedData("badConnection");
                 }
 
                 @Override
                 public void badRequest() {
-                    hblogger.log();
+                    hblogger.logFailedData("badRequest");
                 }
 
                 @Override
                 public void badResponse() {
-                    hblogger.log();
+                    hblogger.logFailedData("badResponse");
                 }
             });
         } catch (JSONException e) {
-            Log.e(TAG, "error sending heartbeat", e);
+            ILog.e(TAG, "error sending heartbeat", e);
         }
 
     }

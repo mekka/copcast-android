@@ -17,7 +17,6 @@ import org.igarape.copcast.utils.GenericExtFilter;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.NetworkUtils;
-import org.igarape.copcast.utils.TextFileType;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,10 +70,9 @@ public class UploadService extends Service {
                 dir.delete();
             }
 
-            TextFileUploader.upload(context, TextFileType.HISTORY, userLogin);
-            TextFileUploader.upload(context, TextFileType.LOCATIONS, userLogin);
-            TextFileUploader.upload(context, TextFileType.BATTERY, userLogin);
-            SqliteUploader.upload(context, JsonDataType.TYPE_FLAGGED_VIDEO, userLogin);
+            SqliteUploader.upload(context, JsonDataType.TYPE_HISTORY_DATA, userLogin);
+            SqliteUploader.upload(context, JsonDataType.TYPE_HEARTBEAT_DATA, userLogin);
+            SqliteUploader.upload(context, JsonDataType.TYPE_INCIDENT_FLAG, userLogin);
 
             File[] videos2go = dir.listFiles(filter);
 

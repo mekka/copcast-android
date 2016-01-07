@@ -20,11 +20,6 @@ public class LocationUtils {
   * Define a request code to send to Google Play services
   * This code is returned in Activity.onActivityResult
   */
-    public final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
-
-    /*
-     * Constants for location update parameters
-     */
     // Milliseconds per second
     public static final int MILLISECONDS_PER_SECOND = 1000;
 
@@ -41,62 +36,7 @@ public class LocationUtils {
     // A fast ceiling of update intervals, used when the app is visible
     public static final long FAST_INTERVAL_CEILING_IN_MILLISECONDS =
             MILLISECONDS_PER_SECOND * FAST_CEILING_IN_SECONDS;
-    private static final String TAG = LocationUtils.class.getName();
     public static final float SMALLEST_DISPLACEMENT = 0;
-
-    private static void logLocation(String login, Location location) {
-        try {
-            FileUtils.logTextFile(TextFileType.LOCATIONS, login, LocationUtils.buildJson(location));
-        } catch (JSONException e) {
-            Log.e(TAG, "Unable to persist unsent location");
-            Log.d(TAG, e.toString());
-        }
-    }
-
-    public static void sendLocation(Context context, final String login, final Location location) {
-        HttpResponseCallback callback = new HttpResponseCallback() {
-            @Override
-            public void failure(int statusCode) {
-                logLocation(login, location);
-            }
-
-            @Override
-            public void unauthorized() {
-                logLocation(login, location);
-            }
-
-            @Override
-            public void noConnection() {
-                logLocation(login, location);
-            }
-
-            @Override
-            public void badConnection() {
-                logLocation(login, location);
-            }
-
-            @Override
-            public void badRequest() {
-                logLocation(login, location);
-            }
-
-            @Override
-            public void badResponse() {
-                logLocation(login, location);
-            }
-
-            @Override
-            public void success(JSONObject response) {
-                Log.i(TAG, "location sent successfully");
-            }
-        };
-
-        try {
-            NetworkUtils.post(context, "/locations", buildJson(location), callback);
-        } catch (JSONException e) {
-            Log.e(TAG, "json error", e);
-        }
-    }
 
     public static JSONObject buildJson(Location location) throws JSONException {
         TimeZone tz = TimeZone.getTimeZone("UTC");
