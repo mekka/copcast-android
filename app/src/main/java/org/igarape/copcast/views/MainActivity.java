@@ -749,42 +749,6 @@ public class MainActivity extends Activity {
     protected void onStart() {
         super.onStart();
 
-//        IntentFilter filter = new IntentFilter();
-////        IntentFilter filter = new IntentFilter(UploadManager.UPLOAD_PROGRESS_ACTION);
-////        filter.addAction(UploadManager.CANCEL_UPLOAD_ACTION);
-////        filter.addAction(UploadManager.UPLOAD_FAILED_ACTION);
-////        filter.addAction(UploadManager.COMPLETED_UPLOAD_ACTION);
-//        filter.addAction(CopcastGcmListenerService.START_STREAMING_ACTION);
-//        filter.addAction(CopcastGcmListenerService.STOP_STREAMING_ACTION);
-//        filter.addAction(BatteryReceiver.BATTERY_LOW_MESSAGE);
-//        filter.addAction(BatteryReceiver.BATTERY_OKAY_MESSAGE);
-//        LocalBroadcastManager.getInstance(this).registerReceiver((broadcastReceiver), filter);
-//        IntentFilter filterUploadFeedback = new IntentFilter(UploadService.UPLOAD_FEEDBACK_ACTION);
-//        LocalBroadcastManager.getInstance(this).registerReceiver((uploadFeedbackReceiver), filterUploadFeedback);
-//
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        //LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
-        //Log.d("state","onStop");
-    }
-
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        Globals.setRotation(getWindowManager().getDefaultDisplay().getRotation());
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (Globals.getAccessToken(getApplicationContext()) == null) {
-            logout(getString(R.string.invalid_token));
-        }
-
         NetworkUtils.get(getApplicationContext(), "/users/me", new HttpResponseCallback() {
             @Override
             public void unauthorized() {
@@ -811,6 +775,28 @@ public class MainActivity extends Activity {
             public void badResponse() {
             }
         });
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        //LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
+        //Log.d("state","onStop");
+    }
+
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        Globals.setRotation(getWindowManager().getDefaultDisplay().getRotation());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (Globals.getAccessToken(getApplicationContext()) == null) {
+            logout(getString(R.string.invalid_token));
+        }
 
         Globals.setRotation(getWindowManager().getDefaultDisplay().getRotation());
         //updateProgressBar();
