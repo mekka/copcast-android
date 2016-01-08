@@ -183,7 +183,8 @@ public class MainActivity extends Activity {
                                 HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this), null);
                                 break;
                             case ABORTED_NO_NETWORK:
-                                // todo MENSAGE DE sem rede
+                                Toast.makeText(getApplicationContext(), getString(R.string.network_state_no_network), Toast.LENGTH_LONG).show();
+                                ILog.d(TAG, "No network available");
                                 break;
                             case FAILED:
                                 Toast.makeText(getApplicationContext(), getString(R.string.upload_error), Toast.LENGTH_LONG).show();
@@ -206,10 +207,6 @@ public class MainActivity extends Activity {
         };
 
         IntentFilter filter = new IntentFilter();
-//        IntentFilter filter = new IntentFilter(UploadManager.UPLOAD_PROGRESS_ACTION);
-//        filter.addAction(UploadManager.CANCEL_UPLOAD_ACTION);
-//        filter.addAction(UploadManager.UPLOAD_FAILED_ACTION);
-//        filter.addAction(UploadManager.COMPLETED_UPLOAD_ACTION);
         filter.addAction(CopcastGcmListenerService.START_STREAMING_ACTION);
         filter.addAction(CopcastGcmListenerService.STOP_STREAMING_ACTION);
         filter.addAction(BatteryReceiver.BATTERY_LOW_MESSAGE);
@@ -280,7 +277,6 @@ public class MainActivity extends Activity {
                                 public void onClick(DialogInterface dialog, int id) {
                                     stopUploading();
                                     startMission();
-
                                 }
                             })
                             .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -299,9 +295,8 @@ public class MainActivity extends Activity {
             private void startMission() {
                 mStarMissionButton.setVisibility(View.GONE);
 
-                vibrate(200); //vibrate when touch a button
+                vibrate(200);
                 talk("mission_started");
-                // Log.d("talk","mission started");
 
                 findViewById(R.id.settingsLayout).setVisibility(View.VISIBLE);
                 ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.mission_start));
@@ -506,8 +501,6 @@ public class MainActivity extends Activity {
                 PendingIntent.FLAG_CANCEL_CURRENT);
         manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), Globals.GPS_REPEAT_TIME, pending);
 
-
-
         intent = new Intent(this, BatteryReceiver.class);
         pending = PendingIntent.getBroadcast(this, 0, intent,
                 PendingIntent.FLAG_CANCEL_CURRENT);
@@ -520,10 +513,6 @@ public class MainActivity extends Activity {
         vibrate(200); //vibrate when touch a button
         talk("mission_completed");
         talk("wait");
-
-
-        // Log.d("talk","mission completed...!!");
-
     }
 
     private void startPausedCountdown() {
@@ -548,7 +537,6 @@ public class MainActivity extends Activity {
         mStreamSwitch.setChecked(false);
         mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
         mStreamSwitch.setEnabled(false);
-
 
         mPauseCounter.setVisibility(View.VISIBLE);
         findViewById(R.id.recBall).setVisibility(View.GONE);
@@ -578,8 +566,6 @@ public class MainActivity extends Activity {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startService(intent);
 
-
-
         vibrate(200); //vibrate when touch a button
     }
 
@@ -592,19 +578,9 @@ public class MainActivity extends Activity {
                         TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)));
     }
 
-    private void updateProgressBar() {
-//        ((ProgressBar) findViewById(R.id.progressBar)).setProgress(Globals.getDirectoryUploadedSize(getApplicationContext()).intValue());
-//        ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes(Globals.getDirectoryUploadedSize(getApplicationContext())), formatMegaBytes(getDirectorySize(getApplicationContext()))));
-    }
-
     private void stopUploading() {
-//        resetStatusUpload();
-//
-//        findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
-//        findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
         findViewById(R.id.uploadCancelButton).setVisibility(View.INVISIBLE);
         UploadService.stop(getApplicationContext());
-        //uploadManager = null;
 
         HistoryUtils.registerHistory(getApplicationContext(), State.UPLOADING, State.LOGGED, Globals.getUserLogin(MainActivity.this), null);
     }
@@ -780,8 +756,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onStop() {
         super.onStop();
-        //LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
-        //Log.d("state","onStop");
     }
 
 
@@ -799,12 +773,10 @@ public class MainActivity extends Activity {
         }
 
         Globals.setRotation(getWindowManager().getDefaultDisplay().getRotation());
-        //updateProgressBar();
         WifiManager wifi = (WifiManager)getSystemService(Context.WIFI_SERVICE);
         if (!wifi.isWifiEnabled()){
             showSettingsAlert();
         }
-        //Log.d("state","onResume");
     }
 
     public void showSettingsAlert(){
@@ -857,7 +829,6 @@ public class MainActivity extends Activity {
                 } else if (System.currentTimeMillis() - first_keydown > FLAG_TRIGGER_WAIT_TIME) {
                     if (Globals.getIncidentFlag() == IncidentFlagState.NOT_FLAGGED) {
 
-                        //wait a bit
                         first_keydown = null; //reset state
 
                         if (!VideoRecorderService.serviceRunning) {
