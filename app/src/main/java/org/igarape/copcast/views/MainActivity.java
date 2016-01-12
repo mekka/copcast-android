@@ -126,54 +126,9 @@ public class MainActivity extends Activity {
         ab.setSubtitle(Globals.getUserLogin(this));
         FileUtils.init(getApplicationContext());
 
-        broadcastReceiver
-                = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if (intent.getAction().equals(BatteryReceiver.BATTERY_LOW_MESSAGE)) {
-                    stopUploading();
-                    stopAlarmReceiver();
-                } else if (intent.getAction().equals(BatteryReceiver.BATTERY_OKAY_MESSAGE)) {
-                    //TODO check if it's already running. if not, start startAlarmLocationReceiver()
-                }
-                else if (intent.getAction().equals(UploadManager.UPLOAD_FAILED_ACTION)) {
-                    if (uploadManager != null) {
-                        uploadManager.runUpload();
-                    }
-                }
-                else if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
-                    updateProgressBar();
-                    if (uploadManager != null) {
-                        uploadManager.deleteVideoFile();
-                        uploadManager.runUpload();
-                    }
 
-                } else if (intent.getAction().equals(CopcastGcmListenerService.START_STREAMING_ACTION)) {
-                    if (isMissionStarted()) {
-                        mStreamSwitch.setChecked(true);
-                    }
-                } else if (intent.getAction().equals(CopcastGcmListenerService.STOP_STREAMING_ACTION)) {
-                    if (isMissionStarted()) {
-                        mStreamSwitch.setChecked(false);
-                    }
-                } else {
-                    findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
-                    findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
-                    findViewById(R.id.streamLayout).setVisibility(View.GONE);
 
-                    Intent intentAux = new Intent(MainActivity.this, UploadService.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    stopService(intentAux);
-                    uploadManager = null;
-                    if (intent.getAction().equals(UploadManager.CANCEL_UPLOAD_ACTION)) {
-                        Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
-                    }
-                    resetStatusUpload();
-                }
-            }
-        };
+        registerMyReceiver();
 
         NetworkUtils.get(getApplicationContext(), "/pictures/icon/show", NetworkUtils.Response.BYTEARRAY, new HttpResponseCallback() {
             @Override
@@ -331,6 +286,7 @@ public class MainActivity extends Activity {
 
                                                      mCountDownTenPaused.cancel();
                                                      mCountDownThirtyPaused.cancel();
+                                                     mPauseCounter.setText("");
 
                                                      //reset upload values
                                                      resetStatusUpload();
@@ -514,6 +470,7 @@ public class MainActivity extends Activity {
         ((TextView) findViewById(R.id.welcomeDesc)).setText(getString(R.string.mission_start_desc));
         mCountDownTenPaused.cancel();
         mCountDownThirtyPaused.cancel();
+        mPauseCounter.setText("");
 
         Intent intent = new Intent(MainActivity.this, VideoRecorderService.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -646,13 +603,13 @@ public class MainActivity extends Activity {
             }
             return true;
         } else if (id == R.id.action_logout) {
-            logout();
+            logout(null);
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void logout() {
+    private void logout(String reason) {
         //TODO needs current state?
         if (isStreaming()) {
             HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.NOT_LOGGED, Globals.getUserLogin(MainActivity.this), null);
@@ -666,6 +623,8 @@ public class MainActivity extends Activity {
         Globals.clear(MainActivity.this);
         killServices();
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        if (reason != null)
+            intent.putExtra("reason", reason);
         startActivity(intent);
         MainActivity.this.finish();
     }
@@ -689,6 +648,79 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
+        NetworkUtils.get(getApplicationContext(), "/users/me", new HttpResponseCallback() {
+            @Override
+            public void unauthorized() {
+                logout(getString(R.string.token_expired));
+            }
+
+            @Override
+            public void failure(int statusCode) {}
+
+            @Override
+            public void noConnection() {}
+
+            @Override
+            public void badConnection() {}
+
+            @Override
+            public void badRequest() {}
+
+            @Override
+            public void badResponse() {}
+        });
+    }
+
+    private void registerMyReceiver() {
+        broadcastReceiver
+                = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent.getAction().equals(BatteryReceiver.BATTERY_LOW_MESSAGE)) {
+                    stopUploading();
+                    stopAlarmReceiver();
+                } else if (intent.getAction().equals(BatteryReceiver.BATTERY_OKAY_MESSAGE)) {
+                    //TODO check if it's already running. if not, start startAlarmLocationReceiver()
+                }
+                else if (intent.getAction().equals(UploadManager.UPLOAD_FAILED_ACTION)) {
+                    if (uploadManager != null) {
+                        uploadManager.runUpload();
+                    }
+                }
+                else if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
+                    updateProgressBar();
+                    if (uploadManager != null) {
+                        uploadManager.deleteVideoFile();
+                        uploadManager.runUpload();
+                    }
+
+                } else if (intent.getAction().equals(CopcastGcmListenerService.START_STREAMING_ACTION)) {
+                    if (isMissionStarted()) {
+                        mStreamSwitch.setChecked(true);
+                    }
+                } else if (intent.getAction().equals(CopcastGcmListenerService.STOP_STREAMING_ACTION)) {
+                    if (isMissionStarted()) {
+                        mStreamSwitch.setChecked(false);
+                    }
+                } else {
+                    findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
+                    findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
+                    findViewById(R.id.streamLayout).setVisibility(View.GONE);
+
+                    Intent intentAux = new Intent(MainActivity.this, UploadService.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    stopService(intentAux);
+                    uploadManager = null;
+                    if (intent.getAction().equals(UploadManager.CANCEL_UPLOAD_ACTION)) {
+                        Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
+                    }
+                    resetStatusUpload();
+                }
+            }
+        };
+
         IntentFilter filter = new IntentFilter(UploadManager.UPLOAD_PROGRESS_ACTION);
         filter.addAction(UploadManager.CANCEL_UPLOAD_ACTION);
         filter.addAction(UploadManager.UPLOAD_FAILED_ACTION);
@@ -717,8 +749,10 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         if (Globals.getAccessToken(getApplicationContext()) == null) {
-            logout();
+            logout(getString(R.string.invalid_token));
         }
+
+
         Globals.setRotation(getWindowManager().getDefaultDisplay().getRotation());
         updateProgressBar();
         WifiManager wifi = (WifiManager)getSystemService(Context.WIFI_SERVICE);
@@ -761,6 +795,7 @@ public class MainActivity extends Activity {
         }
 
         public void onFinish() {
+            mPauseCounter.setText("");
             resumeMission();
         }
     }

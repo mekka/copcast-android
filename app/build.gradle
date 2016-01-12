@@ -44,12 +44,12 @@ android {
             signingConfig signingConfigs.config
         }
         capeTown {
-            resValue "string", "SERVER_URL_DEFAULT", "\"http://api.mogidocs.co.za\""
+            resValue "string", "SERVER_URL_DEFAULT", "\"https://docs-api.mycopcast.com\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "false"
         }
     }
     dexOptions {
-        incremental false
+        incremental true
     }
 }
 
@@ -61,4 +61,5 @@ dependencies {
     //mew versions can be consulted here: http://repo1.maven.org/maven2/io/pristine/libjingle/
     compile 'io.pristine:libjingle:9814@aar'
     compile 'com.github.nkzawa:socket.io-client:0.5.2'
+
 }

@@ -26,7 +26,6 @@ import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.views.MainActivity;
-import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.Date;
@@ -135,7 +134,32 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             mediaRecorder.setCamera(camera);
             mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
             mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-            mediaRecorder.setProfile(CamcorderProfile.get(Globals.appCamcoderProfile));
+
+            //chain to identify available resolutions
+            Globals.appCamcoderProfile = CamcorderProfile.QUALITY_LOW;
+            CamcorderProfile profile = CamcorderProfile.get(Globals.appCamcoderProfile);
+            try {
+                Globals.appCamcoderProfile = CamcorderProfile.QUALITY_QVGA;
+                profile = CamcorderProfile.get(Globals.appCamcoderProfile);
+            } catch (RuntimeException ex) {
+                Log.w(TAG, "Failed to set QVGA video profile. Trying CIF");
+                try {
+                    Globals.appCamcoderProfile = CamcorderProfile.QUALITY_CIF;
+                    profile = CamcorderProfile.get(Globals.appCamcoderProfile);
+                } catch (RuntimeException ex2) {
+                    Log.w(TAG, "Failed to set CIF video profile. Falling back to LOW");
+                    Globals.appCamcoderProfile = CamcorderProfile.QUALITY_LOW;
+                }
+            }
+
+            // tune video parameters to reduce size
+            profile.videoBitRate = 156000;
+            profile.videoFrameRate = 12;
+            profile.audioBitRate = 24000;
+            profile.audioChannels = 1;
+
+            // Apply to MediaRecorder
+            mediaRecorder.setProfile(profile);
 
             videoFileName = FileUtils.getPath(Globals.getUserLogin(getBaseContext())) +
                     android.text.format.DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime()) +

@@ -247,11 +247,15 @@ public class UploadService extends IntentService {
             uploadFiles(uploadId, requestStream, filesToUpload, boundaryBytes);
 
             requestStream.write(trailer, 0, trailer.length);
-            final int serverResponseCode = conn.getResponseCode();
-
-            if (serverResponseCode / 100 == 2) {
-                UploadManager.sendUpdateToUI(getApplicationContext(), LocalBroadcastManager.getInstance(getApplicationContext()), totalFileBytes);
-            } else { // getErrorStream if the response code is not 2xx
+            try {
+                final int serverResponseCode = conn.getResponseCode();
+                if (serverResponseCode / 100 == 2) {
+                    UploadManager.sendUpdateToUI(getApplicationContext(), LocalBroadcastManager.getInstance(getApplicationContext()), totalFileBytes);
+                } else { // getErrorStream if the response code is not 2xx
+                    UploadManager.sendFailedToUI(LocalBroadcastManager.getInstance(getApplicationContext()));
+                }
+            } catch(Exception e){
+                Log.e(TAG, "error receiving code status", e);
                 UploadManager.sendFailedToUI(LocalBroadcastManager.getInstance(getApplicationContext()));
             }
 

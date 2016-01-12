@@ -46,7 +46,7 @@ public class Globals {
     private static int rotation;
     private static IncidentFlagState incidentFlag = IncidentFlagState.NOT_FLAGGED;
     private static String currentVideoPath;
-    public final static int appCamcoderProfile = CamcorderProfile.QUALITY_LOW;
+    public static int appCamcoderProfile = CamcorderProfile.QUALITY_QVGA;
 
 
     public synchronized static String getAccessToken(Context context) {
