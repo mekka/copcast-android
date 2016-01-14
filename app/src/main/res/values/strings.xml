@@ -82,7 +82,7 @@
     <string name="action_playback">Video playback</string>
     <string name="no_video_message">No video available for playback</string>
     <string name="gps_config">GPS Config</string>
-    <string name="alert_message">GPS Error</string>
+    <string name="alert_message">The location could not be retrieved. Check your device's configurations.</string>
     <string name="send">Send</string>
     <string name="lethal_force">Use of lethal force?</string>
     <string name="argument">Argument?</string>
