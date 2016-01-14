@@ -124,10 +124,12 @@ public class SqliteUtils {
     public static void dumpTypesFromUser(Context context, String user) {
         SQLiteDatabase db = SqliteUtils.getReadDb(context);
 
+        String username = user != null ? user : "null";
+
         Cursor c = db.rawQuery(
                 "SELECT distinct(" + JsonDataEntry.COLUMN_TYPE + ") FROM " + JsonDataEntry.TABLE_NAME + " WHERE " +
                         JsonDataEntry.COLUMN_USER + "= ?",
-                new String[]{user}
+                new String[]{username}
         );
 
         for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
