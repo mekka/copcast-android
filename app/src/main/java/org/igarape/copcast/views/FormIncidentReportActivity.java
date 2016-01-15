@@ -397,7 +397,7 @@ public class FormIncidentReportActivity extends Activity {
         incidentForm.setAddress(txtAddress.getText().toString());
 
         incidentForm.setAccident(chkAccident.isChecked());
-        incidentForm.setGravity(skbAccGravity.getProgress());
+        incidentForm.setGravity(skbAccGravity.getProgress()+1);
         if (chkAccident.isChecked()) {
             incidentForm.setInjured(Integer.parseInt(txtAccNumInjured.getText().toString()));
         }
