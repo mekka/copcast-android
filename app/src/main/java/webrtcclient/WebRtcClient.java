@@ -331,14 +331,13 @@ public class WebRtcClient {
         iceServers.add(new PeerConnection.IceServer("stun:stun2.l.google.com:19302"));
         iceServers.add(new PeerConnection.IceServer("stun:stun3.l.google.com:19302"));
         iceServers.add(new PeerConnection.IceServer("stun:stun4.l.google.com:19302"));
-
+        iceServers.add(new PeerConnection.IceServer("stun:stunserver.org"));
         iceServers.add(new PeerConnection.IceServer("stun:stun.softjoys.com"));
         iceServers.add(new PeerConnection.IceServer("stun:stun.voiparound.com"));
         iceServers.add(new PeerConnection.IceServer("stun:stun.voipbuster.com"));
         iceServers.add(new PeerConnection.IceServer("stun:stun.voipstunt.com"));
         iceServers.add(new PeerConnection.IceServer("stun:stun.voxgratia.org"));
         iceServers.add(new PeerConnection.IceServer("stun:stun.xten.com"));
-        iceServers.add(new PeerConnection.IceServer("turn:192.158.29.39:3478?transport=udp", "28224511:1379330808", "JZEOEt2V3Qb0y27GRntt2u2PAYA="));
 
         //pcConstraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"));
         pcConstraints.mandatory.add(new MediaConstraints.KeyValuePair("OfferToReceiveVideo", "true"));
