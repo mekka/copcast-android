@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,7 +15,6 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -81,7 +79,6 @@ public class MainActivity extends Activity {
     private UploadManager uploadManager;
     private Long first_keydown;
     private final int FLAG_TRIGGER_WAIT_TIME = 1000;
-    private ProgressDialog pDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -575,7 +572,6 @@ public class MainActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        Log.d(TAG, "Menu inflated!");
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
@@ -602,14 +598,6 @@ public class MainActivity extends Activity {
                 startActivity(i);
             }
             return true;
-        } else if (id == R.id.action_incident_form) {
-            Log.d(TAG, "IncidentForm Open Menu!");
-            pDialog = ProgressDialog.show(this, getString(R.string.loading), getString(R.string.please_hold), true);
-
-            Intent i = new Intent(this, FormIncidentReportActivity.class);
-            startActivity(i);
-            return true;
-
         } else if (id == R.id.action_logout) {
             logout(null);
             return true;
@@ -650,13 +638,33 @@ public class MainActivity extends Activity {
         stopService(new Intent(MainActivity.this, LocationService.class));
         stopService(new Intent(MainActivity.this, VideoRecorderService.class));
         stopService(new Intent(MainActivity.this, UploadService.class));
-
         stopAlarmReceiver();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        NetworkUtils.get(getApplicationContext(), "/users/me", new HttpResponseCallback() {
+            @Override
+            public void unauthorized() {
+                logout(getString(R.string.token_expired));
+            }
+
+            @Override
+            public void failure(int statusCode) {}
+
+            @Override
+            public void noConnection() {}
+
+            @Override
+            public void badConnection() {}
+
+            @Override
+            public void badRequest() {}
+
+            @Override
+            public void badResponse() {}
+        });
     }
 
     private void registerMyReceiver() {
@@ -739,31 +747,7 @@ public class MainActivity extends Activity {
         if (Globals.getAccessToken(getApplicationContext()) == null) {
             logout(getString(R.string.invalid_token));
         }
-        if (pDialog != null){
-            pDialog.dismiss();
-            pDialog = null;
-        }
-        NetworkUtils.get(getApplicationContext(), "/users/me", new HttpResponseCallback() {
-            @Override
-            public void unauthorized() {
-                logout(getString(R.string.token_expired));
-            }
 
-            @Override
-            public void failure(int statusCode) {}
-
-            @Override
-            public void noConnection() {}
-
-            @Override
-            public void badConnection() {}
-
-            @Override
-            public void badRequest() {}
-
-            @Override
-            public void badResponse() {}
-        });
 
         Globals.setRotation(getWindowManager().getDefaultDisplay().getRotation());
         updateProgressBar();

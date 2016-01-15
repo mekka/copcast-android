@@ -53,7 +53,7 @@
     <string name="upload_stopped">Upload canceled due to network/charging restrictions</string>
     <string name="under_construction">Under construction</string>
     <string name="upload_completed">Upload completed!</string>
-    <string name="stop_uploading">You are uploading data. Stop it and start a new mission?</string>
+    <string name="stop_uploading">You are uploading data. Want to stop it and start the mission?</string>
     <string name="ok">Ok</string>
     <string name="cancel">Cancel</string>
     <string name="notification_stream_title">Livestreaming</string>
@@ -63,7 +63,7 @@
     <string name="resume_mission">Resume Mission</string>
     <string name="pause_title">Paused</string>
     <string name="pause_desc">Recording have been paused.</string>
-    <string name="wifi_dialog_title">Wi-Fi disabled</string>
+    <string name="wifi_dialog_title">Wi-Fi is disabled</string>
     <string name="wifi_dialog_msg">For better location accuracy please turn Wi-Fi on. Do you wanna change settings?</string>
     <string name="cancel_button">Cancel</string>
     <string name="settings_button">Settings</string>
@@ -76,9 +76,6 @@
     <string name="pref_server_url">Server URL</string>
     <string name="serverurl_disabled_logged">It is not possible to change the server url while logged.</string>
     <string name="title_activity_upload_video">UploadVideoActivity</string>
-    <string name="title_activity_incident_report">Incident Report</string>
-    <string name="action_incident_form">Incident Form</string>
-    <string name="hello_world">Hello world!</string>
     <string name="action_playback">Video playback</string>
     <string name="no_video_message">No video available for playback</string>
     <string name="gps_config">GPS Config</string>
@@ -108,5 +105,4 @@
     <string name="registered_incident">Incident Registered</string>
     <string name="token_expired">Your token expired. Please log in</string>
     <string name="invalid_token">Invalid token. Please log in.</string>
-    <string name="loading">Loading...</string>
 </resources>

@@ -53,7 +53,7 @@
     <string name="upload_stopped">Envio cancelado devido a restrições de rede/bateria</string>
     <string name="under_construction"> Em Construção </string>
     <string name="upload_completed"> Envio concluído! </string>
-    <string name="stop_uploading">Você está enviando dados. Deseja interromper e iniciar nova missão?</string>
+    <string name="stop_uploading"> Você está enviando dados. Deseja interromper e começar a missão? </string>
     <string name="ok"> Ok </string>
     <string name="cancel"> Cancelar </string>
     <string name="notification_stream_title">Transmissão ao vivo</string>
@@ -61,7 +61,7 @@
     <string name="ten_minutes">10 minutos</string>
     <string name="thirty_minutes">30 minutos</string>
     <string name="resume_mission">Reiniciar Missão</string>
-    <string name="pause_title">Pausa</string>
+    <string name="pause_title">Pausar</string>
     <string name="pause_desc">Gravação foi pausada.</string>
     <string name="wifi_dialog_title">Wi-Fi desativado</string>
     <string name="wifi_dialog_msg">Para melhorar a precisão de sua localização por favor ligar o Wi-Fi. Deseja modificar as configurações?</string>
@@ -74,9 +74,8 @@
     <string name="pref_upload_wifi_only">User somente wifi</string>
     <string name="pref_upload_wifi_only_desc">Não permite que o aplicativo use dados 3G quando envia os videos para o servidor</string>
     <string name="pref_server_url">URL do Servidor</string>
-    <string name="serverurl_disabled_logged">Não é possível alterar a URL do servidor enquanto estiver conectado.</string>
+    <string name="serverurl_disabled_logged">Não é possíel alterar a URL do servidor enquanto estiver conectado.</string>
     <string name="title_activity_upload_video">UploadVideoActivity</string>
-    <string name="action_incident_form">Formulário de Incidentes</string>
     <string name="action_playback">Reprodução de vídeos</string>
     <string name="no_video_message">Não há vídeos disponíveis para reprodução</string>
     <string name="alert_message">A localização não foi encontrada. Verifique as configurações do seu aparelho.</string>
@@ -101,5 +100,4 @@
     <string name="registered_incident">Incidente Registrado</string>
     <string name="token_expired">Sua chave de acesso expirou. Por favor, realize novo login</string>
     <string name="invalid_token">Chave de acesso inválida. Por favor, realize novo login</string>
-    <string name="loading">Carregando...</string>
 </resources>

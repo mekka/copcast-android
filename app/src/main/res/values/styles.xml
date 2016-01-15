@@ -7,7 +7,6 @@
         <item name="android:buttonStyle">@style/button_default</item>
         <item name="colorAccent">@color/summary_color</item>
         <item name="android:textColorSecondary">@color/summary_color</item>
-        <item name="android:editTextStyle">@style/Widget.EditText.White</item>
         <item name="android:popupMenuStyle">@style/MyPopupMenu</item>
         <item name="android:itemTextAppearance">@style/TextAppearance</item>
     </style>
@@ -19,7 +18,6 @@
         <item name="android:buttonStyle">@style/button_default</item>
         <item name="colorAccent">@color/summary_color</item>
         <item name="android:textColorSecondary">@color/summary_color</item>
-        <item name="android:editTextStyle">@style/Widget.EditText.White</item>
         <item name="android:popupMenuStyle">@style/MyPopupMenu</item>
         <item name="android:itemTextAppearance">@style/TextAppearance</item>
     </style>
@@ -30,9 +28,6 @@
 
     <style name="button_blue">
         <item name="android:background">@drawable/button_blue</item>
-    </style>
-    <style name="Widget.EditText.White" parent="@android:style/Widget.EditText">
-        <item name="android:textColor">@color/text_dark</item>
     </style>
 
     <!-- Popup Menu Background Color styles -->

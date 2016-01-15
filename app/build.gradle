@@ -25,6 +25,7 @@ android {
         versionName "1.1"
         // Enabling multidex support.
         multiDexEnabled true
+        signingConfig signingConfigs.config
     }
     buildTypes {
         release {
@@ -33,8 +34,8 @@ android {
     }
     productFlavors {
         local {
-            //resValue "string", "SERVER_URL_DEFAULT", "\"http://mogi-api.igarape.org\""
-            resValue "string", "SERVER_URL_DEFAULT", "\"http://192.168.0.103:3000\""
+            resValue "string", "SERVER_URL_DEFAULT", "\"http://mogi-api.igarape.org\""
+            //resValue "string", "SERVER_URL_DEFAULT", "\"http://192.168.1.72:3000\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "true"
         }
         general {
@@ -59,7 +60,7 @@ dependencies {
     compile 'com.android.support:multidex:1.0.1'
     compile 'com.splunk.mint:mint:4.2'
     //mew versions can be consulted here: http://repo1.maven.org/maven2/io/pristine/libjingle/
-    compile 'io.pristine:libjingle:9814@aar'
+    compile 'io.pristine:libjingle:10468@aar'
     compile 'com.github.nkzawa:socket.io-client:0.5.2'
 
 }
