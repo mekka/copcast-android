@@ -5,10 +5,10 @@
         android:id="@+id/action_settings"
         android:title="@string/action_settings"
         android:orderInCategory="10"/>
-    <item
-        android:id="@+id/action_playback"
-        android:title="@string/action_playback"
-        android:orderInCategory="50"/>
+    <!--<item-->
+        <!--android:id="@+id/action_playback"-->
+        <!--android:title="@string/action_playback"-->
+        <!--android:orderInCategory="50"/>-->
     <item
         android:id="@+id/action_logout"
         android:title="@string/logout"
