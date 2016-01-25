@@ -22,6 +22,7 @@ import com.google.android.gms.iid.InstanceID;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.igarape.copcast.R;
+import org.igarape.copcast.service.sign.SigningService;
 import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.HistoryUtils;
@@ -48,6 +49,10 @@ public class LoginActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        SigningService.check(this);
+
+        Log.d(TAG, ">>>"+SigningService.signed("BOGUS"));
 
         txtId = (EditText) findViewById(R.id.txtLoginUser);
         txtPwd = (EditText) findViewById(R.id.txtLoginPassword);

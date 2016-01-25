@@ -88,5 +88,7 @@
     <string name="upload_state_unknown">Estado de envio inesperado.</string>
     <string name="upload_error">Ocorreu um erro durante o envio. Por favor, tente novamente.</string>
     <string name="upload_no_data">Não há dados a serem enviados</string>
+    <string name="warning">Atenção</string>
+    <string name="incompatible_version">Versão de Android incompatível</string>
 
 </resources>

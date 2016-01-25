@@ -39,4 +39,7 @@
     <style name="TextAppearance">
         <item name="android:textColor">@color/text_dark_block</item>
     </style>
+
+    <style name="AlertDialogCustom" parent="@android:style/Theme.Dialog">
+    </style>
 </resources>

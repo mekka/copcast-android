@@ -32,7 +32,7 @@ public class Globals {
     private static final String PREF_USER_LOGIN = "PREF_USER_LOGIN";
     public static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
-    private static final String SERVER_URL = "server_url";
+    public static final String SERVER_URL = "server_url";
     private static final String REQUIRE_WIFI_ONLY = "upload_wifi_only";
     private static String accessToken = null;
     private static String userLogin = null;

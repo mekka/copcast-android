@@ -95,7 +95,10 @@ public class NetworkUtils {
     }
 
     public static void post(Context context, String url, Object jsonObject, HttpResponseCallback callback) {
-        executeRequest(Method.POST, context, null, jsonObject, url, Response.JSON, callback);
+        post(context, null, url, jsonObject, callback);
+    }
+    public static void post(Context context, String server, String url, Object jsonObject, HttpResponseCallback callback) {
+        executeRequest(server, Method.POST, context, null, jsonObject, url, Response.JSON, callback);
     }
 
     public static boolean hasConnection(Context context) {
@@ -174,12 +177,20 @@ public class NetworkUtils {
     }
 
     private static Void executeRequest(final Method method, final Context context, final List<NameValuePair> params, final Object jsonObject, final String url, final Response type, final HttpResponseCallback callback) {
+        return executeRequest(null, method, context, params, jsonObject, url, type, callback);
+    }
+
+    private static Void executeRequest(final String serverUri, final Method method, final Context context, final List<NameValuePair> params, final Object jsonObject, final String url, final Response type, final HttpResponseCallback callback) {
         if (!hasConnection(context)) {
             if (callback != null) {
                 callback.noConnection();
                 return null;
             }
         }
+
+        final String token = Globals.getAccessToken(context);
+        final String pServerUri = serverUri != null ? serverUri : Globals.getServerUrl(context);
+
         new AsyncTask<Void, Void, Void>() {
 
             private JSONObject response = null;
@@ -194,7 +205,8 @@ public class NetworkUtils {
                 HttpURLConnection urlConnection = null;
 
                 try {
-                    URL urlToRequest = new URL(Globals.getServerUrl(context) + url);
+                    URL urlToRequest = new URL(pServerUri + url);
+                    ILog.d(TAG, urlToRequest.toString());
                     urlConnection = (HttpURLConnection) urlToRequest.openConnection();
 
                     if (method.equals(Method.POST)) {
@@ -205,7 +217,6 @@ public class NetworkUtils {
 
 
                     String charset = "UTF-8";
-                    String token = Globals.getAccessToken(context);
                     if (token != null) {
                         urlConnection.setRequestProperty("Authorization", token);
                     }

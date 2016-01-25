@@ -88,4 +88,7 @@
     <string name="upload_state_unknown">Unexpected upload state.</string>
     <string name="upload_error">Error during upload. Please try again.</string>
     <string name="upload_no_data">There is no data to be uploaded</string>
+    <string name="warning">Warning</string>
+    <string name="incompatible_version">Incompatible Android version</string>
+
 </resources>

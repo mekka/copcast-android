@@ -3,7 +3,7 @@ apply plugin: 'com.google.gms.google-services'
 android {
 
     lintOptions {
-        disable 'InvalidPackage','TypographyFractions','TypographyQuotes', 'MissingTranslation'
+        disable 'InvalidPackage', 'TypographyFractions', 'TypographyQuotes', 'MissingTranslation'
     }
 
     signingConfigs {
@@ -14,18 +14,20 @@ android {
             storePassword 'chave'
         }
     }
-    compileSdkVersion 21
-    buildToolsVersion "21.0.1"
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
 
     defaultConfig {
         applicationId "org.igarape.copcast"
-        minSdkVersion 17
-        targetSdkVersion 21
+        minSdkVersion 18
+        targetSdkVersion 23
         versionCode 2
         versionName "1.1"
         // Enabling multidex support.
         multiDexEnabled true
         signingConfig signingConfigs.config
+        useLibrary 'org.apache.http.legacy'
+
     }
     buildTypes {
         release {
@@ -55,12 +57,11 @@ android {
 
 dependencies {
     compile 'com.google.android.gms:play-services:7.8.0'
-
-    compile "commons-io:commons-io:2.4"
+    compile 'commons-io:commons-io:2.4'
     compile 'com.android.support:multidex:1.0.1'
     compile 'com.splunk.mint:mint:4.2'
     //mew versions can be consulted here: http://repo1.maven.org/maven2/io/pristine/libjingle/
     compile 'io.pristine:libjingle:9814@aar'
     compile 'com.github.nkzawa:socket.io-client:0.5.2'
-
+    compile 'com.android.support:appcompat-v7:23.1.1'
 }
