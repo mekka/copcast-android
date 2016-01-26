@@ -40,6 +40,13 @@
         <item name="android:textColor">@color/text_dark_block</item>
     </style>
 
-    <style name="AlertDialogCustom" parent="@android:style/Theme.Dialog">
+    <style name="AlertDialogCustom" parent="android:Theme.Holo">
+        <item name="android:windowBackground">@color/bg_dark_block</item>
+        <item name="android:textColor">@color/text_dark_block</item>
+        <item name="android:buttonStyle">@style/button_default</item>
+        <item name="colorAccent">@color/summary_color</item>
+        <item name="android:textColorSecondary">@color/summary_color</item>
+        <item name="android:popupMenuStyle">@style/MyPopupMenu</item>
+        <item name="android:itemTextAppearance">@style/TextAppearance</item>
     </style>
 </resources>

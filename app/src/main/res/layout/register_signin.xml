@@ -13,7 +13,8 @@
         android:layout_marginRight="4dp"
         android:layout_marginBottom="4dp"
         android:text="http://192.168.171.100:3000"
-        android:hint="@string/server_url" />
+        android:hint="@string/server_url"
+        android:textColor="@color/text_dark_block" />
     <Space
         android:layout_width="match_parent"
         android:layout_height="1dp" />
@@ -26,7 +27,8 @@
         android:layout_marginLeft="4dp"
         android:layout_marginRight="4dp"
         android:layout_marginBottom="4dp"
-        android:hint="@string/login_hint" />
+        android:hint="@string/login_hint"
+        android:textColor="#ffffff" />
     <EditText
         android:id="@+id/register_password"
         android:inputType="textPassword"
@@ -37,6 +39,7 @@
         android:layout_marginRight="4dp"
         android:layout_marginBottom="16dp"
         android:fontFamily="sans-serif"
-        android:hint="@string/password_hint"/>
+        android:hint="@string/password_hint"
+        android:textColor="@color/text_dark_block" />
 
 </LinearLayout>

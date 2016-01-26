@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Build;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
@@ -26,7 +25,6 @@ import org.igarape.copcast.utils.NetworkUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
@@ -36,8 +34,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
 import java.security.SignatureException;
-import java.security.UnrecoverableEntryException;
-import java.security.cert.CertificateException;
 import java.util.Calendar;
 
 import javax.security.auth.x500.X500Principal;
@@ -49,8 +45,6 @@ public class SigningService {
 
     private static String TAG = SigningService.class.getCanonicalName();
     private static final String COPCASTKEY = "CopcastKey";
-    KeyPairGenerator keyPairGenerator;
-
 
     public static void check(final Activity ctx) {
 
@@ -115,32 +109,32 @@ public class SigningService {
                 NetworkUtils.post(ctx, url, "/registration", register, new HttpResponseCallback() {
                     @Override
                     public void unauthorized() {
-
+                        removeKey();
                     }
 
                     @Override
                     public void failure(int statusCode) {
-
+                        removeKey();
                     }
 
                     @Override
                     public void noConnection() {
-
+                        removeKey();
                     }
 
                     @Override
                     public void badConnection() {
-
+                        removeKey();
                     }
 
                     @Override
                     public void badRequest() {
-
+                        removeKey();
                     }
 
                     @Override
                     public void badResponse() {
-
+                        removeKey();
                     }
 
                     @Override
@@ -158,6 +152,31 @@ public class SigningService {
         });
 
         configDialog.show();
+    }
+
+
+    private static void removeKey() {
+        KeyStore ks;
+        try {
+            ks = KeyStore.getInstance("AndroidKeyStore");
+        } catch (KeyStoreException e) {
+            ILog.e(TAG, "Unable to obtain COPCAST key from Android Keystore (delete)", e);
+            return;
+        }
+
+        try {
+            ks.load(null);
+        } catch (Exception e) {
+            ILog.e(TAG, "Unable to load Android Keystore (delete)", e);
+        }
+
+        try {
+            ks.deleteEntry(COPCASTKEY);
+            ILog.d(TAG, "copcastkey deleted");
+        } catch (KeyStoreException e) {
+            ILog.e(TAG, "Unable to delete Android Keystore (delete)", e);
+        }
+
     }
 
     public static String init(final Activity ctx) {
