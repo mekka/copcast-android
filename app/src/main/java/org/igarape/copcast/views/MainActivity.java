@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -33,7 +34,7 @@ import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
 import org.igarape.copcast.receiver.AlarmHeartBeatReceiver;
 import org.igarape.copcast.receiver.BatteryReceiver;
@@ -80,6 +81,7 @@ public class MainActivity extends Activity {
     //private UploadManager uploadManager;
     private Long first_keydown;
     private final int FLAG_TRIGGER_WAIT_TIME = 1000;
+    private ProgressDialog pDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -653,6 +655,15 @@ public class MainActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+
+        MenuItem item_incident_form = menu.findItem(R.id.action_incident_form);
+        if (item_incident_form != null)
+            item_incident_form.setVisible (BuildConfig.HAS_INCIDENT_FORM);
+
+        MenuItem item_playback = menu.findItem(R.id.action_playback);
+        if (item_playback != null)
+            item_playback.setVisible (BuildConfig.HAS_VIDEO_PLAYBACK);
+
         return true;
     }
 
@@ -678,6 +689,13 @@ public class MainActivity extends Activity {
                 startActivity(i);
             }
             return true;
+        } else if (id == R.id.action_incident_form) {
+            pDialog = ProgressDialog.show(this, getString(R.string.loading), getString(R.string.please_hold), true);
+
+            Intent i = new Intent(this, FormIncidentReportActivity.class);
+            startActivity(i);
+            return true;
+
         } else if (id == R.id.action_logout) {
             logout(null);
             return true;
@@ -770,6 +788,11 @@ public class MainActivity extends Activity {
         super.onResume();
         if (Globals.getAccessToken(getApplicationContext()) == null) {
             logout(getString(R.string.invalid_token));
+        }
+
+        if (pDialog != null){
+            pDialog.dismiss();
+            pDialog = null;
         }
 
         Globals.setRotation(getWindowManager().getDefaultDisplay().getRotation());

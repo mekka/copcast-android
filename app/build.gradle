@@ -35,19 +35,20 @@ android {
         }
     }
     productFlavors {
-        local {
-            resValue "string", "SERVER_URL_DEFAULT", "\"http://mogi-api.igarape.org\""
-            //resValue "string", "SERVER_URL_DEFAULT", "\"http://192.168.1.72:3000\""
-            resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "true"
-        }
-        general {
+
+        stock {
             resValue "string", "SERVER_URL_DEFAULT", "\"https://api.mycopcast.com\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "true"
+            buildConfigField "boolean", "HAS_INCIDENT_FORM", "false"
+            buildConfigField "boolean", "HAS_VIDEO_PLAYBACK", "false"
             signingConfig signingConfigs.config
         }
+
         capeTown {
             resValue "string", "SERVER_URL_DEFAULT", "\"https://docs-api.mycopcast.com\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "false"
+            buildConfigField "boolean", "HAS_INCIDENT_FORM", "true"
+            buildConfigField "boolean", "HAS_VIDEO_PLAYBACK", "true"
         }
     }
     dexOptions {

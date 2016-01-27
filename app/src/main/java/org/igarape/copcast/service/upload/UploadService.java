@@ -9,6 +9,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 
+import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.db.JsonDataType;
 import org.igarape.copcast.state.NetworkState;
 import org.igarape.copcast.state.UploadServiceEvent;
@@ -78,11 +79,13 @@ public class UploadService extends Service {
                 dir.delete();
             }
 
-            ILog.d(TAG, "Uploading JSONs for user: "+userLogin);
+            ILog.d(TAG, "Uploading JSONs for user: " + userLogin);
             SqliteUploader.upload(context, JsonDataType.TYPE_HISTORY_DATA, userLogin);
             SqliteUploader.upload(context, JsonDataType.TYPE_LOCATION_INFO, userLogin);
             SqliteUploader.upload(context, JsonDataType.TYPE_BATTERY_STATUS, userLogin);
             SqliteUploader.upload(context, JsonDataType.TYPE_INCIDENT_FLAG, userLogin);
+            if (BuildConfig.HAS_INCIDENT_FORM)
+                SqliteUploader.upload(context, JsonDataType.TYPE_INCIDENT_FORM, userLogin);
 
             File[] videos2go = dir.listFiles(filter);
 
