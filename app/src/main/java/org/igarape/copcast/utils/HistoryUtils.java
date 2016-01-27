@@ -32,18 +32,18 @@ public class HistoryUtils {
         return json;
     }
 
-    public static void registerHistory(Context context, State currentState, State nextState, final String userLogin){
-        registerHistory(context, currentState, nextState, userLogin, null);
+    public static void registerHistory(Context context, State currentState, State nextState){
+        registerHistory(context, currentState, nextState, null);
     }
 
-    public static void registerHistory(final Context context, State currentState, State nextState, final String userLogin, String extras) {
+    public static void registerHistory(final Context context, State currentState, State nextState, String extras) {
 
         try {
             final JSONObject history = buildJson(currentState, nextState, extras);
 
             final LoggedHTTPResponseCallback hlogger = new LoggedHTTPResponseCallback(context, JsonDataType.TYPE_HISTORY_DATA, history, TAG);
 
-            NetworkUtils.post(context, "/histories", history, hlogger);
+            NetworkUtils.post(context, JsonDataType.TYPE_HISTORY_DATA.getUrl(), history, hlogger);
 
         } catch (JSONException e) {
             Log.e(TAG, "error sending history", e);

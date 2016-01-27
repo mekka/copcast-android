@@ -109,13 +109,13 @@ public class MainActivity extends Activity {
                 Globals.setToggling(true);
                 //When toogling, the stopped service will start the other one
                 if (isChecked) {
-                    HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.STREAMING, Globals.getUserLogin(MainActivity.this), null);
+                    HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.STREAMING);
 
                     Intent intentAux = new Intent(MainActivity.this, VideoRecorderService.class);
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     stopService(intentAux);
                 } else {
-                    HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this), null);
+                    HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.RECORDING_ONLINE);
 
                     Intent intentAux = new Intent(MainActivity.this, StreamService.class);
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -182,7 +182,7 @@ public class MainActivity extends Activity {
                                 ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes((long) prog), formatMegaBytes((long)p.getMax())));
                                 break;
                             case STARTED:
-                                HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this), null);
+                                HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING);
                                 break;
                             case ABORTED_NO_NETWORK:
                                 Toast.makeText(getApplicationContext(), getString(R.string.network_state_no_network), Toast.LENGTH_LONG).show();
@@ -316,7 +316,7 @@ public class MainActivity extends Activity {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startService(intent);
 
-                HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this), null);
+                HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.RECORDING_ONLINE);
 
                 startAlarmLocationReceiver();
             }
@@ -331,11 +331,11 @@ public class MainActivity extends Activity {
                                                  public void onClick(View view) {
 
                                                      if (isStreaming()) {
-                                                         HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.LOGGED, Globals.getUserLogin(MainActivity.this), null);
+                                                         HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.LOGGED);
                                                      } else if (isRecording()){
-                                                         HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.LOGGED, Globals.getUserLogin(MainActivity.this), null);
+                                                         HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.LOGGED);
                                                      } else if (isPaused()){
-                                                         HistoryUtils.registerHistory(getApplicationContext(), State.PAUSED, State.LOGGED, Globals.getUserLogin(MainActivity.this), null);
+                                                         HistoryUtils.registerHistory(getApplicationContext(), State.PAUSED, State.LOGGED);
                                                      }
 
                                                      missionCompleted();
@@ -519,9 +519,9 @@ public class MainActivity extends Activity {
 
     private void startPausedCountdown() {
         if (isStreaming()) {
-            HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.PAUSED, Globals.getUserLogin(getApplicationContext()));
+            HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.PAUSED);
         } else {
-            HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.PAUSED, Globals.getUserLogin(getApplicationContext()));
+            HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.PAUSED);
         }
 
         findViewById(R.id.pausedLayout).setVisibility(View.GONE);
@@ -550,7 +550,7 @@ public class MainActivity extends Activity {
         return mStreamSwitch.isChecked();
     }
     private void resumeMission() {
-        HistoryUtils.registerHistory(getApplicationContext(), State.PAUSED, State.RECORDING_ONLINE, Globals.getUserLogin(getApplicationContext()), null);
+        HistoryUtils.registerHistory(getApplicationContext(), State.PAUSED, State.RECORDING_ONLINE);
 
         mStreamSwitch.setEnabled(true);
         mResumeMissionButton.setVisibility(View.GONE);
@@ -584,7 +584,7 @@ public class MainActivity extends Activity {
         findViewById(R.id.uploadCancelButton).setVisibility(View.INVISIBLE);
         UploadService.stop(getApplicationContext());
 
-        HistoryUtils.registerHistory(getApplicationContext(), State.UPLOADING, State.LOGGED, Globals.getUserLogin(MainActivity.this), null);
+        HistoryUtils.registerHistory(getApplicationContext(), State.UPLOADING, State.LOGGED);
     }
 
     private boolean isUploading() {
@@ -706,13 +706,13 @@ public class MainActivity extends Activity {
     private void logout(String reason) {
         //TODO needs current state?
         if (isStreaming()) {
-            HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.NOT_LOGGED, Globals.getUserLogin(MainActivity.this), null);
+            HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.NOT_LOGGED);
         } else if (isRecording()){
-            HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.NOT_LOGGED, Globals.getUserLogin(MainActivity.this), null);
+            HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.NOT_LOGGED);
         } else if (isPaused()){
-            HistoryUtils.registerHistory(getApplicationContext(), State.PAUSED, State.NOT_LOGGED, Globals.getUserLogin(MainActivity.this), null);
+            HistoryUtils.registerHistory(getApplicationContext(), State.PAUSED, State.NOT_LOGGED);
         } else {
-            HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.NOT_LOGGED, Globals.getUserLogin(MainActivity.this), null);
+            HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.NOT_LOGGED);
         }
         Globals.clear(MainActivity.this);
         killServices();

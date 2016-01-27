@@ -96,7 +96,6 @@ public class UploadService extends Service {
                 }
 
             SqliteUtils.clearByType(context, userLogin, JsonDataType.TYPE_FLAGGED_VIDEO);
-
         }
 
         if (filesToUpload.isEmpty()) {

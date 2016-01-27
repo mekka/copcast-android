@@ -50,7 +50,7 @@ public class HeartBeatUtils {
 
             final LoggedHTTPResponseCallback hblogger = new HeartbeatLoggedCallback(context, JsonDataType.TYPE_HEARTBEAT_DATA, json, TAG);
 
-            NetworkUtils.post(context, "/heartbeats", json, hblogger);
+            NetworkUtils.post(context, JsonDataType.TYPE_HEARTBEAT_DATA.getUrl(), json, hblogger);
         } catch (JSONException e) {
             ILog.e(TAG, "error sending heartbeat", e);
         }
