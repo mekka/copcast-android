@@ -30,7 +30,7 @@
     <string name="notification_location_description">Busca por sua localização atual</string>
     <string name="please_hold"> Por favor, aguarde... </string>
     <string name="login_in"> Conectando </string>
-    <string name="server_error"> Não é possível entrar em contato com servidor </string>
+    <string name="server_error"> Não é possível comunicar com o servidor</string>
     <string name="connection_error"> Erro contactando o servidor. Por favor, verifique sua conexão. </string>
     <string name="bad_request_error"> Erro de conexão. Por favor, contate o administrador. </string>
     <string name="welcome"> Bem-vindo. </string>
@@ -90,5 +90,6 @@
     <string name="upload_no_data">Não há dados a serem enviados</string>
     <string name="warning">Atenção</string>
     <string name="incompatible_version">Versão de Android incompatível</string>
-
+    <string name="loading">Carregando...</string>
+    <string name="error_keystore">Erro ao inicializar sistema de criptografia</string>
 </resources>

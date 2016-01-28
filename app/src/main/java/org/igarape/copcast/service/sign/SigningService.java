@@ -22,16 +22,20 @@ import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.HttpResponseCallback;
 import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.NetworkUtils;
+import org.igarape.copcast.utils.Promise;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.math.BigInteger;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.util.Calendar;
@@ -41,134 +45,53 @@ import javax.security.auth.x500.X500Principal;
 /**
  * Created by martelli on 1/21/16.
  */
+
 public class SigningService {
 
     private static String TAG = SigningService.class.getCanonicalName();
     private static final String COPCASTKEY = "CopcastKey";
 
-    public static void check(final Activity ctx) {
+    private static KeyStore loadKeyStore() throws SigningServiceException {
 
-        KeyStore ks = null;
-        KeyStore.Entry entry = null;
+        KeyStore ks;
+        String errorMsg;
 
         try {
             ks = KeyStore.getInstance("AndroidKeyStore");
         } catch (KeyStoreException e) {
-            ILog.e(TAG, "Could not get keystore", e);
+            errorMsg = "Could not get keystore instance";
+            ILog.e(TAG, errorMsg, e);
+            throw new SigningServiceException(errorMsg);
         }
 
         try {
             ks.load(null);
+            return ks;
         } catch (Exception e) {
-            ILog.e(TAG, "Could not load keys from keystore", e);
+            errorMsg = "Could not load keys from keystore";
+            ILog.e(TAG, errorMsg, e);
+            throw new SigningServiceException(errorMsg);
         }
+    }
+
+    public static KeyStore.Entry fetchKey() throws SigningServiceException {
+
+        KeyStore ks = loadKeyStore();
+        String errorMsg;
 
         try {
-            entry = ks.getEntry(COPCASTKEY, null);
+            return ks.getEntry(COPCASTKEY, null);
         } catch (Exception e) {
-            ILog.e(TAG, "Could not load COPCAST key from keystore", e);
+            errorMsg = "Could not load COPCAST key from keystore";
+            ILog.i(TAG, errorMsg, e);
+            return null;
         }
-
-        // COPCAST key is in place. Nothing else to do.
-        if (entry != null)
-            return;
-
-
-        final AlertDialog configDialog = new AlertDialog.Builder(new ContextThemeWrapper(ctx, R.style.AlertDialogCustom)).create();
-
-        LayoutInflater inflater = ctx.getLayoutInflater();
-        configDialog.setView(inflater.inflate(R.layout.register_signin, null));
-        configDialog.setButton(DialogInterface.BUTTON_POSITIVE, ctx.getString(R.string.ok), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                final String url = ((TextView) configDialog.findViewById(R.id.register_url)).getText().toString();
-                String username = ((TextView) configDialog.findViewById(R.id.register_username)).getText().toString();
-                String pwd = ((TextView) configDialog.findViewById(R.id.register_password)).getText().toString();
-
-                String pubkey = init(ctx);
-
-                TelephonyManager mTelephonyMgr = (TelephonyManager) ctx.getSystemService(Context.TELEPHONY_SERVICE);
-                String imsi = mTelephonyMgr.getSubscriberId();
-                String imei = mTelephonyMgr.getDeviceId();
-                String simno = mTelephonyMgr.getSimSerialNumber();
-
-                JSONObject register = new JSONObject();
-                try {
-                    register.put("public_key", pubkey);
-                    register.put("username", username);
-                    register.put("password", pwd);
-                    register.put("imei", imei);
-                    register.put("simid", simno);
-                    register.put("subsid", imsi);
-                } catch (JSONException e) {
-                    ILog.e(TAG, "Could not write public key in JSON");
-                }
-
-                Log.d(TAG, ">> "+url);
-
-                NetworkUtils.post(ctx, url, "/registration", register, new HttpResponseCallback() {
-                    @Override
-                    public void unauthorized() {
-                        removeKey();
-                    }
-
-                    @Override
-                    public void failure(int statusCode) {
-                        removeKey();
-                    }
-
-                    @Override
-                    public void noConnection() {
-                        removeKey();
-                    }
-
-                    @Override
-                    public void badConnection() {
-                        removeKey();
-                    }
-
-                    @Override
-                    public void badRequest() {
-                        removeKey();
-                    }
-
-                    @Override
-                    public void badResponse() {
-                        removeKey();
-                    }
-
-                    @Override
-                    public void success(JSONObject response) {
-                        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(ctx);
-                        SharedPreferences.Editor edit = sharedPref.edit();
-                        edit.putString(Globals.SERVER_URL, url);
-                        edit.commit();
-
-                        Log.d(TAG, response.toString());
-                    }
-                });
-
-            }
-        });
-
-        configDialog.show();
     }
 
 
-    private static void removeKey() {
-        KeyStore ks;
-        try {
-            ks = KeyStore.getInstance("AndroidKeyStore");
-        } catch (KeyStoreException e) {
-            ILog.e(TAG, "Unable to obtain COPCAST key from Android Keystore (delete)", e);
-            return;
-        }
+    public static void removeKey() throws SigningServiceException {
 
-        try {
-            ks.load(null);
-        } catch (Exception e) {
-            ILog.e(TAG, "Unable to load Android Keystore (delete)", e);
-        }
+        KeyStore ks = loadKeyStore();
 
         try {
             ks.deleteEntry(COPCASTKEY);
@@ -179,81 +102,98 @@ public class SigningService {
 
     }
 
-    public static String init(final Activity ctx) {
+    public static String init(Context ctx) throws SigningServiceException {
 
-        try {
+        KeyPairGenerator g = null;
 
-            KeyPairGenerator g = null;
-
-            // With API 23 we can use Elliptic Curve cryptography.
-            // API versions from 18 to 22 we use RSA.
-            // For versions 17 and below the Keystore provider was non-existent.
+        // With API 23 we can use Elliptic Curve cryptography.
+        // API versions from 18 to 22 we use RSA.
+        // For versions 17 and below the Keystore provider was non-existent.
 
 
-            // we should never get here, but if someone lowers the minSDK value...
-            if ((Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2)) {
-                AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(ctx, R.style.AlertDialogCustom)).create();
-                alertDialog.setTitle(ctx.getString(R.string.warning));
-                alertDialog.setMessage(ctx.getString(R.string.incompatible_version));
-                alertDialog.setIcon(R.drawable.button_default);
-                alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        Log.w(TAG, "ciente!");
-                        ctx.finish();
-                    }
-                });
-                alertDialog.show();
-                return null;
+        // we should never get here, but if someone lowers the minSDK value...
+        if ((Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2)) {
+            throw new SigningServiceException("Invalid Android version: "+Build.VERSION.SDK_INT);
 
-            } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
 
+            try {
                 g = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore");
+            } catch (Exception e) {
+                String errmsg = "Error getting AndroidKeyStore instance";
+                ILog.e(TAG, errmsg, e);
+                throw new SigningServiceException(errmsg);
+            }
 
-                Calendar notBefore = Calendar.getInstance();
-                Calendar notAfter = Calendar.getInstance();
-                notAfter.add(Calendar.YEAR, 1);
-                KeyPairGeneratorSpec.Builder spec = new KeyPairGeneratorSpec.Builder(ctx)
-                        .setAlias(COPCASTKEY)
-                        .setSerialNumber(BigInteger.ONE)
-                        .setStartDate(notBefore.getTime())
-                        .setEndDate(notAfter.getTime())
-                        .setSubject(new X500Principal("CN=test"));
+            Calendar notBefore = Calendar.getInstance();
+            Calendar notAfter = Calendar.getInstance();
+            notAfter.add(Calendar.YEAR, 1);
+            KeyPairGeneratorSpec.Builder spec = new KeyPairGeneratorSpec.Builder(ctx)
+                    .setAlias(COPCASTKEY)
+                    .setSerialNumber(BigInteger.ONE)
+                    .setStartDate(notBefore.getTime())
+                    .setEndDate(notAfter.getTime())
+                    .setSubject(new X500Principal("CN=test"));
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                try {
                     spec.setKeyType(KeyProperties.KEY_ALGORITHM_RSA);
-                    spec.setKeySize(2048);
+                } catch (NoSuchAlgorithmException e) {
+                    String errmsg = "No such algorithm exception";
+                    ILog.e(TAG, errmsg, e);
+                    throw new SigningServiceException(errmsg);
                 }
+                spec.setKeySize(2048);
+            }
 
+            try {
                 g.initialize(spec.build());
+            } catch (InvalidAlgorithmParameterException e) {
+                String errmsg = "Invalid algorithm parameters exception";
+                ILog.e(TAG, errmsg, e);
+                throw new SigningServiceException(errmsg);
+            }
 
-            } else {
+        } else {
 
-                Log.d(TAG, "ANDROID 23");
+            Log.d(TAG, "ANDROID 23");
+            try {
                 g = KeyPairGenerator.getInstance(
                         KeyProperties.KEY_ALGORITHM_EC, "AndroidKeyStore");
+            } catch (Exception e) {
+                String errmsg = "No such algorithm exception";
+                ILog.e(TAG, errmsg, e);
+                throw new SigningServiceException(errmsg);
+            }
+            try {
                 g.initialize(new KeyGenParameterSpec.Builder(
                         COPCASTKEY,
                         KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY)
                         .setDigests(KeyProperties.DIGEST_SHA256,
                                 KeyProperties.DIGEST_SHA512)
                         .build());
-
+            } catch (InvalidAlgorithmParameterException e) {
+                String errmsg = "Invalid algorithm parameters exception";
+                ILog.e(TAG, errmsg, e);
+                throw new SigningServiceException(errmsg);
             }
 
-            KeyPair pair = g.generateKeyPair();
-            // Instance of signature class with SHA256withECDSA algorithm
+        }
+
+        KeyPair pair = g.generateKeyPair();
+        // Instance of signature class with SHA256withECDSA algorithm
 //            Signature ecdsaSign = Signature.getInstance("SHA256withECDSA");
 //            ecdsaSign.initSign(pair.getPrivate());
 
 
 //            KeyPair pair = g.generateKeyPair();
-            // Instance of signature class with SHA256withECDSA algorithm
+        // Instance of signature class with SHA256withECDSA algorithm
 //            Signature ecdsaSign = Signature.getInstance("SHA256withECDSA");
 //            ecdsaSign.initSign(pair.getPrivate());
 
 
-            Log.e(TAG, "Private Keys is::" + pair.getPublic().getAlgorithm());
-            Log.e(TAG, "Public Keys is::" + Base64.encodeToString(pair.getPublic().getEncoded(), Base64.DEFAULT));
+        Log.e(TAG, "Private Keys is::" + pair.getPublic().getAlgorithm());
+        Log.e(TAG, "Public Keys is::" + Base64.encodeToString(pair.getPublic().getEncoded(), Base64.DEFAULT));
 
 //            KeyStore ks = KeyStore.getInstance("AndroidKeyStore");
 //            ks.load(null);
@@ -270,7 +210,7 @@ public class SigningService {
 //
 //            Log.e(TAG, "Signature is::" + Base64.encodeToString(signature, Base64.DEFAULT));
 
-            return Base64.encodeToString(pair.getPublic().getEncoded(), Base64.DEFAULT);
+        return Base64.encodeToString(pair.getPublic().getEncoded(), Base64.DEFAULT);
 
 //            String msg = "text ecdsa with sha256";//getSHA256(msg)
 //            ecdsaSign.update((msg + pair.getPrivate().toString())
@@ -287,36 +227,16 @@ public class SigningService {
 //                System.out.println("valid");
 //            else
 //                System.out.println("invalid!!!!");
-
-        } catch (Exception e) {
-            // TODO: handle exception
-            e.printStackTrace();
-        }
-        return null;
     }
 
+    public static String signature(JSONObject object) throws SigningServiceException {
+        String input = object.toString();
+        return  signature(input);
+    }
 
-    public static String signed(String input) {
-        KeyStore ks = null;
-        try {
-            ks = KeyStore.getInstance("AndroidKeyStore");
-        } catch (KeyStoreException e) {
-            ILog.e(TAG, "Unable to obtain Android Keystore (sign)", e);
-        }
+    public static String signature(String input) throws SigningServiceException {
 
-        try {
-            ks.load(null);
-        } catch (Exception e) {
-            ILog.e(TAG, "Unable to load Android Keystore (sign)", e);
-        }
-
-        KeyStore.Entry entry = null;
-
-        try {
-            entry = ks.getEntry(COPCASTKEY, null);
-        } catch (Exception e) {
-            ILog.e(TAG, "Unable to obtain COPCAST key from Android Keystore (sign)", e);
-        }
+        KeyStore.Entry entry = fetchKey();
 
         if (!(entry instanceof KeyStore.PrivateKeyEntry)) {
             Log.w(TAG, "Not an instance of a PrivateKeyEntry");
@@ -344,4 +264,76 @@ public class SigningService {
 
         return null;
     }
+
+    public static void registration(final Context ctx, final String url, String username, String pwd, final Promise promise) throws SigningServiceException {
+        Long time = System.currentTimeMillis();
+        Log.d(TAG, "Registration started");
+        String pubkey = init(ctx);
+        TelephonyManager mTelephonyMgr = (TelephonyManager) ctx.getSystemService(Context.TELEPHONY_SERVICE);
+        String imsi = mTelephonyMgr.getSubscriberId();
+        String imei = mTelephonyMgr.getDeviceId();
+        String simno = mTelephonyMgr.getSimSerialNumber();
+
+        JSONObject register = new JSONObject();
+        try {
+            register.put("public_key", pubkey);
+            register.put("username", username);
+            register.put("password", pwd);
+            register.put("imei", imei);
+            register.put("simid", simno);
+            register.put("subsid", imsi);
+        } catch (JSONException e) {
+            ILog.e(TAG, "Could not write public key in JSON");
+        }
+
+        Log.d(TAG, ">> "+url);
+
+        Log.d(TAG, "Registration posting: "+(System.currentTimeMillis()-time));
+        NetworkUtils.post(ctx, url, "/registration", register, new HttpResponseCallback() {
+            @Override
+            public void unauthorized() {
+                Log.d(TAG, "unauthorized");
+                promise.failure(ctx.getString(R.string.unauthorized_login));
+            }
+
+            @Override
+            public void failure(int statusCode) {
+                Log.d(TAG, "failure");
+                promise.failure(ctx.getString(R.string.server_error));
+            }
+
+            @Override
+            public void noConnection() {
+                Log.d(TAG, "no connection");
+                promise.failure(ctx.getString(R.string.server_error));
+            }
+
+            @Override
+            public void badConnection() {
+                Log.d(TAG, "bad connection");
+                promise.failure(ctx.getString(R.string.server_error));
+            }
+
+            @Override
+            public void badRequest() {
+                Log.d(TAG, "bad request");
+                promise.failure(ctx.getString(R.string.server_error));
+            }
+
+            @Override
+            public void badResponse() {
+                Log.d(TAG, "bad response");
+                promise.failure(ctx.getString(R.string.server_error));
+            }
+
+            @Override
+            public void success(JSONObject response) {
+                if (response != null)
+                    Log.d(TAG, response.toString());
+                promise.success(url);
+            }
+        });
+        Log.d(TAG, "Registration sent: " + (System.currentTimeMillis()-time));
+    }
+
 }

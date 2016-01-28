@@ -1,19 +1,26 @@
 package org.igarape.copcast.views;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
@@ -23,10 +30,13 @@ import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.igarape.copcast.R;
 import org.igarape.copcast.service.sign.SigningService;
+import org.igarape.copcast.service.sign.SigningServiceException;
 import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.HistoryUtils;
 import org.igarape.copcast.utils.HttpResponseCallback;
+import org.igarape.copcast.utils.ILog;
+import org.igarape.copcast.utils.Promise;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -44,15 +54,26 @@ public class LoginActivity extends Activity {
     EditText txtPwd;
     ProgressDialog pDialog;
     private Button btnLoginOk;
+    private ProgressDialog progressDialog;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        SigningService.check(this);
-
-        Log.d(TAG, ">>>"+SigningService.signed("BOGUS"));
+        // verify if we already have the signing mechanism initialized.
+        // if not, prompt the user for server and credentials.
+        try {
+            if (SigningService.fetchKey() == null) {
+                progressDialog = new ProgressDialog(this);
+                progressDialog.setTitle("Please wait...");
+                initCryptoKeys(this, progressDialog);
+            }
+        } catch (SigningServiceException e) {
+            ILog.e(TAG, "Failed to fetch keystore information");
+            displayFailedCrypto(this, getString(R.string.error_keystore), progressDialog);
+        }
 
         txtId = (EditText) findViewById(R.id.txtLoginUser);
         txtPwd = (EditText) findViewById(R.id.txtLoginPassword);
@@ -248,4 +269,88 @@ public class LoginActivity extends Activity {
         return false;
     }
 
+    public void initCryptoKeys(final Activity ctx, final ProgressDialog progressDialog) {
+        final AlertDialog configDialog = new AlertDialog.Builder(new ContextThemeWrapper(ctx, R.style.AlertDialogCustom)).create();
+        LayoutInflater inflater = ctx.getLayoutInflater();
+        configDialog.setView(inflater.inflate(R.layout.register_signin, null));
+
+        configDialog.setButton(DialogInterface.BUTTON_POSITIVE, ctx.getString(R.string.ok), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                progressDialog.show();
+                final String url = ((TextView) configDialog.findViewById(R.id.register_url)).getText().toString();
+                final String username = ((TextView) configDialog.findViewById(R.id.register_username)).getText().toString();
+                final String pwd = ((TextView) configDialog.findViewById(R.id.register_password)).getText().toString();
+
+                new AsyncTask<Void, Void, Void>() {
+
+                    @Override
+                    protected Void doInBackground(Void... params) {
+                        try {
+                            SigningService.registration(ctx, url, username, pwd, new Promise() {
+                                @Override
+                                public void success(Object payload) {
+                                    progressDialog.dismiss();
+                                    SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(ctx);
+                                    SharedPreferences.Editor edit = sharedPref.edit();
+                                    edit.putString(Globals.SERVER_URL, url);
+                                    edit.commit();
+
+                                }
+
+                                @Override
+                                public void failure(Object error) {
+                                    progressDialog.dismiss();
+                                    String reason = (String) error;
+
+                                    try {
+                                        SigningService.removeKey();
+                                    } catch (SigningServiceException e) {
+                                        ILog.e(TAG, "Error removing key (" + reason + ")");
+                                    }
+                                    displayFailedCrypto(LoginActivity.this, reason, progressDialog);
+                                }
+                            });
+                        } catch (SigningServiceException e) {
+                            displayFailedCrypto(ctx, getString(R.string.error_keystore), progressDialog);
+                        }
+                        return null;
+                    }
+                }.execute();
+            }
+        });
+
+        configDialog.show();
+    }
+
+
+    private void displayFailedCrypto(final Activity ctx, final String msg, final ProgressDialog progressDialog) {
+
+        Log.d(TAG, "Failed crypto: "+msg);
+
+        ctx.runOnUiThread(new Runnable() {
+            public void run() {
+//                String m;
+//                if (msg.compareTo(getString(R.string.unauthorized_login)) == 0)
+//                    m = msg;
+//                else
+//                    m = ctx.getString(R.string.error_keystore);
+
+                AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(ctx, R.style.AlertDialogCustom)).create();
+                alertDialog.setTitle(ctx.getString(R.string.warning));
+                alertDialog.setMessage(msg);
+                alertDialog.setIcon(R.drawable.button_default);
+                alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Log.w(TAG, msg.compareTo(getString(R.string.unauthorized_login)) + "<<<");
+                        if (msg.compareTo(getString(R.string.unauthorized_login)) != 0)
+                            ctx.finish();
+                        else
+                            initCryptoKeys(ctx, progressDialog);
+                    }
+                });
+                alertDialog.show();
+            }
+        });
+    }
 }
