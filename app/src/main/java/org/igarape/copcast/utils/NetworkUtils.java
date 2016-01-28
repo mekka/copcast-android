@@ -82,11 +82,11 @@ public class NetworkUtils {
     }
 
     public static void get(Context context, String url, HttpResponseCallback callback) {
-        get( context,  url,  Response.JSON,  callback);
+        get(context, url, Response.JSON, callback);
     }
 
     public static void get(Context context, String url, Response type, HttpResponseCallback callback) {
-        executeRequest(Method.GET, context, null, null, url,type, callback);
+        executeRequest(Method.GET, context, null, null, url, type, callback);
     }
 
 
@@ -253,7 +253,7 @@ public class NetworkUtils {
                     if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
                         callback.unauthorized();
                         return null;
-                    } else if (statusCode != HttpURLConnection.HTTP_OK) {
+                    } else if (statusCode != HttpURLConnection.HTTP_OK && statusCode != HttpURLConnection.HTTP_CREATED) {
                         callback.failure(statusCode);
                         return null;
                     }
