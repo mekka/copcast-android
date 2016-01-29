@@ -70,6 +70,7 @@ public class LoginActivity extends Activity {
                 progressDialog.setTitle("Please wait...");
                 initCryptoKeys(this, progressDialog);
             }
+            SigningService.loadIDs(this);
         } catch (SigningServiceException e) {
             ILog.e(TAG, "Failed to fetch keystore information");
             displayFailedCrypto(this, getString(R.string.error_keystore), progressDialog);

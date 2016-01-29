@@ -10,6 +10,8 @@ import android.os.BatteryManager;
 import android.os.Build;
 
 import org.apache.http.NameValuePair;
+import org.igarape.copcast.service.sign.SigningService;
+import org.igarape.copcast.service.sign.SigningServiceException;
 import org.igarape.copcast.state.NetworkState;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -238,6 +240,13 @@ public class NetworkUtils {
                         writer.close();
                         os.close();
                     } else if (jsonObject != null) {
+                        JSONObject obj = (JSONObject) jsonObject;
+                        obj.put("imei", Globals.getImei());
+                        obj.put("simid", Globals.getSimid());
+                        ILog.d(TAG, obj.toString());
+                        String signature = SigningService.signature(obj);
+                        obj.put("mac", signature);
+
                         urlConnection.setRequestProperty("Content-Type", "application/json;charset=" + charset);
                         os = urlConnection.getOutputStream();
                         writer = new BufferedWriter(
@@ -292,6 +301,10 @@ public class NetworkUtils {
                 } catch (IOException e) {
                     callback.badResponse();
                     ILog.e(TAG, "Could not read response body ", e);
+                } catch (SigningServiceException e) {
+                    callback.failure(-1);
+                } catch (JSONException e) {
+                    callback.failure(-2);
                 } finally {
                     try {
                         if (writer != null) {

@@ -47,6 +47,8 @@ public class Globals {
     private static IncidentFlagState incidentFlag = IncidentFlagState.NOT_FLAGGED;
     private static String currentVideoPath;
     public static int appCamcoderProfile = CamcorderProfile.QUALITY_QVGA;
+    private static String imei;
+    private static String simid;
 
 
     public synchronized static String getAccessToken(Context context) {
@@ -253,5 +255,21 @@ public class Globals {
 
     public static void setIncidentFlag(IncidentFlagState incidentFlag) {
         Globals.incidentFlag = incidentFlag;
+    }
+
+    public static String getSimid() {
+        return simid;
+    }
+
+    public static void setSimid(String simid) {
+        Globals.simid = simid;
+    }
+
+    public static String getImei() {
+        return imei;
+    }
+
+    public static void setImei(String imei) {
+        Globals.imei = imei;
     }
 }

@@ -1,22 +1,16 @@
 package org.igarape.copcast.service.sign;
 
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.os.Build;
-import android.preference.PreferenceManager;
 import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.telephony.TelephonyManager;
 import android.util.Base64;
 import android.util.Log;
-import android.view.ContextThemeWrapper;
-import android.view.LayoutInflater;
-import android.widget.TextView;
 
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.igarape.copcast.R;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.HttpResponseCallback;
@@ -29,13 +23,11 @@ import org.json.JSONObject;
 import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
-import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.util.Calendar;
@@ -72,6 +64,15 @@ public class SigningService {
             ILog.e(TAG, errorMsg, e);
             throw new SigningServiceException(errorMsg);
         }
+    }
+
+
+    public static void loadIDs(Context ctx) {
+        TelephonyManager mTelephonyMgr = (TelephonyManager) ctx.getSystemService(Context.TELEPHONY_SERVICE);
+        String imei = mTelephonyMgr.getDeviceId();
+        String simno = mTelephonyMgr.getSimSerialNumber();
+        Globals.setImei(imei);
+        Globals.setSimid(simno);
     }
 
     public static KeyStore.Entry fetchKey() throws SigningServiceException {
@@ -231,6 +232,7 @@ public class SigningService {
 
     public static String signature(JSONObject object) throws SigningServiceException {
         String input = object.toString();
+        Log.d(TAG, "MD5: " + new String(Hex.encodeHex(DigestUtils.md5(input))));
         return  signature(input);
     }
 
@@ -273,6 +275,8 @@ public class SigningService {
         String imsi = mTelephonyMgr.getSubscriberId();
         String imei = mTelephonyMgr.getDeviceId();
         String simno = mTelephonyMgr.getSimSerialNumber();
+        Globals.setImei(imei);
+        Globals.setSimid(imsi);
 
         JSONObject register = new JSONObject();
         try {
@@ -285,6 +289,7 @@ public class SigningService {
         } catch (JSONException e) {
             ILog.e(TAG, "Could not write public key in JSON");
         }
+
 
         Log.d(TAG, ">> "+url);
 
