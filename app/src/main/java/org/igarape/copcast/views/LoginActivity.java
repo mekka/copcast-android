@@ -152,14 +152,28 @@ public class LoginActivity extends Activity {
                         String token = null;
                         try {
                             token = (String) response.get("token");
-                            Globals.setUserName(getApplicationContext(), (String) response.get("userName"));
+                            if (response.get("streamingPort") instanceof Integer){
+                                Globals.setStreamingPort(getApplicationContext(), (Integer) response.get("streamingPort"));
+                            } else {
+                                Globals.setStreamingPort(getApplicationContext(), Integer.parseInt(response.getString("streamingPort")));
+                            }
+                            Globals.setServerIpAddress(getApplicationContext(), response.getString("ipAddress"));
+                            Globals.setStreamingUser(getApplicationContext(), response.getString("streamingUser"));
+                            Globals.setStreamingPassword(getApplicationContext(), response.getString("streamingPassword"));
+                            Globals.setStreamingPath(getApplicationContext(), response.getString("streamingPath"));
+                            Globals.setUserName(getApplicationContext(), response.getString("userName"));
                         } catch (JSONException e) {
                             Log.e(TAG, "error on login", e);
                         }
-                        if (pDialog != null) {
-                            pDialog.dismiss();
-                            pDialog = null;
-                        }
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (pDialog != null) {
+                                    pDialog.dismiss();
+                                    pDialog = null;
+                                }
+                            }
+                        });
                         Globals.setAccessToken(getBaseContext(), token);
                         Globals.setUserLogin(getBaseContext(), loginField);
 

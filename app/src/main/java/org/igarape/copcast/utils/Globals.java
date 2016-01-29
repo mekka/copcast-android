@@ -189,6 +189,9 @@ public class Globals {
     }
 
     public static void setStreamingPath(Context context,String streamingPath) {
+        if (!streamingPath.startsWith("/")){
+            streamingPath = "/"+streamingPath;
+        }
         SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putString(STREAMING_PATH, streamingPath);
