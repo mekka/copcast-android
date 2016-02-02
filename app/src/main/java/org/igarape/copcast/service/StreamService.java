@@ -47,7 +47,7 @@ public class StreamService extends Service implements RtspClient.Callback, Sessi
     private int mId = 5;
     private SurfaceHolder mSurfaceHolder;
     private boolean bitrateStarted;
-    private Socket client;
+    private Socket mSocketClient;
 
 
     @Override
@@ -82,8 +82,9 @@ public class StreamService extends Service implements RtspClient.Callback, Sessi
         try {
             IO.Options opts = new IO.Options();
             opts.forceNew = true;
-            opts.query = "token=" + Globals.getAccessToken(getApplicationContext()) + "&clientType=android";
-            client = IO.socket(Globals.getServerUrl(getApplicationContext()), opts);
+            opts.query = "token=" + Globals.getAccessTokenStraight(getApplicationContext()) + "&clientType=android";
+            mSocketClient = IO.socket(Globals.getServerUrl(getApplicationContext()), opts);
+            mSocketClient.connect();
         } catch (URISyntaxException e) {
             Log.e(TAG, "error connecting socket", e);
         }
@@ -120,9 +121,9 @@ public class StreamService extends Service implements RtspClient.Callback, Sessi
         /**
          * Here we`ll tell node(server) that user stopped streaming
          */
-        client.emit("disconnect", new JSONObject());
-        client.disconnect();
-        client.close();
+        mSocketClient.emit("disconnect", new JSONObject());
+        mSocketClient.disconnect();
+        mSocketClient.close();
     }
 
     @Override
@@ -151,7 +152,7 @@ public class StreamService extends Service implements RtspClient.Callback, Sessi
                 .build();
 
 
-        // Configures the RTSP client
+        // Configures the RTSP mSocketClient
         mClient = new RtspClient();
 
         mClient.setCredentials(Globals.getStreamingUser(getApplicationContext()), Globals.getStreamingPassword(getApplicationContext()));
@@ -186,7 +187,7 @@ public class StreamService extends Service implements RtspClient.Callback, Sessi
             /**
              * Here we`ll tell node(server) that user is streaming
              */
-           client.emit("readyToStream", new JSONObject());
+           mSocketClient.emit("readyToStream", new JSONObject());
         }
         Log.i(TAG, bitrate / 1000 + " kbps");
 
