@@ -83,6 +83,7 @@ public class StreamService extends Service implements RtspClient.Callback, Sessi
             IO.Options opts = new IO.Options();
             opts.forceNew = true;
             opts.query = "token=" + Globals.getAccessTokenStraight(getApplicationContext()) + "&clientType=android";
+            opts.reconnection = true;
             mSocketClient = IO.socket(Globals.getServerUrl(getApplicationContext()), opts);
             mSocketClient.connect();
         } catch (URISyntaxException e) {
@@ -124,6 +125,13 @@ public class StreamService extends Service implements RtspClient.Callback, Sessi
         mSocketClient.emit("disconnect", new JSONObject());
         mSocketClient.disconnect();
         mSocketClient.close();
+
+        if (Globals.isToggling()){
+            Globals.setToggling(false);
+            Intent intentAux = new Intent(this, VideoRecorderService.class);
+            intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startService(intentAux);
+        }
     }
 
     @Override
@@ -172,12 +180,7 @@ public class StreamService extends Service implements RtspClient.Callback, Sessi
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        if (Globals.isToggling()){
-            Globals.setToggling(false);
-            Intent intentAux = new Intent(this, VideoRecorderService.class);
-            intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startService(intentAux);
-        }
+
     }
 
     @Override
