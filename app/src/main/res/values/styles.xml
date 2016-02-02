@@ -1,7 +1,7 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar">
+    <style name="AppTheme" parent="android:Theme.Holo">
         <item name="android:windowBackground">@color/bg_dark_block</item>
         <item name="android:textColor">@color/text_dark_block</item>
         <item name="android:buttonStyle">@style/button_default</item>
