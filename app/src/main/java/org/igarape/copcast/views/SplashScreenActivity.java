@@ -1,6 +1,7 @@
 package org.igarape.copcast.views;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -16,9 +17,14 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.splunk.mint.Mint;
 
 import org.igarape.copcast.R;
+import org.igarape.copcast.service.sign.SigningService;
+import org.igarape.copcast.service.sign.SigningServiceException;
 import org.igarape.copcast.utils.BatteryUtils;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
+import org.igarape.copcast.utils.ILog;
+
+import java.security.KeyStore;
 
 public class SplashScreenActivity extends Activity {
 
@@ -26,13 +32,30 @@ public class SplashScreenActivity extends Activity {
     public static String TAG = SplashScreenActivity.class.getName();
     private static final int REQUEST_CODE_RECOVER_PLAY_SERVICES = 1001;
     private Context context;
-    private String regid = null;  //testing
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         Mint.initAndStartSession(SplashScreenActivity.this, "0c1e5146");
+
+        // verify if we already have the signing mechanism initialized.
+        // if not, prompt the user for server and credentials.
+        try {
+            if (SigningService.fetchKey() == null) {
+                Intent intent = new Intent(SplashScreenActivity.this, RegistrationActivity.class);
+                startActivity(intent);
+                SplashScreenActivity.this.finish();
+            }
+
+        } catch (SigningServiceException e) {
+            ILog.e(TAG, "Failed to fetch keystore information", e);
+            Toast.makeText(this, getString(R.string.error_keystore), Toast.LENGTH_LONG);
+            SplashScreenActivity.this.finish();
+        }
+
+        SigningService.loadIDs(this);
+
 
         if (Globals.getAccessToken(getApplicationContext()) instanceof String){
             Intent intent = new Intent(SplashScreenActivity.this, MainActivity.class);
@@ -53,8 +76,6 @@ public class SplashScreenActivity extends Activity {
         super.onResume();
         context = getApplicationContext();
         if (checkPlayServices()) {
-
-            regid = Globals.getRegistrationId(context);
             Globals.setAccessToken(this, null);
             new BackgroundSplashTask().execute();
         }

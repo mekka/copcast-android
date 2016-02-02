@@ -41,6 +41,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,27 +55,12 @@ public class LoginActivity extends Activity {
     EditText txtPwd;
     ProgressDialog pDialog;
     private Button btnLoginOk;
-    private ProgressDialog progressDialog;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
-        // verify if we already have the signing mechanism initialized.
-        // if not, prompt the user for server and credentials.
-        try {
-            if (SigningService.fetchKey() == null) {
-                progressDialog = new ProgressDialog(this);
-                progressDialog.setTitle("Please wait...");
-                initCryptoKeys(this, progressDialog);
-            }
-            SigningService.loadIDs(this);
-        } catch (SigningServiceException e) {
-            ILog.e(TAG, "Failed to fetch keystore information");
-            displayFailedCrypto(this, getString(R.string.error_keystore), progressDialog);
-        }
 
         txtId = (EditText) findViewById(R.id.txtLoginUser);
         txtPwd = (EditText) findViewById(R.id.txtLoginPassword);
@@ -110,7 +96,7 @@ public class LoginActivity extends Activity {
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            String msg =extras.getString("reason");
+            String msg = extras.getString("reason");
             if (msg != null && msg.length() > 0) {
                 Toast toast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG);
                 toast.setGravity(Gravity.TOP | CENTER_HORIZONTAL, 0, 100);
@@ -139,7 +125,7 @@ public class LoginActivity extends Activity {
 
     public void makeLoginRequest(View view) {
 
-        pDialog = new ProgressDialog(this, android.R.style.Theme_Holo_Dialog);
+        pDialog = new ProgressDialog(this);
         pDialog.setTitle(getString(R.string.login_in));
         pDialog.setMessage(getString(R.string.please_hold));
         pDialog.setIndeterminate(true);
@@ -268,90 +254,5 @@ public class LoginActivity extends Activity {
             return true;
         }
         return false;
-    }
-
-    public void initCryptoKeys(final Activity ctx, final ProgressDialog progressDialog) {
-        final AlertDialog configDialog = new AlertDialog.Builder(new ContextThemeWrapper(ctx, R.style.AlertDialogCustom)).create();
-        LayoutInflater inflater = ctx.getLayoutInflater();
-        configDialog.setView(inflater.inflate(R.layout.register_signin, null));
-
-        configDialog.setButton(DialogInterface.BUTTON_POSITIVE, ctx.getString(R.string.ok), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                progressDialog.show();
-                final String url = ((TextView) configDialog.findViewById(R.id.register_url)).getText().toString();
-                final String username = ((TextView) configDialog.findViewById(R.id.register_username)).getText().toString();
-                final String pwd = ((TextView) configDialog.findViewById(R.id.register_password)).getText().toString();
-
-                new AsyncTask<Void, Void, Void>() {
-
-                    @Override
-                    protected Void doInBackground(Void... params) {
-                        try {
-                            SigningService.registration(ctx, url, username, pwd, new Promise() {
-                                @Override
-                                public void success(Object payload) {
-                                    progressDialog.dismiss();
-                                    SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(ctx);
-                                    SharedPreferences.Editor edit = sharedPref.edit();
-                                    edit.putString(Globals.SERVER_URL, url);
-                                    edit.commit();
-
-                                }
-
-                                @Override
-                                public void failure(Object error) {
-                                    progressDialog.dismiss();
-                                    String reason = (String) error;
-
-                                    try {
-                                        SigningService.removeKey();
-                                    } catch (SigningServiceException e) {
-                                        ILog.e(TAG, "Error removing key (" + reason + ")");
-                                    }
-                                    displayFailedCrypto(LoginActivity.this, reason, progressDialog);
-                                }
-                            });
-                        } catch (SigningServiceException e) {
-                            displayFailedCrypto(ctx, getString(R.string.error_keystore), progressDialog);
-                        }
-                        return null;
-                    }
-                }.execute();
-            }
-        });
-
-        configDialog.show();
-    }
-
-
-    private void displayFailedCrypto(final Activity ctx, final String msg, final ProgressDialog progressDialog) {
-
-        Log.d(TAG, "Failed crypto: "+msg);
-
-        ctx.runOnUiThread(new Runnable() {
-            public void run() {
-//                String m;
-//                if (msg.compareTo(getString(R.string.unauthorized_login)) == 0)
-//                    m = msg;
-//                else
-//                    m = ctx.getString(R.string.error_keystore);
-
-                AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(ctx, R.style.AlertDialogCustom)).create();
-                alertDialog.setTitle(ctx.getString(R.string.warning));
-                alertDialog.setMessage(msg);
-                alertDialog.setIcon(R.drawable.button_default);
-                alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        Log.w(TAG, msg.compareTo(getString(R.string.unauthorized_login)) + "<<<");
-                        if (msg.compareTo(getString(R.string.unauthorized_login)) != 0)
-                            ctx.finish();
-                        else
-                            initCryptoKeys(ctx, progressDialog);
-                    }
-                });
-                alertDialog.show();
-            }
-        });
     }
 }

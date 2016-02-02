@@ -92,4 +92,8 @@
     <string name="incompatible_version">Versão de Android incompatível</string>
     <string name="loading">Carregando...</string>
     <string name="error_keystore">Erro ao inicializar sistema de criptografia</string>
+    <string name="server_url_hint">URL do servidor de API</string>
+    <string name="do_registration">Registrar</string>
+    <string name="device_registration">Registro de Dispositivo</string>
+    <string name="registering">Registrando dispositivo</string>
 </resources>

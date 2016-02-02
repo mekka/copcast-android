@@ -1,6 +1,7 @@
 package org.igarape.copcast.service.sign;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
@@ -73,6 +74,8 @@ public class SigningService {
         String simno = mTelephonyMgr.getSimSerialNumber();
         Globals.setImei(imei);
         Globals.setSimid(simno);
+        ILog.d(TAG, "IMEI: "+imei);
+        ILog.d(TAG, "SimID: "+simno);
     }
 
     public static KeyStore.Entry fetchKey() throws SigningServiceException {
@@ -118,6 +121,8 @@ public class SigningService {
 
         } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
 
+            ILog.d(TAG, "older Android versions.");
+
             try {
                 g = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore");
             } catch (Exception e) {
@@ -131,10 +136,10 @@ public class SigningService {
             notAfter.add(Calendar.YEAR, 1);
             KeyPairGeneratorSpec.Builder spec = new KeyPairGeneratorSpec.Builder(ctx)
                     .setAlias(COPCASTKEY)
-                    .setSerialNumber(BigInteger.ONE)
+                    .setSerialNumber(BigInteger.TEN)
                     .setStartDate(notBefore.getTime())
                     .setEndDate(notAfter.getTime())
-                    .setSubject(new X500Principal("CN=test"));
+                    .setSubject(new X500Principal("CN=copcast"));
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 try {
@@ -157,7 +162,7 @@ public class SigningService {
 
         } else {
 
-            Log.d(TAG, "ANDROID 23");
+            Log.d(TAG, "Android 23");
             try {
                 g = KeyPairGenerator.getInstance(
                         KeyProperties.KEY_ALGORITHM_EC, "AndroidKeyStore");
@@ -181,53 +186,17 @@ public class SigningService {
 
         }
 
-        KeyPair pair = g.generateKeyPair();
-        // Instance of signature class with SHA256withECDSA algorithm
-//            Signature ecdsaSign = Signature.getInstance("SHA256withECDSA");
-//            ecdsaSign.initSign(pair.getPrivate());
+        ILog.d(TAG, g.toString());
 
-
-//            KeyPair pair = g.generateKeyPair();
-        // Instance of signature class with SHA256withECDSA algorithm
-//            Signature ecdsaSign = Signature.getInstance("SHA256withECDSA");
-//            ecdsaSign.initSign(pair.getPrivate());
-
-
-        Log.e(TAG, "Private Keys is::" + pair.getPublic().getAlgorithm());
-        Log.e(TAG, "Public Keys is::" + Base64.encodeToString(pair.getPublic().getEncoded(), Base64.DEFAULT));
-
-//            KeyStore ks = KeyStore.getInstance("AndroidKeyStore");
-//            ks.load(null);
-//            KeyStore.Entry entry = ks.getEntry(COPCASTKEY, null);
-//            if (!(entry instanceof KeyStore.PrivateKeyEntry)) {
-//                Log.w(TAG, "Not an instance of a PrivateKeyEntry");
-//                return null;
-//            }
-
-//            Signature s = Signature.getInstance("SHA256withECDSA");
-//            s.initSign(((KeyStore.PrivateKeyEntry) entry).getPrivateKey());
-//            s.update("BOGUS".getBytes());
-//            byte[] signature = s.sign();
-//
-//            Log.e(TAG, "Signature is::" + Base64.encodeToString(signature, Base64.DEFAULT));
+        KeyPair pair;
+        try {
+            pair = g.generateKeyPair();
+        } catch (Exception e) {
+            ctx.startActivity(new Intent("com.android.credentials.UNLOCK"));
+            return "falhou" ;
+        }
 
         return Base64.encodeToString(pair.getPublic().getEncoded(), Base64.DEFAULT);
-
-//            String msg = "text ecdsa with sha256";//getSHA256(msg)
-//            ecdsaSign.update((msg + pair.getPrivate().toString())
-//                    .getBytes("UTF-8"));
-//
-//            byte[] signature = ecdsaSign.sign();
-//            System.out.println("Signature is::"
-//                    + new BigInteger(1, signature).toString(16));
-//
-//            // Validation
-//            ecdsaSign.initVerify(pair.getPublic());
-//            ecdsaSign.update(signature);
-//            if (ecdsaSign.verify(signature))
-//                System.out.println("valid");
-//            else
-//                System.out.println("invalid!!!!");
     }
 
     public static String signature(JSONObject object) throws SigningServiceException {
@@ -245,11 +214,16 @@ public class SigningService {
             return null;
         }
 
+        String algo = "SHA256WITHRSA";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            algo = "SHA256WITHECDSA";
+        }
+
         Signature s = null;
         try {
-            s = Signature.getInstance("SHA256WITHRSA");
+            s = Signature.getInstance(algo);
         } catch (NoSuchAlgorithmException e) {
-            ILog.e(TAG, "Unknown algorithm SHA256WITHRSA (sign)", e);
+            ILog.e(TAG, "Unknown algorithm "+algo+" (sign)", e);
         }
         try {
             s.initSign(((KeyStore.PrivateKeyEntry) entry).getPrivateKey());

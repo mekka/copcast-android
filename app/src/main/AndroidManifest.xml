@@ -55,6 +55,9 @@
             android:name=".views.PlayerActivity"/>
         <activity
             android:screenOrientation="portrait"
+            android:name=".views.RegistrationActivity"/>
+        <activity
+            android:screenOrientation="portrait"
             android:name=".views.LoginActivity"/>
         <activity
             android:name=".views.SettingsActivity"
