@@ -8,7 +8,6 @@
     <string name="login_hint">Username</string>
     <string name="password_hint">Password</string>
     <string name="unauthorized_login">Invalid credentials</string>
-    <string name="no_server_login">Unable to contact the server</string>
     <string name="network">Network</string>
     <string name="server_url">Server URL</string>
     <string name="settings">Settings</string>
@@ -30,7 +29,7 @@
     <string name="notification_location_description">Searching for your current location</string>
     <string name="please_hold">Please hold...</string>
     <string name="login_in">Logging in</string>
-    <string name="server_error">Unable do to contact server</string>
+    <string name="server_error">Unable to contact server</string>
     <string name="connection_error">Error contacting server. Please, verify your connection.</string>
     <string name="bad_request_error">Connection error. Please, contact administrator.</string>
     <string name="welcome">Welcome.</string>

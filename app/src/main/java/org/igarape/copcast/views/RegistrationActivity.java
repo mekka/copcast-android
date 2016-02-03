@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,6 +17,7 @@ import org.igarape.copcast.service.sign.SigningService;
 import org.igarape.copcast.service.sign.SigningServiceException;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.ILog;
+import org.igarape.copcast.utils.OkDialog;
 import org.igarape.copcast.utils.Promise;
 
 /**
@@ -93,7 +93,7 @@ public class RegistrationActivity extends Activity {
                             }
                             RegistrationActivity.this.runOnUiThread(new Runnable() {
                                 public void run() {
-                                    Toast.makeText(RegistrationActivity.this, reason, Toast.LENGTH_LONG).show();
+                                    OkDialog.display(getFragmentManager(), reason);
                                 }
                             });
                         }
@@ -101,7 +101,7 @@ public class RegistrationActivity extends Activity {
                 } catch (SigningServiceException e) {
                     RegistrationActivity.this.runOnUiThread(new Runnable() {
                         public void run() {
-                            Toast.makeText(RegistrationActivity.this, getString(R.string.error_keystore), Toast.LENGTH_LONG).show();
+                            OkDialog.display(getFragmentManager(), getString(R.string.error_keystore));
                         }
                     });
                 }
