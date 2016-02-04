@@ -110,10 +110,53 @@ public class NV21Convertor {
 		int min = buffer.capacity() < data.length?buffer.capacity() : data.length;
 		buffer.put(result, 0, min);
 	}
-	
-	public byte[] convert(byte[] data) {
 
-		// A buffer large enough for every case
+	public static void rotateNV21(byte[] input, byte[] output, int width, int height, int rotation) {
+		boolean swap = (rotation == 90 || rotation == 270);
+		boolean yflip = (rotation == 90 || rotation == 180);
+		boolean xflip = (rotation == 270 || rotation == 180);
+		for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				int xo = x, yo = y;
+				int w = width, h = height;
+				int xi = xo, yi = yo;
+				if (swap) {
+					xi = w * yo / h;
+					yi = h * xo / w;
+				}
+				if (yflip) {
+					yi = h - yi - 1;
+				}
+				if (xflip) {
+					xi = w - xi - 1;
+				}
+				output[w * yo + xo] = input[w * yi + xi];
+				int fs = w * h;
+				int qs = (fs >> 2);
+				xi = (xi >> 1);
+				yi = (yi >> 1);
+				xo = (xo >> 1);
+				yo = (yo >> 1);
+				w = (w >> 1);
+				h = (h >> 1);
+				// adjust for interleave here
+				int ui = fs + (w * yi + xi) * 2;
+				int uo = fs + (w * yo + xo) * 2;
+				// and here
+				int vi = ui + 1;
+				int vo = uo + 1;
+				output[uo] = input[ui];
+				output[vo] = input[vi];
+			}
+		}
+	}
+
+	public byte[] convert(byte[] datao) {
+
+		byte[] data = new byte[datao.length];
+ 		rotateNV21(datao, data, mWidth, mHeight, 90);
+
+			// A buffer large enough for every case
 		if (mBuffer==null || mBuffer.length != 3*mSliceHeight*mStride/2+mYPadding) {
 			mBuffer = new byte[3*mSliceHeight*mStride/2+mYPadding];
 		}
@@ -159,8 +202,38 @@ public class NV21Convertor {
 				return data;
 			}
 		}
-		
-		return data;
-	}	
-	
+
+		return data; //rotateYUV420Degree90(data, 176, 144);
+	}
+
+	private byte[] rotateYUV420Degree90(byte[] data, int imageWidth, int imageHeight)
+	{
+
+		Log.w("#########", ">>>>>>>>>>>>>>>>>>>------- "+data.length);
+
+		byte [] yuv = new byte[imageWidth*imageHeight*3/2];
+		// Rotate the Y luma
+		int i = 0;
+		for(int x = 0;x < imageWidth;x++)
+		{
+			for(int y = imageHeight-1;y >= 0;y--)
+			{
+				yuv[i] = data[y*imageWidth+x];
+				i++;
+			}
+		}
+		// Rotate the U and V color components
+		i = imageWidth*imageHeight*3/2-1;
+		for(int x = imageWidth-1;x > 0;x=x-2)
+		{
+			for(int y = 0;y < imageHeight/2;y++)
+			{
+				yuv[i] = data[(imageWidth*imageHeight)+(y*imageWidth)+x];
+				i--;
+				yuv[i] = data[(imageWidth*imageHeight)+(y*imageWidth)+(x-1)];
+				i--;
+			}
+		}
+		return yuv;
+	}
 }
