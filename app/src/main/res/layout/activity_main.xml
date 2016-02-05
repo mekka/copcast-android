@@ -338,6 +338,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text=""
+                    android:textOff="off"
+                    android:textOn="on"
                     android:id="@+id/streamSwitch"
                     android:layout_alignParentBottom="true"
                     android:layout_alignParentLeft="true"
