@@ -41,11 +41,11 @@ public class Globals {
     private static final String REQUIRE_WIFI_ONLY = "upload_wifi_only";
     private static String accessToken = null;
     private static String userLogin = null;
-    private static String serverIpAddress = "";
-    private static Integer streamingPort = 1935;
-    private static String streamingUser = "";
-    private static String streamingPassword = "";
-    private static String streamingPath = "";
+    private static String serverIpAddress = null;
+    private static Integer streamingPort = null;
+    private static String streamingUser = null;
+    private static String streamingPassword = null;
+    private static String streamingPath = null;
     private static String userName = null;
     private static Bitmap userImage = null;
     private static Long directorySize;
@@ -230,6 +230,11 @@ public class Globals {
         userName = null;
         userImage = null;
         toggling = false;
+        serverIpAddress = null;
+        streamingPort = 1935;
+        streamingUser = null;
+        streamingPassword = null;
+        streamingPath = null;
     }
 
     public static void setDirectorySize(Context context,Long directorySize) {
