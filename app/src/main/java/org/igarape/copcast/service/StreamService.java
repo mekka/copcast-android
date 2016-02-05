@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
+import android.media.CamcorderProfile;
+import android.media.CameraProfile;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
@@ -142,19 +144,23 @@ public class StreamService extends Service implements RtspClient.Callback, Sessi
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         this.bitrateStarted = false;
+
+        Globals.appCamcoderProfile = CamcorderProfile.QUALITY_LOW;
+        CamcorderProfile profile = CamcorderProfile.get(Globals.appCamcoderProfile);
+
         SessionBuilder builder = SessionBuilder.getInstance()
                 .setCamera(Camera.CameraInfo.CAMERA_FACING_BACK)
                 .setContext(getApplicationContext())
-                .setAudioEncoder(SessionBuilder.AUDIO_AAC)
-                .setAudioQuality(new AudioQuality(8000, 16000))
+                .setAudioEncoder(SessionBuilder.AUDIO_NONE)
                 .setVideoEncoder(SessionBuilder.VIDEO_H264)
                 .setSurfaceView(mSurfaceView)
                 .setPreviewOrientation(VideoUtils.DEGREES)
+                .setVideoQuality(new VideoQuality(176,144,20,200000))
                 .setCallback(this);
 
-        if (android.os.Build.VERSION.SDK_INT <= 16) {
-            builder = builder.setVideoQuality(new VideoQuality(176, 144, 15, 500000));
-        }
+//        if (android.os.Build.VERSION.SDK_INT <= 16) {
+//            builder = builder.setVideoQuality(new VideoQuality(176, 144, 15, 200000));
+//        }
         // Configures the SessionBuilder
         mSession = builder.setCallback(this)
                 .build();
