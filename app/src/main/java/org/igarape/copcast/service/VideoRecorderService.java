@@ -106,98 +106,102 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
     private boolean prepareMediaEncoder() {
 
-        if (serviceExiting)
-            return false;
+//        if (serviceExiting)
+//            return false;
+//
+//        lock.lock();
+//        Log.d(TAG, "> prepare locked");
+//        try {
+//            try {
+//                camera = Camera.open(); // attempt to get a Camera instance
+//            } catch (Exception e) {
+//                Log.e(TAG, "Failed to open camera.");
+//                return false;
+//            }
+//
+//            Camera.Parameters params = camera.getParameters();
+//            params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
+//            camera.setParameters(params);
+//            camera.unlock();
+//
+//            mediaRecorder = new MediaRecorder();
+//            mediaRecorder.setPreviewDisplay(this.surfaceHolder.getSurface());
+//            mediaRecorder.setCamera(camera);
+//            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+//            mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+//
+//            //chain to identify available resolutions
+//            Globals.appCamcoderProfile = CamcorderProfile.QUALITY_LOW;
+//            CamcorderProfile profile = CamcorderProfile.get(Globals.appCamcoderProfile);
+//            try {
+//                Globals.appCamcoderProfile = CamcorderProfile.QUALITY_QVGA;
+//                profile = CamcorderProfile.get(Globals.appCamcoderProfile);
+//            } catch (RuntimeException ex) {
+//                Log.w(TAG, "Failed to set QVGA video profile. Trying CIF");
+//                try {
+//                    Globals.appCamcoderProfile = CamcorderProfile.QUALITY_CIF;
+//                    profile = CamcorderProfile.get(Globals.appCamcoderProfile);
+//                } catch (RuntimeException ex2) {
+//                    Log.w(TAG, "Failed to set CIF video profile. Falling back to LOW");
+//                    Globals.appCamcoderProfile = CamcorderProfile.QUALITY_LOW;
+//                }
+//            }
+//
+//            // tune video parameters to reduce size
+//            profile.videoBitRate = 156000;
+//            profile.videoFrameRate = 12;
+//            profile.audioBitRate = 24000;
+//            profile.audioChannels = 1;
+//
+//            // Apply to MediaRecorder
+//            mediaRecorder.setProfile(profile);
+//
+//            videoFileName = FileUtils.getPath(Globals.getUserLogin(getBaseContext())) +
+//                    android.text.format.DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime()) +
+//                    ".mp4";
+//
+//            Globals.setCurrentVideoPath(videoFileName);
+//            mediaRecorder.setOutputFile(videoFileName);
+//
+//            if (Globals.getIncidentFlag() == IncidentFlagState.FLAG_PENDING) {
+//                IncidentUtils.registerIncident(getApplicationContext(), Globals.getCurrentVideoPath());
+//                Globals.setIncidentFlag(IncidentFlagState.FLAGGED);
+//            }
+//
+//            mediaRecorder.setOrientationHint(getScreenOrientation(Globals.getRotation()));
+//            mediaRecorder.setMaxDuration(MAX_DURATION_MS);
+//            mediaRecorder.setMaxFileSize(MAX_SIZE_BYTES);
+//            mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
+//                @Override
+//                public void onInfo(MediaRecorder mediaRecorder, int what, int extra) {
+//                    if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED ||
+//                            what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED) {
+//
+//                        releaseMediaRecorder();
+//                        new MediaPrepareTask().execute();
+//                    }
+//                }
+//            });
+//
+//            try {
+//                mediaRecorder.prepare();
+//            } catch (IOException e) {
+//                Log.e(TAG, "ioException on prepareMediaEncoder");
+//                return false;
+//            }
+//
+//            mediaRecorder.start();
+//
+//            return true;
+//
+//        } finally {
+//            lock.unlock();
+//            Log.d(TAG, "< prepare unlocked");
+//        }
 
-        lock.lock();
-        Log.d(TAG, "> prepare locked");
-        try {
-            try {
-                camera = Camera.open(); // attempt to get a Camera instance
-            } catch (Exception e) {
-                Log.e(TAG, "Failed to open camera.");
-                return false;
-            }
 
-            Camera.Parameters params = camera.getParameters();
-            params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
-            camera.setParameters(params);
-            camera.unlock();
 
-            mediaRecorder = new MediaRecorder();
-            mediaRecorder.setPreviewDisplay(this.surfaceHolder.getSurface());
-            mediaRecorder.setCamera(camera);
-            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
-            mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-
-            //chain to identify available resolutions
-            Globals.appCamcoderProfile = CamcorderProfile.QUALITY_LOW;
-            CamcorderProfile profile = CamcorderProfile.get(Globals.appCamcoderProfile);
-            try {
-                Globals.appCamcoderProfile = CamcorderProfile.QUALITY_QVGA;
-                profile = CamcorderProfile.get(Globals.appCamcoderProfile);
-            } catch (RuntimeException ex) {
-                Log.w(TAG, "Failed to set QVGA video profile. Trying CIF");
-                try {
-                    Globals.appCamcoderProfile = CamcorderProfile.QUALITY_CIF;
-                    profile = CamcorderProfile.get(Globals.appCamcoderProfile);
-                } catch (RuntimeException ex2) {
-                    Log.w(TAG, "Failed to set CIF video profile. Falling back to LOW");
-                    Globals.appCamcoderProfile = CamcorderProfile.QUALITY_LOW;
-                }
-            }
-
-            // tune video parameters to reduce size
-            profile.videoBitRate = 156000;
-            profile.videoFrameRate = 12;
-            profile.audioBitRate = 24000;
-            profile.audioChannels = 1;
-
-            // Apply to MediaRecorder
-            mediaRecorder.setProfile(profile);
-
-            videoFileName = FileUtils.getPath(Globals.getUserLogin(getBaseContext())) +
-                    android.text.format.DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime()) +
-                    ".mp4";
-
-            Globals.setCurrentVideoPath(videoFileName);
-            mediaRecorder.setOutputFile(videoFileName);
-
-            if (Globals.getIncidentFlag() == IncidentFlagState.FLAG_PENDING) {
-                IncidentUtils.registerIncident(getApplicationContext(), Globals.getCurrentVideoPath());
-                Globals.setIncidentFlag(IncidentFlagState.FLAGGED);
-            }
-
-            mediaRecorder.setOrientationHint(getScreenOrientation(Globals.getRotation()));
-            mediaRecorder.setMaxDuration(MAX_DURATION_MS);
-            mediaRecorder.setMaxFileSize(MAX_SIZE_BYTES);
-            mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
-                @Override
-                public void onInfo(MediaRecorder mediaRecorder, int what, int extra) {
-                    if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED ||
-                            what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED) {
-
-                        releaseMediaRecorder();
-                        new MediaPrepareTask().execute();
-                    }
-                }
-            });
-
-            try {
-                mediaRecorder.prepare();
-            } catch (IOException e) {
-                Log.e(TAG, "ioException on prepareMediaEncoder");
-                return false;
-            }
-
-            mediaRecorder.start();
-
-            return true;
-
-        } finally {
-            lock.unlock();
-            Log.d(TAG, "< prepare unlocked");
-        }
+        return true;
     }
 
     @Override

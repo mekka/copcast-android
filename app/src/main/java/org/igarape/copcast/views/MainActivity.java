@@ -695,7 +695,6 @@ public class MainActivity extends Activity {
             Intent i = new Intent(this, FormIncidentReportActivity.class);
             startActivity(i);
             return true;
-
         } else if (id == R.id.action_logout) {
             logout(null);
             return true;
