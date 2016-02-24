@@ -344,7 +344,18 @@ public class FormIncidentReportActivity extends Activity {
 
         Log.d(TAG, "writeJSONtoFile...");
 
-        IncidentFormUtils.sendForm(getApplicationContext(), incidentForm);
+        IncidentFormUtils.sendForm(getApplicationContext(),
+                Globals.getUserLogin(getApplicationContext()),
+                incidentForm, new IncidentFormCallback() {
+                    @Override
+                    public void failure() {
+                        Toast.makeText(context, getString(R.string.error_sending_form), Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void success() {
+                    }
+                });
     }
 
     private IncidentForm getIncidentForm() {

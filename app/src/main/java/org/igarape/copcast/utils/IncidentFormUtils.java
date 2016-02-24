@@ -6,7 +6,6 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
-import org.igarape.copcast.R;
 import org.igarape.copcast.bo.IncidentForm;
 import org.igarape.copcast.db.JsonDataType;
 import org.json.JSONException;

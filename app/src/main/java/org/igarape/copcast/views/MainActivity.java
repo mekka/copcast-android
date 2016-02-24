@@ -788,7 +788,6 @@ public class MainActivity extends Activity {
         if (Globals.getAccessToken(getApplicationContext()) == null) {
             logout(getString(R.string.invalid_token));
         }
-
         if (pDialog != null){
             pDialog.dismiss();
             pDialog = null;
