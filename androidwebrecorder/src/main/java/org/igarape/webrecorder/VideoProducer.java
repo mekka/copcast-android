@@ -58,12 +58,12 @@ class VideoProducer implements Camera.PreviewCallback {
         } catch (Exception e) {
             throw new WebRecorderException(e);
         }
-        Log.d(TAG, "created");
+        Log.d(TAG, "Created.");
     }
 
     public void start() {
 
-        Log.d(TAG, "running");
+        Log.d(TAG, "Start requested.");
         isRunning = true;
 
         if (videoCodec == null) {
@@ -77,14 +77,17 @@ class VideoProducer implements Camera.PreviewCallback {
         }
 
         camera.startPreview();
+        Log.d(TAG, "Running.");
     }
 
     public void end() {
+        Log.d(TAG, "Stop requested.");
         camera.stopPreview();
+        camera.setPreviewCallback(null);
         camera.release();
         camera = null;
         isRunning = false;
-        Log.d(TAG, "finished");
+        Log.d(TAG, "Stopped.");
     }
 
     public void setVideoCodec(MediaCodec videoCodec) {
@@ -134,6 +137,4 @@ class VideoProducer implements Camera.PreviewCallback {
         }
 
     }
-
-
 }

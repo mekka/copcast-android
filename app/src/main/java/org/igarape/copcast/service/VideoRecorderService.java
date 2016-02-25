@@ -7,9 +7,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
-import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.AsyncTask;
+import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
@@ -20,21 +20,36 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
 
+import com.github.nkzawa.socketio.client.IO;
+import com.github.nkzawa.socketio.client.Socket;
+
 import org.igarape.copcast.R;
 import org.igarape.copcast.state.IncidentFlagState;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.views.MainActivity;
+import org.igarape.util.Promise;
+import org.igarape.webrecorder.WebRecorder;
+import org.igarape.webrecorder.WebRecorderException;
+import org.json.JSONObject;
 
-import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.concurrent.locks.ReentrantLock;
 
 
 public class VideoRecorderService extends Service implements SurfaceHolder.Callback {
 
+    public class LocalBinder extends Binder {
+        public VideoRecorderService getService() {
+
+            Log.d(TAG, ">>>>>>>> SERVIÇO!");
+            return VideoRecorderService.this;
+        }
+    }
     private static final String TAG = VideoRecorderService.class.getName();
+
+    private final IBinder mBinder = new LocalBinder();
 
     private WindowManager windowManager;
     private SurfaceView surfaceView;
@@ -49,6 +64,9 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     private boolean serviceExiting = false;
     public static boolean serviceRunning = false;
     private static String videoFileName;
+    WebRecorder webRecorder;
+    private Socket mSocketClient;
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -94,6 +112,19 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         layoutParams.gravity = Gravity.LEFT | Gravity.TOP;
         windowManager.addView(surfaceView, layoutParams);
         surfaceView.getHolder().addCallback(this);
+
+        try {
+            IO.Options opts = new IO.Options();
+            opts.forceNew = true;
+            opts.query = "token=" + Globals.getAccessTokenStraight(getApplicationContext()) + "&clientType=android";
+            opts.reconnection = true;
+            mSocketClient = IO.socket(Globals.getServerUrl(getApplicationContext()), opts);
+            mSocketClient.connect();
+        } catch (URISyntaxException e) {
+            Log.e(TAG, "error connecting socket", e);
+        }
+
+
         return START_STICKY;
     }
 
@@ -199,7 +230,27 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 //            Log.d(TAG, "< prepare unlocked");
 //        }
 
+        videoFileName = FileUtils.getPath(Globals.getUserLogin(getBaseContext())) +
+                android.text.format.DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime())+".mp4";
 
+        String url = Globals.getServerUrl(this);
+
+        String username = Globals.getUserLogin(this);
+
+        webRecorder = new WebRecorder.Builder(videoFileName, 320, 240)
+                .setVideoBitRate(200000)
+                .setVideoFrameRate(10)
+                .setVideoIFrameInterval(2)
+                .setWebsocketServer(url.replace("http", "ws")+"/ws?id="+username)
+                .build();
+
+        try {
+            webRecorder.prepare(this.surfaceHolder);
+        } catch (WebRecorderException e) {
+            e.printStackTrace();
+        }
+
+        webRecorder.start();
 
         return true;
     }
@@ -229,58 +280,78 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-        if (Globals.isToggling()){
-            Globals.setToggling(false);
-
-            Intent intentAux = new Intent(this, StreamService.class);
-            intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startService(intentAux);
-        }
-        serviceRunning = false;
+//        if (Globals.isToggling()){
+//            Globals.setToggling(false);
+//
+//            Intent intentAux = new Intent(this, StreamService.class);
+//            intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//            startService(intentAux);
+//        }
+//        serviceRunning = false;
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return mBinder;
+    }
+
+    public void startStreaming() {
+        webRecorder.startBroadcasting();
+        mSocketClient.emit("readyToStream", new JSONObject());
+    }
+
+    public void stopStreaming() {
+        webRecorder.stopBroadcasting();
     }
 
     private void releaseMediaRecorder() {
 
         Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
 
-        lock.lock();
-        Log.d(TAG, "> release locked");
+//        lock.lock();
+//        Log.d(TAG, "> release locked");
 
         //clear incident flag;
 
-        try {
-            if (mediaRecorder != null) {
-//                mediaRecorder.stop();
-                mediaRecorder.reset();
-                mediaRecorder.release();
-                mediaRecorder = null;
+//        try {
+//            if (mediaRecorder != null) {
+////                mediaRecorder.stop();
+//                mediaRecorder.reset();
+//                mediaRecorder.release();
+//                mediaRecorder = null;
+//            }
+//
+//            if (camera != null) {
+////                try {
+////                    camera.stopPreview();
+////                } catch (Exception e){
+////                    Log.w(TAG, "releasing camera 1", e);
+////                }
+////                try {
+////                    camera.lock();
+//                camera.release();
+////                } catch (Exception e){
+////                    Log.w(TAG, "releasing camera 2", e);
+////                }
+//            }
+//
+//        } catch (IllegalStateException i) {
+//            Log.e(TAG,"IllegalStateException on prepareMediaEncoder", i);
+//        } finally {
+//            lock.unlock();
+//            Log.d(TAG, "< release unlocked");
+//        }
+
+        webRecorder.stop(new Promise() {
+            @Override
+            public void success(Object payload) {
             }
 
-            if (camera != null) {
-//                try {
-//                    camera.stopPreview();
-//                } catch (Exception e){
-//                    Log.w(TAG, "releasing camera 1", e);
-//                }
-//                try {
-//                    camera.lock();
-                camera.release();
-//                } catch (Exception e){
-//                    Log.w(TAG, "releasing camera 2", e);
-//                }
+            @Override
+            public void failure(Exception exception) {
+                Log.e(TAG, "Failed to stop webrecorder", exception);
             }
-
-        } catch (IllegalStateException i) {
-            Log.e(TAG,"IllegalStateException on prepareMediaEncoder", i);
-        } finally {
-            lock.unlock();
-            Log.d(TAG, "< release unlocked");
-        }
+        });
     }
 
     class MediaPrepareTask extends AsyncTask<Void, Void, Boolean> {

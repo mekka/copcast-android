@@ -31,12 +31,11 @@ class AudioConsumer extends Thread {
     @Override
     public void run() {
 
-        Log.d(TAG, "running");
-
+        Log.d(TAG, "Thread running.");
         isRunning = true;
-
         outputBuffers = audioCodec.getOutputBuffers();
-        int audioTrackIndex = -1;
+
+        Log.d(TAG, "Loop running.");
         while(isRunning) {
 
             bi = new MediaCodec.BufferInfo();
@@ -66,13 +65,13 @@ class AudioConsumer extends Thread {
                 }
             }
         }
-        Log.d(TAG, "finished");
+        Log.d(TAG, "Loop and thread finished.");
 
     }
 
     public void end() {
+        Log.d(TAG, "Stop requested.");
         isRunning = false;
-        Log.d(TAG, "end");
-
+        Log.d(TAG, "Waiting for loop to finish.");
     }
 }

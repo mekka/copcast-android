@@ -35,7 +35,7 @@ class VideoCodec {
         mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar);
         mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval);
         videoCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
-        Log.d(TAG, "created");
+        Log.d(TAG, "Created.");
     }
 
     public MediaCodec getCodec() {
@@ -43,15 +43,17 @@ class VideoCodec {
     }
 
     public void start() {
+        Log.d(TAG, "Starting.");
         isRunning = true;
         this.videoCodec.start();
-        Log.d(TAG, "started");
+        Log.d(TAG, "Running.");
     }
 
     public void end() {
-        this.videoCodec.stop();
-        this.videoCodec.release();
+        Log.d(TAG, "Stop requested.");
+        videoCodec.stop();
+        videoCodec.release();
         isRunning = false;
-        Log.d(TAG, "finished");
+        Log.d(TAG, "Finished.");
     }
 }

@@ -7,10 +7,12 @@ import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -20,6 +22,7 @@ import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.IBinder;
 import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
@@ -40,7 +43,6 @@ import org.igarape.copcast.receiver.AlarmHeartBeatReceiver;
 import org.igarape.copcast.receiver.BatteryReceiver;
 import org.igarape.copcast.service.CopcastGcmListenerService;
 import org.igarape.copcast.service.LocationService;
-import org.igarape.copcast.service.StreamService;
 import org.igarape.copcast.service.VideoRecorderService;
 import org.igarape.copcast.service.upload.UploadService;
 import org.igarape.copcast.state.IncidentFlagState;
@@ -82,6 +84,25 @@ public class MainActivity extends Activity {
     private Long first_keydown;
     private final int FLAG_TRIGGER_WAIT_TIME = 1000;
     private ProgressDialog pDialog;
+    private VideoRecorderService videoRecorderService;
+    boolean mBound = false;
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            VideoRecorderService.LocalBinder binder = (VideoRecorderService.LocalBinder) service;
+            videoRecorderService = binder.getService();
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mBound = false;
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,15 +132,17 @@ public class MainActivity extends Activity {
                 if (isChecked) {
                     HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.STREAMING);
 
-                    Intent intentAux = new Intent(MainActivity.this, VideoRecorderService.class);
-                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    stopService(intentAux);
+                    videoRecorderService.startStreaming();
+//                    Intent intentAux = new Intent(MainActivity.this, VideoRecorderService.class);
+//                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                    stopService(intentAux);
                 } else {
                     HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.RECORDING_ONLINE);
+                    videoRecorderService.stopStreaming();
 
-                    Intent intentAux = new Intent(MainActivity.this, StreamService.class);
-                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    stopService(intentAux);
+//                    Intent intentAux = new Intent(MainActivity.this, StreamService.class);
+//                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                    stopService(intentAux);
 
                 }
             }
@@ -309,6 +332,7 @@ public class MainActivity extends Activity {
                 findViewById(R.id.recBall).setVisibility(View.VISIBLE);
 
                 Intent intent = new Intent(MainActivity.this, VideoRecorderService.class);
+                bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startService(intent);
 
@@ -359,14 +383,11 @@ public class MainActivity extends Activity {
                                                      mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
 
 
-                                                     Intent intent = new Intent(MainActivity.this, StreamService.class);
+                                                     Intent intent = new Intent(MainActivity.this, VideoRecorderService.class);
                                                      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                     if (mBound)
+                                                        unbindService(mConnection);
                                                      stopService(intent);
-
-                                                     intent = new Intent(MainActivity.this, VideoRecorderService.class);
-                                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                     stopService(intent);
-
 
                                                      intent = new Intent(MainActivity.this, LocationService.class);
                                                      intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -527,13 +548,15 @@ public class MainActivity extends Activity {
         findViewById(R.id.pausedLayout).setVisibility(View.GONE);
         findViewById(R.id.resumeMissionButton).setVisibility(View.VISIBLE);
 
+        unbindService(mConnection);
         Intent intent = new Intent(this, VideoRecorderService.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         stopService(intent);
 
-        intent = new Intent(this, StreamService.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        stopService(intent);
+//
+//        intent = new Intent(this, StreamService.class);
+//        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//        stopService(intent);
 
         mStreamSwitch.setOnCheckedChangeListener(null);
         mStreamSwitch.setChecked(false);
@@ -565,6 +588,7 @@ public class MainActivity extends Activity {
         mPauseCounter.setText("");
 
         Intent intent = new Intent(MainActivity.this, VideoRecorderService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startService(intent);
 
@@ -731,8 +755,9 @@ public class MainActivity extends Activity {
     }
 
     private void killServices() {
-        stopService(new Intent(MainActivity.this, StreamService.class));
         stopService(new Intent(MainActivity.this, LocationService.class));
+        if (mBound)
+            unbindService(mConnection);
         stopService(new Intent(MainActivity.this, VideoRecorderService.class));
         stopService(new Intent(MainActivity.this, UploadService.class));
         stopAlarmReceiver();

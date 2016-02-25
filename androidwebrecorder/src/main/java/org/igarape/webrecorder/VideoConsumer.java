@@ -17,6 +17,7 @@ class VideoConsumer extends Thread {
     private MediaCodec.BufferInfo bi;
     private MediaCodec videoCodec;
     private boolean isRunning = false;
+    private boolean isStreaming = false;
     private Mp4Muxer muxerThread;
     private WebsocketThread websocketThread;
 
@@ -35,12 +36,18 @@ class VideoConsumer extends Thread {
         this.muxerThread = muxerThread;
     }
 
+    public void setStreaming(boolean isStreaming) {
+        Log.d(TAG, "streaming set to "+isStreaming);
+        this.isStreaming = isStreaming;
+    }
+
     @Override
     public void run() {
-        Log.d(TAG, "running");
+        Log.d(TAG, "Thread started.");
         isRunning = true;
         outputBuffers = videoCodec.getOutputBuffers();
 
+        Log.d(TAG, "Loop started.");
         while(isRunning) {
 
             bi = new MediaCodec.BufferInfo();
@@ -53,9 +60,11 @@ class VideoConsumer extends Thread {
                 buf.position(bi.offset);
                 buf.limit(bi.offset + bi.size);
 
-                if (websocketThread != null) {
+                if (isStreaming && websocketThread != null) {
+
                     byte[] bpack = new byte[bi.size];
                     buf.get(bpack, 0, bi.size);
+//                    Log.d(TAG, "streaming " + bpack.length+" bytes");
                     websocketThread.push(bpack);
                 }
 
@@ -64,6 +73,13 @@ class VideoConsumer extends Thread {
 
                 if ((bi.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) == 0) {
                     muxerThread.push(MediaType.VIDEO_FRAME, buf, bi);
+                } else {
+                    if (websocketThread != null) {
+                        byte[] sps = new byte[bi.size];
+                        buf.get(sps, 0, bi.size);
+                        websocketThread.setSps(sps);
+                        Log.d(TAG, "SPS Set: "+sps.length);
+                    }
                 }
                 videoCodec.releaseOutputBuffer(outputBufferId, false);
 
@@ -76,12 +92,13 @@ class VideoConsumer extends Thread {
                 }
             }
         }
-        Log.d(TAG, "finished");
+        Log.d(TAG, "Loop and thread finished.");
     }
 
     public void end() {
+        Log.d(TAG, "Stop requested.");
         isRunning = false;
-        Log.d(TAG, "end");
+        Log.d(TAG, "Waiting for loop to finish.");
     }
 
 }

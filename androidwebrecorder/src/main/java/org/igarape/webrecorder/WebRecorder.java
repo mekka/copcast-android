@@ -25,7 +25,7 @@ public class WebRecorder {
     public static final int BYTES_PER_SAMPLE = 2;
     public static final int AUDIO_BIT_RATE = 12000;
     public static final int SAMPLE_RATE = 22050;
-    public static final int BUFFER_IN_MS = 560;
+    public static final int BUFFER_IN_MS = 50;
     public static final int WINDOW_IN_MS = 2000;
     public static final int BUFFER_SIZE = BUFFER_IN_MS*BYTES_PER_SAMPLE*SAMPLE_RATE/1000;
     public static final int WINDOW_SIZE = WINDOW_IN_MS*BYTES_PER_SAMPLE*SAMPLE_RATE/1000;
@@ -55,7 +55,6 @@ public class WebRecorder {
     private int videoHeight;
     private int videoWidth;
 
-    private boolean isBroadcasting = false;
     private final ArrayBlockingQueue<byte[]> websocketPipe = new ArrayBlockingQueue(1000);
     private WebsocketThread websocketThread;
     private String websocketServerUrl;
@@ -148,8 +147,12 @@ public class WebRecorder {
         return videoFrameRate;
     }
 
-    public void setIsBroadcasting(boolean isBroadcasting) {
-        this.isBroadcasting = isBroadcasting;
+    public void stopBroadcasting() {
+        videoConsumerThread.setStreaming(false);
+    }
+
+    public void startBroadcasting() {
+        videoConsumerThread.setStreaming(true);
     }
 
 
@@ -157,7 +160,7 @@ public class WebRecorder {
         this.surfaceHolder = surfaceHolder;
 
 
-        if (isBroadcasting)
+        if (websocketServerUrl != null)
             websocketThread = new WebsocketThread(websocketServerUrl);
 
         videoCodec = new VideoCodec(videoWidth, videoHeight, videoBitRate, videoFrameRate, iFrameInterval);
@@ -174,7 +177,7 @@ public class WebRecorder {
 
         videoConsumerThread = new VideoConsumer();
         videoConsumerThread.setCodec(videoCodec.getCodec());
-        if (isBroadcasting)
+        if (websocketServerUrl != null)
             videoConsumerThread.setWebsocketThread(websocketThread);
         videoConsumerThread.setMuxer(muxerThread);
 
@@ -187,7 +190,7 @@ public class WebRecorder {
 
         isRunning = true;
 
-        if (isBroadcasting)
+        if (websocketServerUrl != null)
             websocketThread.start();
 
         videoCodec.start();

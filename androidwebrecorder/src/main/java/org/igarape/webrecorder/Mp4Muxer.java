@@ -79,7 +79,7 @@ class Mp4Muxer extends Thread {
 
     @Override
     public void run() {
-        Log.d(TAG, "running");
+        Log.d(TAG, "Thread started.");
         isRunning = true;
         MediaFrame frame;
         int trackIndex;
@@ -92,12 +92,12 @@ class Mp4Muxer extends Thread {
         }
         muxerLock.release();
 
-        Log.d(TAG, "MuxerThread now running");
+        Log.d(TAG, "Loop started.");
 
         while(isRunning) {
             try {
                 frame = queue.poll(5, TimeUnit.SECONDS);
-                Log.d(TAG, "queue size: "+queue.size());
+//                Log.d(TAG, "queue size: "+queue.size());
                 if (frame != null) {
                     trackIndex = frame.getMediaType() == MediaType.AUDIO_FRAME ? audioTrackIndex : videoTrackIndex;
                     mediaMuxer.writeSampleData(trackIndex, frame.getBuffer(), frame.getBufferInfo());
@@ -106,13 +106,15 @@ class Mp4Muxer extends Thread {
                 Log.e(TAG, "Error writing data to muxer", e);
             }
         }
+        Log.d(TAG, "Loop finished.");
         mediaMuxer.release();
         mediaMuxer = null;
-        Log.d(TAG, "muxer finished");
+        Log.d(TAG, "Thread finished.");
     }
 
     public void end() {
+        Log.d(TAG, "Stop requested.");
         isRunning = false;
-        Log.d(TAG, "end");
+        Log.d(TAG, "Waiting for loop to finish.");
     }
 }

@@ -28,7 +28,7 @@ class AudioProducer extends Thread {
                 WebRecorder.CHANNEL_FORMAT,
                 WebRecorder.AUDIO_FORMAT,
                 WebRecorder.WINDOW_SIZE);
-        Log.d(TAG, "created");
+        Log.d(TAG, "Created.");
     }
 
     public void setAudioCodec(MediaCodec audioCodec) {
@@ -37,7 +37,7 @@ class AudioProducer extends Thread {
 
     @Override
     public void run() {
-        Log.d(TAG, "running");
+        Log.d(TAG, "Thread running.");
         isRunning = true;
 
         if (audioCodec == null) {
@@ -47,6 +47,7 @@ class AudioProducer extends Thread {
 
         audioRecord.startRecording();
 
+        Log.d(TAG, "Loop running.");
         while (isRunning) {
             bytes_read = audioRecord.read(buf, 0, buf.length);
             inputBufferId = audioCodec.dequeueInputBuffer(500000);
@@ -58,13 +59,14 @@ class AudioProducer extends Thread {
                 audioCodec.queueInputBuffer(inputBufferId, 0, bytes_read, now, 0);
             }
         }
-
+        Log.d(TAG, "Loop finished.");
         audioRecord.release();
-        Log.d(TAG, "finished");
+        Log.d(TAG, "Thread finished.");
     }
 
     public void end() {
+        Log.d(TAG, "Stop requested.");
         isRunning = false;
-        Log.d(TAG, "end");
+        Log.d(TAG, "Waiting for loop to finish.");
     }
 }

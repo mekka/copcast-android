@@ -72,6 +72,7 @@ public class SigningService {
         TelephonyManager mTelephonyMgr = (TelephonyManager) ctx.getSystemService(Context.TELEPHONY_SERVICE);
         String imei = mTelephonyMgr.getDeviceId();
         String simno = mTelephonyMgr.getSimSerialNumber();
+        simno = "DEBUGVALUE_NOSIM";
         Globals.setImei(imei);
         Globals.setSimid(simno);
         ILog.d(TAG, "IMEI: "+imei);
@@ -246,20 +247,19 @@ public class SigningService {
         Log.d(TAG, "Registration started");
         String pubkey = init(ctx);
         TelephonyManager mTelephonyMgr = (TelephonyManager) ctx.getSystemService(Context.TELEPHONY_SERVICE);
-        String imsi = mTelephonyMgr.getSubscriberId();
-        String imei = mTelephonyMgr.getDeviceId();
-        String simno = mTelephonyMgr.getSimSerialNumber();
-        Globals.setImei(imei);
-        Globals.setSimid(imsi);
+//        String imsi = mTelephonyMgr.getSubscriberId();
+//        String imei = mTelephonyMgr.getDeviceId();
+//        String simno = mTelephonyMgr.getSimSerialNumber();
+//        Globals.setImei(imei);
+//        Globals.setSimid(imsi);
 
         JSONObject register = new JSONObject();
         try {
             register.put("public_key", pubkey);
             register.put("username", username);
             register.put("password", pwd);
-            register.put("imei", imei);
-            register.put("simid", simno);
-            register.put("subsid", imsi);
+            register.put("imei", Globals.getImei());
+            register.put("simid", Globals.getSimid());
         } catch (JSONException e) {
             ILog.e(TAG, "Could not write public key in JSON");
         }

@@ -34,7 +34,7 @@ class AudioCodec {
             throw new WebRecorderException(e);
         }
         audioCodec.configure(audiofmt, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
-        Log.d(TAG, "created");
+        Log.d(TAG, "Created.");
     }
 
     public MediaCodec getCodec() {
@@ -42,17 +42,18 @@ class AudioCodec {
     }
 
     public void start() {
+        Log.d(TAG, "Starting.");
         isRunning = true;
         audioCodec.start();
-        Log.d(TAG, "running");
-
+        Log.d(TAG, "Running.");
     }
 
     public void end() {
+        Log.d(TAG, "Stop requested.");
         audioCodec.stop();
         audioCodec.release();
         isRunning = false;
-        Log.d(TAG, "finished");
+        Log.d(TAG, "Finished.");
 
     }
 }
