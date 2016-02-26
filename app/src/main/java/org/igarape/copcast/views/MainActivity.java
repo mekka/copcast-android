@@ -56,6 +56,7 @@ import org.igarape.copcast.utils.HttpResponseCallback;
 import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.NetworkUtils;
+import org.igarape.util.Promise;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -354,56 +355,71 @@ public class MainActivity extends Activity {
                                                  @Override
                                                  public void onClick(View view) {
 
-                                                     if (isStreaming()) {
-                                                         HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.LOGGED);
-                                                     } else if (isRecording()){
-                                                         HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.LOGGED);
-                                                     } else if (isPaused()){
-                                                         HistoryUtils.registerHistory(getApplicationContext(), State.PAUSED, State.LOGGED);
-                                                     }
-
                                                      missionCompleted();
+                                                     final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
+                                                     progressDialog.setTitle("Storing video");
+                                                     progressDialog.show();
+                                                     videoRecorderService.stop(new Promise() {
+                                                         @Override
+                                                         public void success(Object payload) {
 
-                                                     mStarMissionButton.setVisibility(View.VISIBLE);
-                                                     mPauseCounter.setVisibility(View.GONE);
-                                                     findViewById(R.id.pauseRecordingButton).setVisibility(View.VISIBLE);
-                                                     findViewById(R.id.pausedLayout).setVisibility(View.GONE);
-                                                     findViewById(R.id.resumeMissionButton).setVisibility(View.GONE);
-                                                     findViewById(R.id.settingsLayout).setVisibility(View.GONE);
-                                                     ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.welcome));
-                                                     ((TextView) findViewById(R.id.welcomeDesc)).setText(getString(R.string.welcome_desc));
+                                                             runOnUiThread(new Runnable() {
+                                                                 @Override
+                                                                 public void run() {
 
-                                                     findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
-                                                     findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
-                                                     findViewById(R.id.streamLayout).setVisibility(View.GONE);
-                                                     findViewById(R.id.recBall).setVisibility(View.INVISIBLE);
+                                                                     if (isStreaming()) {
+                                                                         HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.LOGGED);
+                                                                     } else if (isRecording()) {
+                                                                         HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.LOGGED);
+                                                                     } else if (isPaused()) {
+                                                                         HistoryUtils.registerHistory(getApplicationContext(), State.PAUSED, State.LOGGED);
+                                                                     }
 
-                                                     mStreamSwitch.setOnCheckedChangeListener(null);
-                                                     mStreamSwitch.setChecked(false);
-                                                     mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+                                                                     mStarMissionButton.setVisibility(View.VISIBLE);
+                                                                     mPauseCounter.setVisibility(View.GONE);
+                                                                     findViewById(R.id.pauseRecordingButton).setVisibility(View.VISIBLE);
+                                                                     findViewById(R.id.pausedLayout).setVisibility(View.GONE);
+                                                                     findViewById(R.id.resumeMissionButton).setVisibility(View.GONE);
+                                                                     findViewById(R.id.settingsLayout).setVisibility(View.GONE);
+                                                                     ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.welcome));
+                                                                     ((TextView) findViewById(R.id.welcomeDesc)).setText(getString(R.string.welcome_desc));
 
+                                                                     findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
+                                                                     findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
+                                                                     findViewById(R.id.streamLayout).setVisibility(View.GONE);
+                                                                     findViewById(R.id.recBall).setVisibility(View.INVISIBLE);
 
-                                                     Intent intent = new Intent(MainActivity.this, VideoRecorderService.class);
-                                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                     if (mBound)
-                                                        unbindService(mConnection);
-                                                     stopService(intent);
+                                                                     mStreamSwitch.setOnCheckedChangeListener(null);
+                                                                     mStreamSwitch.setChecked(false);
+                                                                     mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
 
-                                                     intent = new Intent(MainActivity.this, LocationService.class);
-                                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                     stopService(intent);
+                                                                     Intent intent = new Intent(MainActivity.this, VideoRecorderService.class);
+                                                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-                                                     mCountDownTenPaused.cancel();
-                                                     mCountDownThirtyPaused.cancel();
-                                                     mPauseCounter.setText("");
+                                                                     intent = new Intent(MainActivity.this, LocationService.class);
+                                                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                                     stopService(intent);
 
-                                                     //reset upload values
-                                                     resetStatusUpload();
+                                                                     mCountDownTenPaused.cancel();
+                                                                     mCountDownThirtyPaused.cancel();
+                                                                     mPauseCounter.setText("");
 
-                                                     stopAlarmReceiver();
+                                                                     //reset upload values
+                                                                     resetStatusUpload();
+                                                                     stopAlarmReceiver();
+                                                                     vibrate(100);
+                                                                     progressDialog.dismiss();
+                                                                 }
+                                                             });
+                                                         }
+
+                                                         @Override
+                                                         public void failure(Exception exception) {
+                                                             Log.e(TAG, "webrecorder stop error", exception);
+                                                             this.success();
+                                                         }
+                                                     });
                                                  }
-
-
                                              }
 
 

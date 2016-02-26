@@ -4,10 +4,15 @@ import android.hardware.Camera;
 import android.media.AudioFormat;
 import android.media.MediaRecorder;
 import android.util.Log;
+import android.util.Pair;
 import android.view.SurfaceHolder;
 
 import org.igarape.util.Promise;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 
 /**
@@ -30,36 +35,31 @@ public class WebRecorder {
     public static final int BUFFER_SIZE = BUFFER_IN_MS*BYTES_PER_SAMPLE*SAMPLE_RATE/1000;
     public static final int WINDOW_SIZE = WINDOW_IN_MS*BYTES_PER_SAMPLE*SAMPLE_RATE/1000;
     public static final String AUDIO_MIME = "audio/mp4a-latm";
-    private final String outputPath;
 
     public static final int DEFAULT_VIDEO_BITRATE = 120000;
     public static final int DEFAULT_VIDEO_FRAMERATE = 10;
     public static final int DEFAULT_KEY_I_FRAME_INTERVAL = 10;
-    public static int videoBitRate;
-    private int videoFrameRate;
-    private int iFrameInterval;
 
     //    private AudioRecord audioRecord;
     private AudioCodec audioCodec;
     private VideoCodec videoCodec;
-
-    private Camera camera;
-
-    private boolean isRunning;
     private AudioProducer audioProducerThread;
     private VideoProducer videoProducerThread;
     private AudioConsumer audioConsumerThread;
     private VideoConsumer videoConsumerThread;
+    private Mp4Muxer muxerThread;
+    private WebsocketThread websocketThread;
 
-    private SurfaceHolder surfaceHolder;
     private int videoHeight;
     private int videoWidth;
-
-    private final ArrayBlockingQueue<byte[]> websocketPipe = new ArrayBlockingQueue(1000);
-    private WebsocketThread websocketThread;
+    public static int videoBitRate;
+    private int videoFrameRate;
+    private int iFrameInterval;
+    private final String outputPath;
     private String websocketServerUrl;
+    private Map<String, String> websocketHeaders;
 
-    private Mp4Muxer muxerThread;
+    private boolean isRunning;
 
     public static class Builder {
         private final int videoWidth;
@@ -69,6 +69,7 @@ public class WebRecorder {
         private Integer videoIFrameInterval;
         private String websocketServerUrl;
         private String outputPath;
+        private Map<String, String> websocketHeaders = new HashMap<>();
 
         public Builder(String outputPath, final int videoWidth, final int videoHeight) {
             this.videoHeight = videoHeight;
@@ -96,6 +97,11 @@ public class WebRecorder {
             return this;
         }
 
+        public Builder addHeader(String key, String value) {
+            this.websocketHeaders.put(key, value);
+            return this;
+        }
+
         public WebRecorder build() {
 
             // TODO: 2/17/16 Check file creation (permission and path)
@@ -113,7 +119,7 @@ public class WebRecorder {
                 this.videoIFrameInterval = WebRecorder.DEFAULT_KEY_I_FRAME_INTERVAL;
 
             return new WebRecorder(outputPath, videoWidth, videoHeight,
-                    videoBitrate, videoFramerate, videoIFrameInterval, websocketServerUrl);
+                    videoBitrate, videoFramerate, videoIFrameInterval, websocketServerUrl, websocketHeaders);
         }
     }
 
@@ -124,7 +130,8 @@ public class WebRecorder {
                         Integer videoBitrate,
                         Integer videoFramerate,
                         Integer iFrameInterval,
-                        String websocketServerUrl
+                        String websocketServerUrl,
+                        Map<String, String> websocketHeaders
     ) {
         this.outputPath = outputPath;
         this.videoWidth = videoWidth;
@@ -133,6 +140,7 @@ public class WebRecorder {
         this.videoFrameRate = videoFramerate;
         this.videoBitRate = videoBitrate;
         this.iFrameInterval = iFrameInterval;
+        this.websocketHeaders = websocketHeaders;
     }
 
     private long getTimestamp() {
@@ -157,11 +165,9 @@ public class WebRecorder {
 
 
     public void prepare(SurfaceHolder surfaceHolder) throws WebRecorderException {
-        this.surfaceHolder = surfaceHolder;
-
 
         if (websocketServerUrl != null)
-            websocketThread = new WebsocketThread(websocketServerUrl);
+            websocketThread = new WebsocketThread(websocketServerUrl, websocketHeaders, videoFrameRate);
 
         videoCodec = new VideoCodec(videoWidth, videoHeight, videoBitRate, videoFrameRate, iFrameInterval);
         audioCodec = new AudioCodec();
@@ -214,27 +220,29 @@ public class WebRecorder {
 
                 videoProducerThread.end();
                 audioProducerThread.end();
+                muxerThread.end();
+                audioConsumerThread.end();
+                videoConsumerThread.end();
+                if (websocketThread != null)
+                    websocketThread.end();
+
                 try {
                     audioProducerThread.join();
-
-                    audioConsumerThread.end();
                     audioConsumerThread.join();
-
-                    videoConsumerThread.end();
                     videoConsumerThread.join();
 
                     if (websocketThread != null) {
-                        websocketThread.end();
                         websocketThread.join();
                     }
 
-                    muxerThread.end();
                     muxerThread.join();
 
                     isRunning = false;
-                    promise.success();
+                    if (promise!=null)
+                        promise.success();
                 } catch (InterruptedException e) {
-                    promise.failure(e);
+                    if (promise!=null)
+                        promise.failure(e);
                 }
             }
         }.start();

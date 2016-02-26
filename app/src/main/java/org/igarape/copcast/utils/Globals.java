@@ -69,6 +69,14 @@ public class Globals {
         return accessToken != null ? "Bearer " + accessToken : null;
     }
 
+    public synchronized static String getPlainToken(Context context) {
+        if (accessToken == null) {
+            SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
+            accessToken = sharedPrefs.getString(PREF_ACCESS_TOKEN, null);
+        }
+        return accessToken != null ? accessToken : null;
+    }
+
     public synchronized static String getAccessTokenStraight(Context context) {
         if (accessToken == null) {
             SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);

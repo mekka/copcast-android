@@ -5,6 +5,7 @@ import android.util.Log;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketFactory;
 
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -22,12 +23,14 @@ class WebsocketThread extends Thread {
     byte[] packet;
     private String url;
     private byte[] sps;
-    private boolean gotEmpty = false;
+    private final int fps;
+    Map<String, String> websocketHeaders;
 
-    public WebsocketThread(String websocket_server_url) {
-
+    public WebsocketThread(String websocket_server_url, Map<String, String> websocketHeaders, final int fps) {
+        this.websocketHeaders = websocketHeaders;
         this.url = websocket_server_url;
         Log.d(TAG, "Created.");
+        this.fps = fps;
     }
 
     public void push(byte[] packet) {
@@ -37,6 +40,8 @@ class WebsocketThread extends Thread {
     @Override
     public void run() {
 
+        int counter = 0;
+
         Log.d(TAG, "Thread started.");
 
         WebSocketFactory factory = new WebSocketFactory();
@@ -44,6 +49,9 @@ class WebsocketThread extends Thread {
             Log.d(TAG, "Websocket server: "+url);
             ws = factory.createSocket(url, 5000);
             ws.addHeader("isMobile", "true");
+            for (String k : websocketHeaders.keySet()) {
+                ws.addHeader(k, websocketHeaders.get(k));
+            }
             ws.connect();
         } catch (Exception e) {
             Log.e(TAG, "Failed to create websocket connection", e);
@@ -55,7 +63,7 @@ class WebsocketThread extends Thread {
         Log.d(TAG, "Loop started.");
         while(isRunning) {
             try {
-                packet = pipe.poll(5, TimeUnit.SECONDS);
+                packet = pipe.poll(1, TimeUnit.SECONDS);
                 if (packet != null) {
 
                     lastTenSecond = System.currentTimeMillis()/10000;
@@ -67,15 +75,12 @@ class WebsocketThread extends Thread {
                         traffic += packet.length;
                     }
 
-//                    Log.d(TAG, "Read bytes:" + packet.length);
-                    if (gotEmpty) {
-                        Log.d(TAG, "Sending SPS");
+                    if (counter++ % fps == 0) {
                         ws.sendBinary(sps);
-                        gotEmpty = false;
+                        Log.d(TAG, "Sending SPS");
                     }
                     ws.sendBinary(packet);
-                } else
-                    gotEmpty = true;
+                }
             } catch (Exception e) {
                 Log.e(TAG, "error polling", e);
             }

@@ -81,7 +81,7 @@ class Mp4Muxer extends Thread {
     public void run() {
         Log.d(TAG, "Thread started.");
         isRunning = true;
-        MediaFrame frame;
+        MediaFrame frame = new MediaFrame(null, null, null);
         int trackIndex;
 
         try {
@@ -94,7 +94,7 @@ class Mp4Muxer extends Thread {
 
         Log.d(TAG, "Loop started.");
 
-        while(isRunning) {
+        while(isRunning || frame != null) { // we test last frame to make sure we consume all available frames before leaving
             try {
                 frame = queue.poll(5, TimeUnit.SECONDS);
 //                Log.d(TAG, "queue size: "+queue.size());

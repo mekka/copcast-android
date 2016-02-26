@@ -241,7 +241,8 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 .setVideoBitRate(200000)
                 .setVideoFrameRate(10)
                 .setVideoIFrameInterval(2)
-                .setWebsocketServer(url.replace("http", "ws")+"/ws?id="+username)
+                .addHeader("Authorization", Globals.getPlainToken(this))
+                .setWebsocketServer(url.replace("http", "ws") + "/ws?id=" + username)
                 .build();
 
         try {
@@ -259,7 +260,8 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     public void onDestroy() {
 
         serviceExiting = true;
-        releaseMediaRecorder();
+        if (webRecorder != null)
+            releaseMediaRecorder();
 
         if(null != windowManager && null != surfaceView){
             windowManager.removeView(surfaceView);
@@ -388,6 +390,12 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         }
         Log.d(TAG, "orientation: "+orientation);
         return orientation;
+    }
+
+    public void stop(Promise promise) {
+        webRecorder.stop(promise);
+        webRecorder = null;
+        this.stopSelf();
     }
 
 }
