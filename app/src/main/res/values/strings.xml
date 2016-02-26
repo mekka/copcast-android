@@ -122,4 +122,5 @@
     <string name="do_registration">Register</string>
     <string name="device_registration">Device Registration</string>
     <string name="registering">Registering device</string>
+    <string name="storing_video">Storing video file</string>
 </resources>

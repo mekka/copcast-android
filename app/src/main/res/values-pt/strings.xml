@@ -115,4 +115,6 @@
     <string name="do_registration">Registrar</string>
     <string name="device_registration">Registro de Dispositivo</string>
     <string name="registering">Registrando dispositivo</string>
+    <string name="storing_video">Armazenando arquivo de vídeo</string>
+
 </resources>

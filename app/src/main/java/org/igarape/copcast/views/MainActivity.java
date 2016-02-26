@@ -355,10 +355,12 @@ public class MainActivity extends Activity {
                                                  @Override
                                                  public void onClick(View view) {
 
-                                                     missionCompleted();
                                                      final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
-                                                     progressDialog.setTitle("Storing video");
+                                                     progressDialog.setTitle(getString(R.string.please_hold));
+                                                     progressDialog.setMessage(getString(R.string.storing_video));
                                                      progressDialog.show();
+                                                     vibrate(100);
+
                                                      videoRecorderService.stop(new Promise() {
                                                          @Override
                                                          public void success(Object payload) {
@@ -407,7 +409,7 @@ public class MainActivity extends Activity {
                                                                      //reset upload values
                                                                      resetStatusUpload();
                                                                      stopAlarmReceiver();
-                                                                     vibrate(100);
+                                                                     missionCompleted();
                                                                      progressDialog.dismiss();
                                                                  }
                                                              });
