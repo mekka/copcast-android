@@ -2,12 +2,17 @@ package org.igarape.webrecorder;
 
 import android.util.Log;
 
-import com.neovisionaries.ws.client.WebSocket;
-import com.neovisionaries.ws.client.WebSocketFactory;
+//import com.neovisionaries.ws.client.WebSocket;
+//import com.neovisionaries.ws.client.WebSocketFactory;
 
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
+
+import io.socket.client.IO;
+import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
 
 /**
  * Created by martelli on 2/6/16.
@@ -18,7 +23,7 @@ class WebsocketThread extends Thread {
     private int traffic = 0;
     private boolean isRunning = false;
     private static String TAG = WebsocketThread.class.getCanonicalName();
-    WebSocket ws;
+    Socket ws;
     private final ArrayBlockingQueue<byte[]> pipe = new ArrayBlockingQueue<>(100);
     byte[] packet;
     private String url;
@@ -44,15 +49,33 @@ class WebsocketThread extends Thread {
 
         Log.d(TAG, "Thread started.");
 
-        WebSocketFactory factory = new WebSocketFactory();
         try {
             Log.d(TAG, "Websocket server: "+url);
-            ws = factory.createSocket(url, 5000);
-            ws.addHeader("isMobile", "true");
+//            ws = factory.createSocket(url, 5000);
+            String query = "";
             for (String k : websocketHeaders.keySet()) {
-                ws.addHeader(k, websocketHeaders.get(k));
+                if (query.length() > 0)
+                    query += "&";
+                query += k+"="+websocketHeaders.get(k);
+            }
+            Log.d(TAG, "Websocket query: "+query);
+
+            try {
+                IO.Options opts = new IO.Options();
+                opts.forceNew = true;
+                opts.query = query;
+                opts.reconnection = true;
+                ws = IO.socket(url, opts);
+            } catch (URISyntaxException e) {
+                Log.e(TAG, "error connecting socket", e);
             }
             ws.connect();
+            ws.on("startStreaming", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    Log.d(TAG, "STREAM WANTED");
+                }
+            });
         } catch (Exception e) {
             Log.e(TAG, "Failed to create websocket connection", e);
         }
@@ -76,15 +99,17 @@ class WebsocketThread extends Thread {
                     }
 
                     if (counter++ % fps == 0) {
-                        ws.sendBinary(sps);
+                        ws.emit("frame", sps);
                         Log.d(TAG, "Sending SPS");
                     }
-                    ws.sendBinary(packet);
+
+                    ws.emit("frame", packet);
                 }
             } catch (Exception e) {
                 Log.e(TAG, "error polling", e);
             }
         }
+        ws.disconnect();
         Log.d(TAG, "Loop and thread finished.");
     }
 
@@ -98,5 +123,12 @@ class WebsocketThread extends Thread {
         ws.disconnect();
         isRunning = false;
         Log.d(TAG, "Waiting for loop to finish.");
+    }
+
+    public void setStreaming(boolean isStreaming) {
+        if (isStreaming)
+            ws.emit("streamStarted");
+        else
+            ws.emit("streamStopped");
     }
 }

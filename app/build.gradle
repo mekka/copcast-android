@@ -67,7 +67,11 @@ dependencies {
     compile 'com.android.support:multidex:1.0.1'
     compile 'com.splunk.mint:mint:4.2'
     //mew versions can be consulted here: http://repo1.maven.org/maven2/io/pristine/libjingle/
-    compile 'com.github.nkzawa:socket.io-client:0.5.2'
+//    compile 'com.github.nkzawa:socket.io-client:0.5.2'
+    compile ('io.socket:socket.io-client:0.7.0') {
+        // excluding org.json which is provided by Android
+        exclude group: 'org.json', module: 'json'
+    }
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'commons-codec:commons-codec:1.4'
     compile project(':androidwebrecorder')

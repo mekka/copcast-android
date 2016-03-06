@@ -6,22 +6,18 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
-import android.hardware.Camera;
-import android.media.MediaRecorder;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
-
-import com.github.nkzawa.socketio.client.IO;
-import com.github.nkzawa.socketio.client.Socket;
 
 import org.igarape.copcast.R;
 import org.igarape.copcast.state.IncidentFlagState;
@@ -31,14 +27,31 @@ import org.igarape.copcast.views.MainActivity;
 import org.igarape.util.Promise;
 import org.igarape.webrecorder.WebRecorder;
 import org.igarape.webrecorder.WebRecorderException;
-import org.json.JSONObject;
 
-import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.concurrent.locks.ReentrantLock;
 
 
 public class VideoRecorderService extends Service implements SurfaceHolder.Callback {
+
+    public static String STARTED_STREAMING = "org.igarape.mycopcast.StreamStarted";
+    public static String STOPPED_STREAMING  = "org.igarape.mycopcast.StreamStopped";
+    private static final String TAG = VideoRecorderService.class.getName();
+    private final IBinder mBinder = new LocalBinder();
+    private WindowManager windowManager;
+    private SurfaceView surfaceView;
+    private boolean isRecording;
+    protected SurfaceHolder surfaceHolder;
+    public static final int MAX_DURATION_MS = 300000;
+    private int mId = 1;
+    private ReentrantLock lock = new ReentrantLock();
+    private boolean serviceExiting = false;
+    public static boolean serviceRunning = false;
+    private static String videoFileName;
+    WebRecorder webRecorder;
+    LocalBroadcastManager localBroadcastManager;
+
+
 
     public class LocalBinder extends Binder {
         public VideoRecorderService getService() {
@@ -47,26 +60,6 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             return VideoRecorderService.this;
         }
     }
-    private static final String TAG = VideoRecorderService.class.getName();
-
-    private final IBinder mBinder = new LocalBinder();
-
-    private WindowManager windowManager;
-    private SurfaceView surfaceView;
-    private Camera camera = null;
-    private MediaRecorder mediaRecorder = null;
-    private boolean isRecording;
-    protected SurfaceHolder surfaceHolder;
-    public static final int MAX_DURATION_MS = 300000;
-    public static final long MAX_SIZE_BYTES = 7500000;
-    private int mId = 1;
-    private ReentrantLock lock = new ReentrantLock();
-    private boolean serviceExiting = false;
-    public static boolean serviceRunning = false;
-    private static String videoFileName;
-    WebRecorder webRecorder;
-    private Socket mSocketClient;
-
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -113,17 +106,19 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         windowManager.addView(surfaceView, layoutParams);
         surfaceView.getHolder().addCallback(this);
 
-        try {
-            IO.Options opts = new IO.Options();
-            opts.forceNew = true;
-            opts.query = "token=" + Globals.getAccessTokenStraight(getApplicationContext()) + "&clientType=android";
-            opts.reconnection = true;
-            mSocketClient = IO.socket(Globals.getServerUrl(getApplicationContext()), opts);
-            mSocketClient.connect();
-        } catch (URISyntaxException e) {
-            Log.e(TAG, "error connecting socket", e);
-        }
+        localBroadcastManager = LocalBroadcastManager.getInstance(context);
 
+//        try {
+//            IO.Options opts = new IO.Options();
+//            opts.forceNew = true;
+//            opts.query = "token=" + Globals.getAccessTokenStraight(getApplicationContext()) + "&clientType=android";
+//            opts.reconnection = true;
+//            mSocketClient = IO.socket(Globals.getServerUrl(getApplicationContext()), opts);
+//            mSocketClient.connect();
+//        } catch (URISyntaxException e) {
+//            Log.e(TAG, "error connecting socket", e);
+//        }
+//
 
         return START_STICKY;
     }
@@ -241,8 +236,27 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 .setVideoBitRate(200000)
                 .setVideoFrameRate(10)
                 .setVideoIFrameInterval(2)
-                .addHeader("Authorization", Globals.getPlainToken(this))
-                .setWebsocketServer(url.replace("http", "ws") + "/ws?id=" + username)
+                .addHeader("token", Globals.getPlainToken(this))
+                .addHeader("user",  username)
+                .addHeader("clientType",  "android")
+                .setWebsocketServer(url)
+
+                .setStreamStartedRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.e(TAG, "runnable start");
+                        VideoRecorderService.this.sendBroadcast(VideoRecorderService.STARTED_STREAMING);
+                    }
+                })
+
+                .setStreamStoppedRunnable(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.e(TAG, "runnable stop");
+                        VideoRecorderService.this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
+                    }
+                })
+
                 .build();
 
         try {
@@ -272,8 +286,6 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         mNotificationManager.cancel(mId);
-
-
     }
 
     @Override
@@ -299,7 +311,6 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
     public void startStreaming() {
         webRecorder.startBroadcasting();
-        mSocketClient.emit("readyToStream", new JSONObject());
     }
 
     public void stopStreaming() {
@@ -395,7 +406,15 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     public void stop(Promise promise) {
         webRecorder.stop(promise);
         webRecorder = null;
+        this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
         this.stopSelf();
+    }
+
+    public void sendBroadcast(String intentType) {
+        Intent intent = new Intent(intentType);
+        LocalBroadcastManager b = LocalBroadcastManager.getInstance(getApplicationContext());
+        b.sendBroadcast(intent);
+        Log.e(TAG, "intent sent: "+intentType);
     }
 
 }

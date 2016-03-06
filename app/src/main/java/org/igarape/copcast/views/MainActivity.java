@@ -158,15 +158,24 @@ public class MainActivity extends Activity {
                     stopUploading();
                     stopAlarmReceiver();
                 } else if (intent.getAction().equals(BatteryReceiver.BATTERY_OKAY_MESSAGE)) {
+                } else if (intent.getAction().equals(VideoRecorderService.STARTED_STREAMING)) {
+                    Log.e(TAG, "EVENTOO!!");
+                    mStreamSwitch.setChecked(true);
+                } else if (intent.getAction().equals(VideoRecorderService.STOPPED_STREAMING)) {
+                    mStreamSwitch.setChecked(false);
+
                     //TODO check if it's already running. if not, start startAlarmLocationReceiver()
-                } else if (intent.getAction().equals(CopcastGcmListenerService.START_STREAMING_ACTION)) {
-                    if (isMissionStarted()) {
-                        mStreamSwitch.setChecked(true);
-                    }
-                } else if (intent.getAction().equals(CopcastGcmListenerService.STOP_STREAMING_ACTION)) {
-                    if (isMissionStarted()) {
-                        mStreamSwitch.setChecked(false);
-                    }
+//                } else if (intent.getAction().equals(CopcastGcmListenerService.START_STREAMING_ACTION)) {
+//                    if (isMissionStarted()) {
+//                        mStreamSwitch.setChecked(true);
+//                    }
+//                } else if (intent.getAction().equals(CopcastGcmListenerService.STOP_STREAMING_ACTION)) {
+//                    if (isMissionStarted()) {
+//                        mStreamSwitch.setChecked(false);
+//                    }
+
+
+
 //                } else {
 //                    findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
 //                    findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
@@ -237,6 +246,8 @@ public class MainActivity extends Activity {
         filter.addAction(CopcastGcmListenerService.STOP_STREAMING_ACTION);
         filter.addAction(BatteryReceiver.BATTERY_LOW_MESSAGE);
         filter.addAction(BatteryReceiver.BATTERY_OKAY_MESSAGE);
+        filter.addAction(VideoRecorderService.STARTED_STREAMING);
+        filter.addAction(VideoRecorderService.STOPPED_STREAMING);
         Log.d(TAG, broadcastReceiver.toString());
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, filter);
         IntentFilter filterUploadFeedback = new IntentFilter(UploadService.UPLOAD_FEEDBACK_ACTION);

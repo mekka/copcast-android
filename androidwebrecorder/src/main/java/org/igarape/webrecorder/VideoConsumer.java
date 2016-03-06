@@ -39,6 +39,7 @@ class VideoConsumer extends Thread {
     public void setStreaming(boolean isStreaming) {
         Log.d(TAG, "streaming set to "+isStreaming);
         this.isStreaming = isStreaming;
+        websocketThread.setStreaming(isStreaming);
     }
 
     @Override
