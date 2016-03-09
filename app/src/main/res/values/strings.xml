@@ -81,4 +81,5 @@
     <string name="registered_incident">Incident Registered</string>
     <string name="token_expired">Your token expired. Please log in</string>
     <string name="invalid_token">Invalid token. Please log in.</string>
+    <string name="forbidden_login">You do not have permission to use Copcast</string>
 </resources>

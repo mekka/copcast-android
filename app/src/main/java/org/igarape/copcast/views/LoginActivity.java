@@ -175,6 +175,11 @@ public class LoginActivity extends Activity {
                         showToast(R.string.unauthorized_login);
                     }
 
+                    @Override
+                    public void forbidden() {
+                        showToast(R.string.forbidden_login);
+                    }
+
                     private void showToast(final int message) {
                         runOnUiThread(new Runnable() {
                             @Override

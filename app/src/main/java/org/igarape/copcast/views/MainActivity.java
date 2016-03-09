@@ -54,7 +54,6 @@ import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.UploadManager;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.igarape.copcast.utils.FileUtils.formatMegaBytes;
@@ -139,6 +138,10 @@ public class MainActivity extends Activity {
 
             @Override
             public void noConnection() {
+
+            }
+            @Override
+            public void forbidden() {
 
             }
 
@@ -658,6 +661,9 @@ public class MainActivity extends Activity {
 
             @Override
             public void badConnection() {}
+
+            @Override
+            public void forbidden() {}
 
             @Override
             public void badRequest() {}
