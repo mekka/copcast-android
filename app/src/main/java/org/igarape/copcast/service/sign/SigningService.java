@@ -72,7 +72,6 @@ public class SigningService {
         TelephonyManager mTelephonyMgr = (TelephonyManager) ctx.getSystemService(Context.TELEPHONY_SERVICE);
         String imei = mTelephonyMgr.getDeviceId();
         String simno = mTelephonyMgr.getSimSerialNumber();
-        simno = "DEBUGVALUE_NOSIM";
         Globals.setImei(imei);
         Globals.setSimid(simno);
         ILog.d(TAG, "IMEI: "+imei);

@@ -231,20 +231,6 @@ public class WebRecorder {
         videoProducerThread.start();
         audioProducerThread.start();
 
-        new Thread() {
-            @Override
-            public void run() {
-                Log.e(TAG, "THREAD!");
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                Log.e(TAG, "timeout!");
-                WebRecorder.this.startBroadcasting();
-            }
-        }.start();
-
         Log.d(TAG, "ALL STARTED");
     }
 
