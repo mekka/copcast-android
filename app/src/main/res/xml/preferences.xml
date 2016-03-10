@@ -11,5 +11,11 @@
         android:summary="@string/pref_upload_wifi_only_desc"
         android:defaultValue="@string/REQUIRE_WIFI_UPLOAD_DEFAULT" />
 
+    <CheckBoxPreference
+        android:key="limit_streaming_time"
+        android:title="@string/limit_streaming_time"
+        android:summary="@string/stream_limit"
+        android:defaultValue="@string/LIMIT_STREAMING_TIME" />
+
 
 </PreferenceScreen>

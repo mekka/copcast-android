@@ -34,6 +34,7 @@ public class Globals {
     private static final String PROPERTY_APP_VERSION = "appVersion";
     private static final String SERVER_URL = "server_url";
     private static final String REQUIRE_WIFI_ONLY = "upload_wifi_only";
+    private static final String STREAM_LIMIT_TIME = "limit_streaming_time";
     private static String accessToken = null;
     private static String userLogin = null;
     private static String userName = null;
@@ -237,6 +238,11 @@ public class Globals {
     public static Boolean isWifiOnly(Context context){
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         return sharedPref.getBoolean(REQUIRE_WIFI_ONLY, true);
+    }
+
+    public static Boolean hasStreamTimeLimit(Context context){
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPref.getBoolean(STREAM_LIMIT_TIME, true);
     }
 
     public static String getCurrentVideoPath() {
