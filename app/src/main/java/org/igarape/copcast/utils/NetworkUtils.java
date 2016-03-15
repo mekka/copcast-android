@@ -234,6 +234,9 @@ public class NetworkUtils {
                     if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
                         callback.unauthorized();
                         return null;
+                    } else if (statusCode == HttpURLConnection.HTTP_FORBIDDEN) {
+                        callback.forbidden();
+                        return null;
                     } else if (statusCode != HttpURLConnection.HTTP_OK) {
                         callback.failure(statusCode);
                         return null;

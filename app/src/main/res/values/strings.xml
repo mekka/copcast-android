@@ -109,4 +109,8 @@
     <string name="token_expired">Your token expired. Please log in</string>
     <string name="invalid_token">Invalid token. Please log in.</string>
     <string name="loading">Loading...</string>
+    <string name="forbidden_login">You do not have permission to use Copcast</string>
+    <string name="not_supported">Talk - Feature not supported in your device</string>
+    <string name="stream_limit">Video will stream uninterrupted for 20 minutes at a time</string>
+    <string name="limit_streaming_time">Limit streaming time</string>
 </resources>

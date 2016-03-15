@@ -62,6 +62,11 @@ public class LocationUtils {
             }
 
             @Override
+            public void forbidden() {
+                FileUtils.logLocation(login, location);
+            }
+
+            @Override
             public void badConnection() {
                 FileUtils.logLocation(login, location);
             }

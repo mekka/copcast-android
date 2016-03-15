@@ -51,6 +51,12 @@ public class HistoryUtils {
                 }
 
                 @Override
+                public void forbidden() {
+                    Log.e(TAG, "history not sent successfully");
+                    FileUtils.LogHistory(userLogin, history);
+                }
+
+                @Override
                 public void noConnection() {
                     Log.e(TAG, "history not sent successfully");
                     FileUtils.LogHistory(userLogin, history);

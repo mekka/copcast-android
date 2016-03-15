@@ -55,7 +55,6 @@ import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.UploadManager;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.igarape.copcast.utils.FileUtils.formatMegaBytes;
@@ -81,7 +80,7 @@ public class MainActivity extends Activity {
     private Long first_keydown;
     private final int FLAG_TRIGGER_WAIT_TIME = 1000;
     private ProgressDialog pDialog;
-
+    private CountDownStreamTimer mCountDownStreamTimer = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -97,6 +96,8 @@ public class MainActivity extends Activity {
 
         mCountDownThirtyPaused = new CountDownPausedTimer(1800000, 1000);
         mCountDownTenPaused = new CountDownPausedTimer(600000, 1000);
+        mCountDownStreamTimer = new CountDownStreamTimer(1200000, 1200000);
+
         mStreamListener = new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -108,12 +109,17 @@ public class MainActivity extends Activity {
                     Intent intentAux = new Intent(MainActivity.this, VideoRecorderService.class);
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     stopService(intentAux);
+                    if (Globals.hasStreamTimeLimit(getApplicationContext())) {
+                        mCountDownStreamTimer.start();
+                        msgBox(R.string.stream_limit);
+                    }
                 } else {
                     HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this), null);
 
                     Intent intentAux = new Intent(MainActivity.this, StreamService.class);
                     intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     stopService(intentAux);
+                    mCountDownStreamTimer.cancel();
 
                 }
             }
@@ -141,6 +147,10 @@ public class MainActivity extends Activity {
 
             @Override
             public void noConnection() {
+
+            }
+            @Override
+            public void forbidden() {
 
             }
 
@@ -284,6 +294,8 @@ public class MainActivity extends Activity {
 
                                                      mCountDownTenPaused.cancel();
                                                      mCountDownThirtyPaused.cancel();
+                                                     mCountDownStreamTimer.cancel();
+
                                                      mPauseCounter.setText("");
 
                                                      //reset upload values
@@ -444,7 +456,7 @@ public class MainActivity extends Activity {
         mStreamSwitch.setChecked(false);
         mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
         mStreamSwitch.setEnabled(false);
-
+        mCountDownStreamTimer.cancel();
 
         mPauseCounter.setVisibility(View.VISIBLE);
         findViewById(R.id.recBall).setVisibility(View.GONE);
@@ -525,9 +537,9 @@ public class MainActivity extends Activity {
         v.vibrate(mili);
 
     }
-    private void msgBox(String text)
+    private void msgBox(int textId)
     {
-        Toast.makeText(getApplicationContext(), text, Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), textId, Toast.LENGTH_LONG).show();
     }
 
     /*
@@ -558,7 +570,7 @@ public class MainActivity extends Activity {
 
         } catch (Exception e)
         {
-            msgBox("Talk - Feature not supported in your device");
+            msgBox(R.string.not_supported);
         }
 
     }
@@ -628,6 +640,8 @@ public class MainActivity extends Activity {
         }
         Globals.clear(MainActivity.this);
         killServices();
+        mCountDownStreamTimer.cancel();
+
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         if (reason != null)
             intent.putExtra("reason", reason);
@@ -668,6 +682,9 @@ public class MainActivity extends Activity {
 
             @Override
             public void badConnection() {}
+
+            @Override
+            public void forbidden() {}
 
             @Override
             public void badRequest() {}
@@ -806,6 +823,30 @@ public class MainActivity extends Activity {
         public void onFinish() {
             mPauseCounter.setText("");
             resumeMission();
+        }
+    }
+
+    private class CountDownStreamTimer extends CountDownTimer {
+
+        /**
+         * @param millisInFuture    The number of millis in the future from the call
+         *                          to {@link #start()} until the countdown is done and {@link #onFinish()}
+         *                          is called.
+         * @param countDownInterval The interval along the way to receive
+         *                          {@link #onTick(long)} callbacks.
+         */
+        public CountDownStreamTimer(long millisInFuture, long countDownInterval) {
+            super(millisInFuture, countDownInterval);
+        }
+
+        @Override
+        public void onTick(long millisUntilFinished) {
+
+        }
+
+        @Override
+        public void onFinish() {
+            mStreamSwitch.setChecked(false);
         }
     }
 

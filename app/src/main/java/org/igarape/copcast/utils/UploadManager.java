@@ -11,7 +11,6 @@ import com.alexbbb.uploadservice.ContentType;
 import com.alexbbb.uploadservice.UploadRequest;
 import com.alexbbb.uploadservice.UploadService;
 
-import org.igarape.copcast.db.JsonDataContract;
 import org.igarape.copcast.db.JsonDataType;
 import org.igarape.copcast.views.MainActivity;
 import org.json.JSONArray;
@@ -24,7 +23,6 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -157,6 +155,11 @@ public class UploadManager {
                 }
 
                 @Override
+                public void forbidden() {
+                    Log.e(TAG, "batteries noConnection");
+                }
+
+                @Override
                 public void badConnection() {
                     Log.e(TAG, "batteries badConnection");
                 }
@@ -263,6 +266,11 @@ public class UploadManager {
                 }
 
                 @Override
+                public void forbidden() {
+                    Log.e(TAG, "locations noConnection");
+                }
+
+                @Override
                 public void badConnection() {
                     Log.e(TAG, "locations badConnection");
                 }
@@ -332,6 +340,11 @@ public class UploadManager {
                 }
 
                 @Override
+                public void forbidden() {
+                    Log.e(TAG, "histories badConnection");
+                }
+
+                @Override
                 public void badRequest() {
                     Log.e(TAG, "histories badRequest");
                 }
@@ -385,6 +398,11 @@ public class UploadManager {
 
             @Override
             public void noConnection() {
+                Log.e(TAG, "incidents noConnection");
+            }
+
+            @Override
+            public void forbidden() {
                 Log.e(TAG, "incidents noConnection");
             }
 
