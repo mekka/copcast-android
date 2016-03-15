@@ -1,19 +1,14 @@
 package org.igarape.webrecorder;
 
-import android.hardware.Camera;
 import android.media.AudioFormat;
 import android.media.MediaRecorder;
 import android.util.Log;
-import android.util.Pair;
 import android.view.SurfaceHolder;
 
 import org.igarape.util.Promise;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * Created by martelli on 2/14/16.
@@ -58,6 +53,8 @@ public class WebRecorder {
     private final String outputPath;
     private String websocketServerUrl;
     private Map<String, String> websocketHeaders;
+    private Runnable streamingStartedRunnable;
+    private Runnable streamingStoppedRunnable;
 
     private boolean isRunning;
 
@@ -70,6 +67,8 @@ public class WebRecorder {
         private String websocketServerUrl;
         private String outputPath;
         private Map<String, String> websocketHeaders = new HashMap<>();
+        private Runnable streamingStartedRunnable;
+        private Runnable streamingStoppedRunnable;
 
         public Builder(String outputPath, final int videoWidth, final int videoHeight) {
             this.videoHeight = videoHeight;
@@ -102,6 +101,16 @@ public class WebRecorder {
             return this;
         }
 
+        public Builder setStreamStartedRunnable(Runnable runnable) {
+            this.streamingStartedRunnable = runnable;
+            return this;
+        }
+
+        public Builder setStreamStoppedRunnable(Runnable runnable) {
+            this.streamingStoppedRunnable = runnable;
+            return this;
+        }
+
         public WebRecorder build() {
 
             // TODO: 2/17/16 Check file creation (permission and path)
@@ -119,7 +128,8 @@ public class WebRecorder {
                 this.videoIFrameInterval = WebRecorder.DEFAULT_KEY_I_FRAME_INTERVAL;
 
             return new WebRecorder(outputPath, videoWidth, videoHeight,
-                    videoBitrate, videoFramerate, videoIFrameInterval, websocketServerUrl, websocketHeaders);
+                    videoBitrate, videoFramerate, videoIFrameInterval, websocketServerUrl,
+                    websocketHeaders, streamingStartedRunnable, streamingStoppedRunnable);
         }
     }
 
@@ -131,7 +141,9 @@ public class WebRecorder {
                         Integer videoFramerate,
                         Integer iFrameInterval,
                         String websocketServerUrl,
-                        Map<String, String> websocketHeaders
+                        Map<String, String> websocketHeaders,
+                        Runnable streamingStartedRunnable,
+                        Runnable streamingStoppedRunnable
     ) {
         this.outputPath = outputPath;
         this.videoWidth = videoWidth;
@@ -141,6 +153,8 @@ public class WebRecorder {
         this.videoBitRate = videoBitrate;
         this.iFrameInterval = iFrameInterval;
         this.websocketHeaders = websocketHeaders;
+        this.streamingStartedRunnable = streamingStartedRunnable;
+        this.streamingStoppedRunnable = streamingStoppedRunnable;
     }
 
     private long getTimestamp() {
@@ -157,12 +171,19 @@ public class WebRecorder {
 
     public void stopBroadcasting() {
         videoConsumerThread.setStreaming(false);
+        if (this.streamingStoppedRunnable != null) {
+            Log.e(TAG, "stopping runnable");
+            this.streamingStoppedRunnable.run();
+        }
     }
 
     public void startBroadcasting() {
         videoConsumerThread.setStreaming(true);
+        if (this.streamingStartedRunnable != null) {
+            Log.e(TAG, "starting runnable");
+            this.streamingStartedRunnable.run();
+        }
     }
-
 
     public void prepare(SurfaceHolder surfaceHolder) throws WebRecorderException {
 
@@ -209,6 +230,20 @@ public class WebRecorder {
 
         videoProducerThread.start();
         audioProducerThread.start();
+
+        new Thread() {
+            @Override
+            public void run() {
+                Log.e(TAG, "THREAD!");
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                Log.e(TAG, "timeout!");
+                WebRecorder.this.startBroadcasting();
+            }
+        }.start();
 
         Log.d(TAG, "ALL STARTED");
     }
