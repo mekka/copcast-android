@@ -96,7 +96,7 @@ class Mp4Muxer extends Thread {
 
         while(isRunning || frame != null) { // we test last frame to make sure we consume all available frames before leaving
             try {
-                frame = queue.poll(5, TimeUnit.SECONDS);
+                frame = queue.poll(100, TimeUnit.MILLISECONDS);
 //                Log.d(TAG, "queue size: "+queue.size());
                 if (frame != null) {
                     trackIndex = frame.getMediaType() == MediaType.AUDIO_FRAME ? audioTrackIndex : videoTrackIndex;
