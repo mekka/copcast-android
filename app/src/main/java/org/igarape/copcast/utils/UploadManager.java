@@ -452,6 +452,11 @@ public class UploadManager {
             }
 
             @Override
+            public void forbidden() {
+                Log.e(TAG, "forbidden access" );
+            }
+
+            @Override
             public void failure(int statusCode) {
                 Log.e(TAG, "incidentsForms failure - statusCode: " + statusCode);
             }

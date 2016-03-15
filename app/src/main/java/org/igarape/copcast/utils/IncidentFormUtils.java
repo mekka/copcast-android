@@ -81,6 +81,12 @@ public class IncidentFormUtils {
             }
 
             @Override
+            public void forbidden() {
+                failedRegisterIncident(context, incidentFormJSON, "unauthorized");
+                incidentFormCallback.failure();
+            }
+
+            @Override
             public void failure(int statusCode) {
                 failedRegisterIncident(context, incidentFormJSON, "failure");
                 incidentFormCallback.failure();
