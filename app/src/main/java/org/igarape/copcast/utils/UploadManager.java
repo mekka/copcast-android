@@ -380,7 +380,7 @@ public class UploadManager {
 
         Log.d(TAG, "# of incidents: " + incidents.length());
 
-        NetworkUtils.post(context, "/incidents", incidents, new HttpResponseCallback() {
+        NetworkUtils.post(context, "/incidents/"+userLogin, incidents, new HttpResponseCallback() {
             @Override
             public void unauthorized() {
                 Log.e(TAG, "incidents unauthorized");
@@ -445,7 +445,7 @@ public class UploadManager {
 
         Log.d(TAG, "# of incidentsForms: " + incidentsForms.length());
 
-        NetworkUtils.post(context, "/incidentForms", incidentsForms, new HttpResponseCallback() {
+        NetworkUtils.post(context, "/incidentForms/"+userLogin, incidentsForms, new HttpResponseCallback() {
             @Override
             public void unauthorized() {
                 Log.e(TAG, "incidentsForms unauthorized");
