@@ -378,7 +378,7 @@ public class UploadManager {
 
         Log.d(TAG, "# of incidents: " + incidents.length());
 
-        NetworkUtils.post(context, "/incidents", incidents, new HttpResponseCallback() {
+        NetworkUtils.post(context, "/incidents/"+userLogin, incidents, new HttpResponseCallback() {
             @Override
             public void unauthorized() {
                 Log.e(TAG, "incidents unauthorized");
