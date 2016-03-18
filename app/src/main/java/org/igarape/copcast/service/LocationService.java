@@ -9,6 +9,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
@@ -20,9 +21,12 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import org.igarape.copcast.R;
+import org.igarape.copcast.utils.BatteryUtils;
 import org.igarape.copcast.utils.Globals;
+import org.igarape.copcast.utils.HeartBeatUtils;
 import org.igarape.copcast.utils.LocationUtils;
 import org.igarape.copcast.views.MainActivity;
+import org.json.JSONException;
 
 
 /**
@@ -59,9 +63,16 @@ public class LocationService extends Service implements LocationListener, Google
 
     @Override
     public void onLocationChanged(Location location) {
-        //LocationUtils.sendLocation(this, Globals.getUserLogin(getApplicationContext()), location);
         if(null != location){
-            Globals.setLastKnownLocation(location);
+            try {
+                Globals.setLastKnownLocation(location);
+                HeartBeatUtils.sendHeartBeat(getApplicationContext(), Globals.getUserLogin(getApplicationContext()),
+                        LocationUtils.buildJson(location), BatteryUtils.buildJson());
+            } catch (JSONException e) {
+                Log.e(TAG, "error parsing location.", e);
+            }
+        }else{
+            Log.d(TAG, "no location found.");
         }
     }
 

@@ -38,7 +38,6 @@ import android.widget.Toast;
 import com.alexbbb.uploadservice.UploadService;
 
 import org.igarape.copcast.R;
-import org.igarape.copcast.receiver.AlarmHeartBeatReceiver;
 import org.igarape.copcast.receiver.BatteryReceiver;
 import org.igarape.copcast.service.CopcastGcmListenerService;
 import org.igarape.copcast.service.LocationService;
@@ -237,7 +236,7 @@ public class MainActivity extends Activity {
 
                 HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this), null);
 
-                startAlarmLocationReceiver();
+                startAlarmBatteryReceiver();
             }
 
 
@@ -300,7 +299,6 @@ public class MainActivity extends Activity {
                                                      //reset upload values
                                                      resetStatusUpload();
 
-                                                     stopAlarmReceiver();
                                                  }
 
 
@@ -396,27 +394,11 @@ public class MainActivity extends Activity {
         ((TextView) findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, formatMegaBytes(getDirectorySize(getApplicationContext()))));
     }
 
-    private void stopAlarmReceiver(){
-        Intent intent = new Intent(this, AlarmHeartBeatReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, 0);
-        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        alarmManager.cancel(pendingIntent);
-    }
+    private void startAlarmBatteryReceiver() {
 
-    private void startAlarmLocationReceiver() {
-        /**
-         * AlarmManager...wakes every 15 sec.
-         */
         AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(this, AlarmHeartBeatReceiver.class);
+        Intent intent = new Intent(this, BatteryReceiver.class);
         PendingIntent pending = PendingIntent.getBroadcast(this, 0, intent,
-                PendingIntent.FLAG_CANCEL_CURRENT);
-        manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), Globals.GPS_REPEAT_TIME, pending);
-
-
-
-        intent = new Intent(this, BatteryReceiver.class);
-        pending = PendingIntent.getBroadcast(this, 0, intent,
                 PendingIntent.FLAG_CANCEL_CURRENT);
         manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), Globals.BATTERY_REPEAT_TIME, pending);
 
@@ -653,7 +635,6 @@ public class MainActivity extends Activity {
         stopService(new Intent(MainActivity.this, LocationService.class));
         stopService(new Intent(MainActivity.this, VideoRecorderService.class));
         stopService(new Intent(MainActivity.this, UploadService.class));
-        stopAlarmReceiver();
     }
 
     @Override
@@ -692,9 +673,8 @@ public class MainActivity extends Activity {
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(BatteryReceiver.BATTERY_LOW_MESSAGE)) {
                     stopUploading();
-                    stopAlarmReceiver();
                 } else if (intent.getAction().equals(BatteryReceiver.BATTERY_OKAY_MESSAGE)) {
-                    //TODO check if it's already running. if not, start startAlarmLocationReceiver()
+                    //TODO check if it's already running. if not, start startAlarmBatteryReceiver()
                 }
                 else if (intent.getAction().equals(UploadManager.UPLOAD_FAILED_ACTION)) {
                     if (uploadManager != null) {
