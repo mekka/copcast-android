@@ -1,6 +1,5 @@
 package webrtcclient;
 
-import android.opengl.EGLContext;
 import android.util.Log;
 
 import com.github.nkzawa.emitter.Emitter;
@@ -21,7 +20,6 @@ import org.webrtc.SessionDescription;
 import org.webrtc.VideoCapturer;
 import org.webrtc.VideoCapturerAndroid;
 import org.webrtc.VideoSource;
-import org.webrtc.VideoTrack;
 
 import java.net.URISyntaxException;
 import java.util.HashMap;

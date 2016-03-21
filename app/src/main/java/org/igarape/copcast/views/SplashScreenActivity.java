@@ -34,7 +34,7 @@ public class SplashScreenActivity extends Activity {
 
         Mint.initAndStartSession(SplashScreenActivity.this, "0c1e5146");
 
-        if (Globals.getAccessToken(getApplicationContext()) instanceof String){
+        if (Globals.getAccessToken(getApplicationContext()) != null){
             Intent intent = new Intent(SplashScreenActivity.this, MainActivity.class);
             startActivity(intent);
             SplashScreenActivity.this.finish();
@@ -113,7 +113,6 @@ public class SplashScreenActivity extends Activity {
 
         @Override
         protected String doInBackground(Void... arg0) {
-            String msg = null;
 
             // I have just given a sleep for this thread
             // if you want to load database, make
@@ -131,7 +130,7 @@ public class SplashScreenActivity extends Activity {
             } catch (InterruptedException e) {
                 Log.e(TAG, "error running background", e);
             }
-            return msg;
+            return null;
         }
 
         @Override

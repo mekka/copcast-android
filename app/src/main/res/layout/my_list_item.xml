@@ -15,6 +15,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:background="#00c30000"
+        android:contentDescription="play"
         android:src="@drawable/play" />
 
     <TextView
@@ -55,6 +56,7 @@
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
         android:background="#00000000"
+        android:contentDescription="Incident"
         android:src="@drawable/issue" />
 
 </LinearLayout>

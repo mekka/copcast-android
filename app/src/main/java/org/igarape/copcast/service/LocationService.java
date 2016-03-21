@@ -9,7 +9,6 @@ import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
@@ -34,9 +33,6 @@ import org.json.JSONException;
  */
 public class LocationService extends Service implements LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static final String TAG = LocationService.class.getName();
-    // A request to connect to Location Services
-    private LocationRequest mLocationRequest;
-
     private int mId = 2;
     private Handler handler;
     private GoogleApiClient mGoogleApiClient;
@@ -120,7 +116,7 @@ public class LocationService extends Service implements LocationListener, Google
 
     @Override
     public void onConnected(Bundle bundle) {
-        mLocationRequest =  new LocationRequest();
+        LocationRequest mLocationRequest = new LocationRequest();
 
         /*
          * Set the update interval

@@ -7,8 +7,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.media.CamcorderProfile;
-import android.media.CameraProfile;
-import android.media.MediaRecorder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -69,7 +67,7 @@ public class Globals {
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putString(PREF_ACCESS_TOKEN, token);
         editor.putLong(PREF_TIME_LOGIN, java.lang.System.currentTimeMillis());
-        editor.commit();
+        editor.apply();
         accessToken = token;
         if (accessToken == null) {
             setUserImage(null);
@@ -99,7 +97,7 @@ public class Globals {
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putString(PROPERTY_REG_ID, regId);
         editor.putInt(PROPERTY_APP_VERSION, appVersion);
-        editor.commit();
+        editor.apply();
     }
 
     public synchronized static String getRegistrationId(Context context) {
@@ -133,7 +131,7 @@ public class Globals {
         SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putString(PREF_USER_LOGIN, login);
-        editor.commit();
+        editor.apply();
     }
 
     public static Bitmap getUserImage() {
@@ -149,7 +147,7 @@ public class Globals {
         SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putString(USER_NAME, userName);
-        editor.commit();
+        editor.apply();
         Globals.userName = userName;
     }
 
@@ -182,7 +180,7 @@ public class Globals {
         SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putLong(DIRECTORY_SIZE, directorySize);
-        editor.commit();
+        editor.apply();
         Globals.directorySize = directorySize;
         setDirectoryUploadedSize(context, Long.valueOf(0));
     }
@@ -200,7 +198,7 @@ public class Globals {
         SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putLong(DIRECTORY_UPLOADED_SIZE, directoryUploadedSize);
-        editor.commit();
+        editor.apply();
         Globals.directoryUploadedSize = directoryUploadedSize;
     }
 

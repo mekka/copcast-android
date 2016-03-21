@@ -124,8 +124,10 @@ public class MainActivity extends Activity {
         };
 
         ActionBar ab = getActionBar(); //needs  import android.app.ActionBar;
-        ab.setTitle(Globals.getUserName(getApplicationContext()));
-        ab.setSubtitle(Globals.getUserLogin(this));
+        if (ab != null) {
+            ab.setTitle(Globals.getUserName(getApplicationContext()));
+            ab.setSubtitle(Globals.getUserLogin(this));
+        }
         FileUtils.init(getApplicationContext());
 
 
@@ -176,7 +178,10 @@ public class MainActivity extends Activity {
 
                         Bitmap bm = BitmapFactory.decodeByteArray(responseBody, 0, responseBody.length);
                         Globals.setUserImage(bm);
-                        getActionBar().setIcon(new BitmapDrawable(MainActivity.this.getResources(), bm));
+                        ActionBar actionBar = getActionBar();
+                        if (actionBar != null) {
+                            actionBar.setIcon(new BitmapDrawable(MainActivity.this.getResources(), bm));
+                        }
                     }
                 });
             }
@@ -308,7 +313,7 @@ public class MainActivity extends Activity {
         );
 
 
-        ((Button) findViewById(R.id.uploadButton)).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.uploadButton).setOnClickListener(new View.OnClickListener() {
                                                                           @Override
                                                                           public void onClick(View view) {
                                                                               if (NetworkUtils.canUpload(getApplicationContext(), getIntent())) {
@@ -328,7 +333,7 @@ public class MainActivity extends Activity {
                                                                       }
         );
 
-        ((ImageView) findViewById(R.id.uploadCancelButton)).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.uploadCancelButton).setOnClickListener(new View.OnClickListener() {
                                                                                    @Override
                                                                                    public void onClick(View view) {
                                                                                        stopUploading();
@@ -346,7 +351,7 @@ public class MainActivity extends Activity {
                                                  }
         );
 
-        ((Button) findViewById(R.id.tenMinutesButton)).
+        findViewById(R.id.tenMinutesButton).
                 setOnClickListener(new View.OnClickListener() {
                                        @Override
                                        public void onClick(View view) {
@@ -356,7 +361,7 @@ public class MainActivity extends Activity {
                                    }
                 );
 
-        ((Button) findViewById(R.id.thirtyMinutesButton)).
+        findViewById(R.id.thirtyMinutesButton).
                 setOnClickListener(new View.OnClickListener() {
                                        @Override
                                        public void onClick(View view) {
@@ -373,7 +378,7 @@ public class MainActivity extends Activity {
                                                     }
                                                 }
         );
-        ((Button) findViewById(R.id.pauseCancelButton)).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.pauseCancelButton).setOnClickListener(new View.OnClickListener() {
                                                                                @Override
                                                                                public void onClick(View view) {
                                                                                    mPauseRecordingButton.setVisibility(View.VISIBLE);

@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.media.CamcorderProfile;
-import android.opengl.GLSurfaceView;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
@@ -20,9 +19,6 @@ import org.igarape.copcast.R;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.views.MainActivity;
 import org.webrtc.MediaStream;
-import org.webrtc.RendererCommon;
-import org.webrtc.VideoRenderer;
-import org.webrtc.VideoRendererGui;
 
 import webrtcclient.PeerConnectionParameters;
 import webrtcclient.WebRtcClient;
@@ -84,7 +80,7 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
                 WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
                 PixelFormat.TRANSLUCENT
         );
-        layoutParams.gravity = Gravity.LEFT | Gravity.TOP;
+        layoutParams.gravity = Gravity.START | Gravity.TOP;
         mWindowManager.addView(mSurfaceView, layoutParams);
         mSurfaceView.getHolder().addCallback(this);
 
