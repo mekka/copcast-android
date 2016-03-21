@@ -72,8 +72,6 @@
     <string name="action_playback">Reprodução de vídeos</string>
     <string name="no_video_message">Não há vídeos disponíveis para reprodução</string>
     <string name="action_incident_form">Formulário de Incidentes</string>
-    <string name="action_playback">Reprodução de vídeos</string>
-    <string name="no_video_message">Não há vídeos disponíveis para reprodução</string>
     <string name="alert_message">A localização não foi encontrada. Verifique as configurações do seu aparelho.</string>
     <string name="send">Enviar</string>
     <string name="use_force">Uso de força?</string>

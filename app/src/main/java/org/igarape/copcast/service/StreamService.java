@@ -31,7 +31,7 @@ import org.igarape.copcast.R;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.VideoUtils;
 import org.igarape.copcast.views.MainActivity;
-import org.webrtc.MediaStream;
+import org.json.JSONObject;
 
 import java.net.URISyntaxException;
 
