@@ -5,19 +5,13 @@ import android.location.Location;
 import android.os.Environment;
 import android.util.Log;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -121,25 +115,22 @@ public class FileUtils {
     }
 
     public static File getAlbumStorageDir(String albumName, Context context) {
-
-        boolean testVisible = false;
         File file = null;
 
-        if (!testVisible) {
-            //internal storage todo: remove after test
-            file = new File(context.getFilesDir(), albumName);
-            if (!file.exists() && !file.mkdirs()) {
-                Log.e(TAG, "Directory '" + albumName + "' not created");
-            }
+        //internal storage todo: remove after test
+        file = new File(context.getFilesDir(), albumName);
+        if (!file.exists() && !file.mkdirs()) {
+            Log.e(TAG, "Directory '" + albumName + "' not created");
         }
-        else {
-            // Get the directory for the user's public pictures directory.
-            file = new File(Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_DCIM), albumName);
-            if (!file.mkdirs()) {
-                Log.e(TAG, "Directory not created");
-            }
-        }
+
+//        For testing with the external directory
+//        // Get the directory for the user's public pictures directory.
+//        file = new File(Environment.getExternalStoragePublicDirectory(
+//                Environment.DIRECTORY_DCIM), albumName);
+//        if (!file.mkdirs()) {
+//            Log.e(TAG, "Directory not created");
+//        }
+//
 
         return file;
     }

@@ -74,7 +74,7 @@ public class NetworkUtils {
         StringBuilder sb = new StringBuilder();
         String line;
         while ((line = br.readLine()) != null) {
-            sb.append(line+"\n");
+            sb.append(line).append("\n");
         }
         br.close();
         return sb.toString();
@@ -115,7 +115,9 @@ public class NetworkUtils {
 
         IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent batteryStatus = context.registerReceiver(null, iFilter);
-
+        if (batteryStatus == null){
+            return false;
+        }
         int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
 
         boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||

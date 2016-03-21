@@ -212,7 +212,6 @@ public class UploadService extends IntentService {
 
         HttpURLConnection conn = null;
         OutputStream requestStream = null;
-        InputStream responseStream = null;
 
         try {
             // get the content length of the entire HTTP/Multipart request body
@@ -261,7 +260,6 @@ public class UploadService extends IntentService {
 
         } finally {
             closeOutputStream(requestStream);
-            closeInputStream(responseStream);
             closeConnection(conn);
         }
     }

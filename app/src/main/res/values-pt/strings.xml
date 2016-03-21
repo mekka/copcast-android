@@ -8,17 +8,12 @@
     <string name="login_hint">Usuário</string>
     <string name="password_hint">Senha</string>
     <string name="unauthorized_login">Login ou senha inválido</string>
-    <string name="no_server_login"> Não foi possível contactar o servidor </string>
-    <string name="network"> Rede </string>
-    <string name="server_url"> URL do servidor </string>
     <string name="settings"> Configurações </string>
     <string name="login_required"> Login obrigatório </string>
     <string name="password_required"> Senha obrigatória </string>
     <string name="network_required"> Rede deve estar ativa </string>
     <string name="copcast_main_title"> CopCast </string>
     <string name="videos_label"> Vídeos gravados: </string>
-    <string name="current_state"> Estado atual: </string>
-    <string name="logged"> Conectado </string>
     <string name="start_streaming">Iniciar Transmissão</string>
     <string name="start_mission"> Iniciar Missão </string>
     <string name="recording_started"> Registrando... </string>
@@ -47,8 +42,6 @@
     <string name="live_stream_desc">Transmitindo para a central</string>
     <string name="uploading">Enviando</string>
     <string name="uploading_size">Enviando (%1$sMB of %2$sMB)</string>
-    <string name="notification_upload_title">Enviando dados.</string>
-    <string name="notification_upload_description">Enviando dados para o servidor ... </string>
     <string name="upload_disabled">Não é possível enviar neste momento. É necessário que o celular esteja carregando ou com bateria cheia.</string>
     <string name="upload_stopped">Envio cancelado devido a restrições de rede/bateria</string>
     <string name="under_construction"> Em Construção </string>
@@ -76,6 +69,8 @@
     <string name="pref_server_url">URL do Servidor</string>
     <string name="serverurl_disabled_logged">Não é possível alterar a URL do servidor enquanto estiver conectado.</string>
     <string name="title_activity_upload_video">UploadVideoActivity</string>
+    <string name="action_playback">Reprodução de vídeos</string>
+    <string name="no_video_message">Não há vídeos disponíveis para reprodução</string>
     <string name="action_incident_form">Formulário de Incidentes</string>
     <string name="action_playback">Reprodução de vídeos</string>
     <string name="no_video_message">Não há vídeos disponíveis para reprodução</string>
@@ -104,6 +99,6 @@
     <string name="loading">Carregando...</string>
     <string name="forbidden_login">Você não possui permissão para acessar o Copcast</string>
     <string name="not_supported">Fala - Funcionalidade não suportada pelo seu celular</string>
-    <string name="stream_limit">Video transmitirá por 20 minutos sem interrupções</string>
+    <string name="stream_limit">Vídeo transmitirá por 20 minutos sem interrupções</string>
     <string name="limit_streaming_time">Limitar tempo de transmissão</string>
 </resources>

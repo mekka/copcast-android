@@ -42,7 +42,6 @@ public class LoginActivity extends Activity {
     EditText txtId;
     EditText txtPwd;
     ProgressDialog pDialog;
-    private Button btnLoginOk;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +50,7 @@ public class LoginActivity extends Activity {
 
         txtId = (EditText) findViewById(R.id.txtLoginUser);
         txtPwd = (EditText) findViewById(R.id.txtLoginPassword);
-        btnLoginOk = (Button) findViewById(R.id.btn_login_ok);
+        Button btnLoginOk = (Button) findViewById(R.id.btn_login_ok);
         /**
          * Appears a hack
          * On login_activity I added
@@ -245,14 +244,14 @@ public class LoginActivity extends Activity {
     private boolean hasErrors() {
         final String login = txtId.getText().toString();
         final String password = txtPwd.getText().toString();
-        if (null == login || login.isEmpty()) {
+        if (login.isEmpty()) {
             Log.d(TAG, "login required");
             Toast toast = Toast.makeText(getApplicationContext(), R.string.login_required, Toast.LENGTH_LONG);
             toast.setGravity(Gravity.TOP, 0, 100);
             toast.show();
             return true;
         }
-        if (null == password || password.isEmpty()) {
+        if (password.isEmpty()) {
             Log.d(TAG, "password required");
             Toast toast = Toast.makeText(getApplicationContext(), R.string.password_required, Toast.LENGTH_LONG);
             toast.setGravity(Gravity.TOP, 0, 100);
