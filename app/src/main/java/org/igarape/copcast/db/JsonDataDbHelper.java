@@ -3,6 +3,7 @@ package org.igarape.copcast.db;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
 import org.igarape.copcast.db.JsonDataContract.JsonDataEntry;
 /**
  * Created by martelli on 10/20/15.

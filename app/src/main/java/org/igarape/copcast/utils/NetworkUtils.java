@@ -77,7 +77,7 @@ public class NetworkUtils {
         StringBuilder sb = new StringBuilder();
         String line;
         while ((line = br.readLine()) != null) {
-            sb.append(line+"\n");
+            sb.append(line).append("\n");
         }
         br.close();
         return sb.toString();
@@ -122,7 +122,9 @@ public class NetworkUtils {
         IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         // intent is immediately returned, as ACTION_BATTERY_CHANGED is sticky.
         Intent batteryStatus = context.registerReceiver(null, iFilter);
-
+        if (batteryStatus == null){
+            return false;
+        }
         int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
 
         boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
@@ -261,6 +263,9 @@ public class NetworkUtils {
                     statusCode = urlConnection.getResponseCode();
                     if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
                         callback.unauthorized();
+                        return null;
+                    } else if (statusCode == HttpURLConnection.HTTP_FORBIDDEN) {
+                        callback.forbidden();
                         return null;
                     } else if (statusCode != HttpURLConnection.HTTP_OK && statusCode != HttpURLConnection.HTTP_CREATED) {
                         callback.failure(statusCode);

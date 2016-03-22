@@ -11,5 +11,4 @@
         android:summary="@string/pref_upload_wifi_only_desc"
         android:defaultValue="@string/REQUIRE_WIFI_UPLOAD_DEFAULT" />
 
-
 </PreferenceScreen>

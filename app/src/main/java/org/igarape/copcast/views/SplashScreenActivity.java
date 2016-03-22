@@ -134,7 +134,6 @@ public class SplashScreenActivity extends Activity {
 
         @Override
         protected String doInBackground(Void... arg0) {
-            String msg = null;
 
             // I have just given a sleep for this thread
             // if you want to load database, make
@@ -152,7 +151,7 @@ public class SplashScreenActivity extends Activity {
             } catch (InterruptedException e) {
                 Log.e(TAG, "error running background", e);
             }
-            return msg;
+            return null;
         }
 
         @Override

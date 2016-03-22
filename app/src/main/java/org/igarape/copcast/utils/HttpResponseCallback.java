@@ -3,14 +3,14 @@ package org.igarape.copcast.utils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.InputStream;
-
 /**
  * Created by bruno on 11/5/14.
  */
 public abstract class HttpResponseCallback {
 
     public abstract void unauthorized();
+
+    public abstract void forbidden();
 
     public abstract void failure(int statusCode);
 

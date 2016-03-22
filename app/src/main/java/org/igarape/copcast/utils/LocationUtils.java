@@ -38,6 +38,56 @@ public class LocationUtils {
             MILLISECONDS_PER_SECOND * FAST_CEILING_IN_SECONDS;
     public static final float SMALLEST_DISPLACEMENT = 0;
 
+    public static void sendLocation(Context context, final String login, final Location location) {
+        HttpResponseCallback callback = new HttpResponseCallback() {
+            @Override
+            public void failure(int statusCode) {
+                FileUtils.logLocation(login, location);
+            }
+
+            @Override
+            public void unauthorized() {
+                FileUtils.logLocation(login, location);
+            }
+
+            @Override
+            public void noConnection() {
+                FileUtils.logLocation(login, location);
+            }
+
+            @Override
+            public void forbidden() {
+                FileUtils.logLocation(login, location);
+            }
+
+            @Override
+            public void badConnection() {
+                FileUtils.logLocation(login, location);
+            }
+
+            @Override
+            public void badRequest() {
+                FileUtils.logLocation(login, location);
+            }
+
+            @Override
+            public void badResponse() {
+                FileUtils.logLocation(login, location);
+            }
+
+            @Override
+            public void success(JSONObject response) {
+                Log.i(TAG, "location sent successfully");
+            }
+        };
+
+        try {
+            NetworkUtils.post(context, "/locations", buildJson(location), callback);
+        } catch (JSONException e) {
+            Log.e(TAG, "json error", e);
+        }
+    }
+
     public static JSONObject buildJson(Location location) throws JSONException {
         TimeZone tz = TimeZone.getTimeZone("UTC");
         DateFormat df = new SimpleDateFormat(FileUtils.DATE_FORMAT);

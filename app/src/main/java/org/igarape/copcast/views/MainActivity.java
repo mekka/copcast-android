@@ -39,7 +39,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
-import org.igarape.copcast.receiver.AlarmHeartBeatReceiver;
 import org.igarape.copcast.receiver.BatteryReceiver;
 import org.igarape.copcast.service.CopcastGcmListenerService;
 import org.igarape.copcast.service.LocationService;
@@ -134,16 +133,10 @@ public class MainActivity extends Activity {
                     HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.STREAMING);
 
                     videoRecorderService.startStreaming();
-//                    Intent intentAux = new Intent(MainActivity.this, VideoRecorderService.class);
-//                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                    stopService(intentAux);
                 } else {
                     HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.RECORDING_ONLINE);
                     videoRecorderService.stopStreaming();
 
-//                    Intent intentAux = new Intent(MainActivity.this, StreamService.class);
-//                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                    stopService(intentAux);
 
                 }
             }
@@ -163,34 +156,6 @@ public class MainActivity extends Activity {
                     mStreamSwitch.setChecked(true);
                 } else if (intent.getAction().equals(VideoRecorderService.STOPPED_STREAMING)) {
                     mStreamSwitch.setChecked(false);
-
-                    //TODO check if it's already running. if not, start startAlarmLocationReceiver()
-//                } else if (intent.getAction().equals(CopcastGcmListenerService.START_STREAMING_ACTION)) {
-//                    if (isMissionStarted()) {
-//                        mStreamSwitch.setChecked(true);
-//                    }
-//                } else if (intent.getAction().equals(CopcastGcmListenerService.STOP_STREAMING_ACTION)) {
-//                    if (isMissionStarted()) {
-//                        mStreamSwitch.setChecked(false);
-//                    }
-
-
-
-//                } else {
-//                    findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
-//                    findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
-//                    findViewById(R.id.streamLayout).setVisibility(View.GONE);
-//
-//                    Intent intentAux = new Intent(MainActivity.this, UploadService.class);
-//                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                    stopService(intentAux);
-//                    uploadManager = null;
-//                    if (intent.getAction().equals(UploadManager.CANCEL_UPLOAD_ACTION)) {
-//                        Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
-//                    } else {
-//                        Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
-//                    }
-//                    resetStatusUpload();
                 }
             }
         };
@@ -270,6 +235,10 @@ public class MainActivity extends Activity {
             public void noConnection() {
 
             }
+            @Override
+            public void forbidden() {
+
+            }
 
             @Override
             public void badConnection() {
@@ -295,7 +264,10 @@ public class MainActivity extends Activity {
 
                         Bitmap bm = BitmapFactory.decodeByteArray(responseBody, 0, responseBody.length);
                         Globals.setUserImage(bm);
-                        getActionBar().setIcon(new BitmapDrawable(MainActivity.this.getResources(), bm));
+                        ActionBar actionBar = getActionBar();
+                        if (actionBar != null) {
+                            actionBar.setIcon(new BitmapDrawable(MainActivity.this.getResources(), bm));
+                        }
                     }
                 });
             }
@@ -354,7 +326,7 @@ public class MainActivity extends Activity {
 
                 HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.RECORDING_ONLINE);
 
-                startAlarmLocationReceiver();
+                startAlarmBatteryReceiver();
             }
 
 
@@ -365,6 +337,7 @@ public class MainActivity extends Activity {
                                              {
                                                  @Override
                                                  public void onClick(View view) {
+
 
                                                      final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
                                                      progressDialog.setTitle(getString(R.string.please_hold));
@@ -440,6 +413,7 @@ public class MainActivity extends Activity {
 
 
         findViewById(R.id.uploadButton).setOnClickListener(new View.OnClickListener() {
+
                                                                @Override
                                                                public void onClick(View view) {
                                                                    NetworkState networkState = NetworkUtils.checkUploadState(getApplicationContext());
@@ -514,6 +488,7 @@ public class MainActivity extends Activity {
                                                 }
         );
         findViewById(R.id.pauseCancelButton).setOnClickListener(new View.OnClickListener() {
+
                                                                     @Override
                                                                     public void onClick(View view) {
                                                                         mPauseRecordingButton.setVisibility(View.VISIBLE);
@@ -536,25 +511,11 @@ public class MainActivity extends Activity {
         displayUploadButton();
     }
 
-    private void stopAlarmReceiver(){
-        Intent intent = new Intent(this, AlarmHeartBeatReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent, 0);
-        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        alarmManager.cancel(pendingIntent);
-    }
+    private void startAlarmBatteryReceiver() {
 
-    private void startAlarmLocationReceiver() {
-        /**
-         * AlarmManager...wakes every 15 sec.
-         */
         AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(this, AlarmHeartBeatReceiver.class);
+        Intent intent = new Intent(this, BatteryReceiver.class);
         PendingIntent pending = PendingIntent.getBroadcast(this, 0, intent,
-                PendingIntent.FLAG_CANCEL_CURRENT);
-        manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), Globals.GPS_REPEAT_TIME, pending);
-
-        intent = new Intent(this, BatteryReceiver.class);
-        pending = PendingIntent.getBroadcast(this, 0, intent,
                 PendingIntent.FLAG_CANCEL_CURRENT);
         manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), Globals.BATTERY_REPEAT_TIME, pending);
 
@@ -657,9 +618,9 @@ public class MainActivity extends Activity {
         v.vibrate(mili);
 
     }
-    private void msgBox(String text)
+    private void msgBox(int textId)
     {
-        Toast.makeText(getApplicationContext(), text, Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), textId, Toast.LENGTH_LONG).show();
     }
 
     /*
@@ -690,7 +651,7 @@ public class MainActivity extends Activity {
 
         } catch (Exception e)
         {
-            msgBox("Talk - Feature not supported in your device");
+            msgBox(R.string.not_supported);
         }
 
     }
@@ -768,6 +729,7 @@ public class MainActivity extends Activity {
         }
         Globals.clear(MainActivity.this);
         killServices();
+
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         if (reason != null)
             intent.putExtra("reason", reason);
@@ -789,7 +751,6 @@ public class MainActivity extends Activity {
             unbindService(mConnection);
         stopService(new Intent(MainActivity.this, VideoRecorderService.class));
         stopService(new Intent(MainActivity.this, UploadService.class));
-        stopAlarmReceiver();
     }
 
     @Override
@@ -811,15 +772,58 @@ public class MainActivity extends Activity {
             }
 
             @Override
-            public void badConnection() {
-            }
+            public void forbidden() {}
+
+            @Override
+            public void badRequest() {}
 
             @Override
             public void badRequest() {
             }
 
             @Override
-            public void badResponse() {
+            public void onReceive(Context context, Intent intent) {
+                if (intent.getAction().equals(BatteryReceiver.BATTERY_LOW_MESSAGE)) {
+                    stopUploading();
+                } else if (intent.getAction().equals(BatteryReceiver.BATTERY_OKAY_MESSAGE)) {
+                    //TODO check if it's already running. if not, start startAlarmBatteryReceiver()
+                }
+                else if (intent.getAction().equals(UploadManager.UPLOAD_FAILED_ACTION)) {
+                    if (uploadManager != null) {
+                        uploadManager.runUpload();
+                    }
+                }
+                else if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
+                    updateProgressBar();
+                    if (uploadManager != null) {
+                        uploadManager.deleteVideoFile();
+                        uploadManager.runUpload();
+                    }
+
+                } else if (intent.getAction().equals(CopcastGcmListenerService.START_STREAMING_ACTION)) {
+                    if (isMissionStarted()) {
+                        mStreamSwitch.setChecked(true);
+                    }
+                } else if (intent.getAction().equals(CopcastGcmListenerService.STOP_STREAMING_ACTION)) {
+                    if (isMissionStarted()) {
+                        mStreamSwitch.setChecked(false);
+                    }
+                } else {
+                    findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
+                    findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
+                    findViewById(R.id.streamLayout).setVisibility(View.GONE);
+
+                    Intent intentAux = new Intent(MainActivity.this, UploadService.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    stopService(intentAux);
+                    uploadManager = null;
+                    if (intent.getAction().equals(UploadManager.CANCEL_UPLOAD_ACTION)) {
+                        Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
+                    }
+                    resetStatusUpload();
+                }
             }
         });
     }
@@ -889,6 +893,30 @@ public class MainActivity extends Activity {
         public void onFinish() {
             mPauseCounter.setText("");
             resumeMission();
+        }
+    }
+
+    private class CountDownStreamTimer extends CountDownTimer {
+
+        /**
+         * @param millisInFuture    The number of millis in the future from the call
+         *                          to {@link #start()} until the countdown is done and {@link #onFinish()}
+         *                          is called.
+         * @param countDownInterval The interval along the way to receive
+         *                          {@link #onTick(long)} callbacks.
+         */
+        public CountDownStreamTimer(long millisInFuture, long countDownInterval) {
+            super(millisInFuture, countDownInterval);
+        }
+
+        @Override
+        public void onTick(long millisUntilFinished) {
+
+        }
+
+        @Override
+        public void onFinish() {
+            mStreamSwitch.setChecked(false);
         }
     }
 

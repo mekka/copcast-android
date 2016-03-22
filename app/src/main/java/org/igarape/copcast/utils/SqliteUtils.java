@@ -8,13 +8,9 @@ import android.util.Log;
 
 import org.igarape.copcast.db.JsonDataContract.JsonDataEntry;
 import org.igarape.copcast.db.JsonDataDbHelper;
-import org.igarape.copcast.db.JsonDataType;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SqliteUtils {
     private static final String TAG = SqliteUtils.class.getName();
@@ -85,6 +81,7 @@ public class SqliteUtils {
             ret.put(obj);
         }
 
+        c.close();
         db.close();
 
         return ret;
