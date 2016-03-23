@@ -68,11 +68,17 @@ public class SigningService {
     }
 
 
-    public static void loadIDs(Context ctx) {
+    public static void loadIDs(Context ctx) throws SigningServiceException {
         TelephonyManager mTelephonyMgr = (TelephonyManager) ctx.getSystemService(Context.TELEPHONY_SERVICE);
         String imei = mTelephonyMgr.getDeviceId();
         String simno = mTelephonyMgr.getSimSerialNumber();
-        simno = "DEBUGVALUE_NOSIM";
+
+        if (imei == null)
+            throw new SigningServiceException("IMEI is NULL");
+
+        if (simno == null)
+            throw new SigningServiceException("SimID is NULL");
+
         Globals.setImei(imei);
         Globals.setSimid(simno);
         ILog.d(TAG, "IMEI: "+imei);
@@ -125,7 +131,7 @@ public class SigningService {
             ILog.d(TAG, "older Android versions.");
 
             try {
-                g = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore");
+                g = KeyPairGenerator.getInstance("RSA", "AndroidKeyStore");
             } catch (Exception e) {
                 String errmsg = "Error getting AndroidKeyStore instance";
                 ILog.e(TAG, errmsg, e);
@@ -273,6 +279,12 @@ public class SigningService {
             public void unauthorized() {
                 Log.d(TAG, "unauthorized");
                 promise.failure(ctx.getString(R.string.unauthorized_login));
+            }
+
+            @Override
+            public void forbidden() {
+                Log.d(TAG, "forbidden");
+                promise.failure(ctx.getString(R.string.server_error));
             }
 
             @Override

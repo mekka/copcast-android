@@ -54,7 +54,13 @@ public class SplashScreenActivity extends Activity {
             SplashScreenActivity.this.finish();
         }
 
-        SigningService.loadIDs(this);
+        try {
+            SigningService.loadIDs(this);
+        } catch (SigningServiceException e) {
+            ILog.e(TAG, "Failed to load device ID parameters", e);
+            Toast.makeText(this, getString(R.string.error_keystore), Toast.LENGTH_LONG);
+            SplashScreenActivity.this.finish();
+        }
 
 
         if (Globals.getAccessToken(getApplicationContext()) instanceof String){
