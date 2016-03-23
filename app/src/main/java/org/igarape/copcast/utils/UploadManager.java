@@ -463,7 +463,7 @@ public class UploadManager {
 
             @Override
             public void success(JSONObject response) {
-                SqliteUtils.clearByType(context, userLogin, JsonDataType.TYPE_INCIDENT_FLAG);
+                SqliteUtils.clearByType(context, userLogin, JsonDataType.TYPE_INCIDENT_FORM);
             }
 
             @Override
