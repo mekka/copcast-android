@@ -52,6 +52,8 @@ import org.igarape.copcast.utils.HttpResponseCallback;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.UploadManager;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.concurrent.TimeUnit;
 
@@ -324,7 +326,15 @@ public class MainActivity extends Activity {
                                                                                   uploadManager = new UploadManager(getApplicationContext());
                                                                                   uploadManager.runUpload();
 
-                                                                                  HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this), null);
+                                                                                  JSONObject extra = new JSONObject();
+                                                                                  try {
+                                                                                      extra.put("connection", NetworkUtils.getConnectionType(getApplicationContext()));
+                                                                                      extra.put("data", Globals.getDirectorySize(getApplicationContext()));
+                                                                                  } catch (JSONException e) {
+                                                                                      Log.e(TAG, "error building json", e);
+                                                                                  }
+
+                                                                                  HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this), extra.toString());
                                                                                   updateProgressBar();
                                                                               } else {
                                                                                   Toast.makeText(getApplicationContext(), getString(R.string.upload_disabled), Toast.LENGTH_LONG).show();
