@@ -713,59 +713,23 @@ public class MainActivity extends Activity {
             }
 
             @Override
-            public void forbidden() {}
+            public void badConnection() {
+
+            }
 
             @Override
-            public void badRequest() {}
+            public void forbidden() {
+            }
+
+            @Override
+            public void badResponse() {
+
+            }
 
             @Override
             public void badRequest() {
             }
 
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if (intent.getAction().equals(BatteryReceiver.BATTERY_LOW_MESSAGE)) {
-                    stopUploading();
-                } else if (intent.getAction().equals(BatteryReceiver.BATTERY_OKAY_MESSAGE)) {
-                    //TODO check if it's already running. if not, start startAlarmBatteryReceiver()
-                }
-                else if (intent.getAction().equals(UploadManager.UPLOAD_FAILED_ACTION)) {
-                    if (uploadManager != null) {
-                        uploadManager.runUpload();
-                    }
-                }
-                else if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
-                    updateProgressBar();
-                    if (uploadManager != null) {
-                        uploadManager.deleteVideoFile();
-                        uploadManager.runUpload();
-                    }
-
-                } else if (intent.getAction().equals(CopcastGcmListenerService.START_STREAMING_ACTION)) {
-                    if (isMissionStarted()) {
-                        mStreamSwitch.setChecked(true);
-                    }
-                } else if (intent.getAction().equals(CopcastGcmListenerService.STOP_STREAMING_ACTION)) {
-                    if (isMissionStarted()) {
-                        mStreamSwitch.setChecked(false);
-                    }
-                } else {
-                    findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
-                    findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
-                    findViewById(R.id.streamLayout).setVisibility(View.GONE);
-
-                    Intent intentAux = new Intent(MainActivity.this, UploadService.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    stopService(intentAux);
-                    uploadManager = null;
-                    if (intent.getAction().equals(UploadManager.CANCEL_UPLOAD_ACTION)) {
-                        Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
-                    }
-                    resetStatusUpload();
-                }
-            }
         });
     }
 
