@@ -67,6 +67,8 @@ import static org.igarape.copcast.utils.Globals.getDirectorySize;
 public class MainActivity extends Activity {
 
     private static final String TAG = MainActivity.class.getName();
+    private static int MINUTES_30 = 1800000;
+    private static int MINUTES_10 = 600000;
     private BroadcastReceiver broadcastReceiver;
     private BroadcastReceiver uploadFeedbackReceiver;
     private Button mStarMissionButton;
@@ -121,8 +123,8 @@ public class MainActivity extends Activity {
         mResumeMissionButton = (Button) findViewById(R.id.resumeMissionButton);
         mPauseCounter = (TextView) findViewById(R.id.pauseCounter);
 
-        mCountDownThirtyPaused = new CountDownPausedTimer(1800000, 1000);
-        mCountDownTenPaused = new CountDownPausedTimer(600000, 1000);
+        mCountDownThirtyPaused = new CountDownPausedTimer(MINUTES_30, 1000);
+        mCountDownTenPaused = new CountDownPausedTimer(MINUTES_10, 1000);
 
         mStreamListener = new CompoundButton.OnCheckedChangeListener() {
             @Override
