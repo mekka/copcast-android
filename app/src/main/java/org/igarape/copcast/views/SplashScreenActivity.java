@@ -37,6 +37,7 @@ public class SplashScreenActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        //splunk initialization
         Mint.initAndStartSession(SplashScreenActivity.this, "0c1e5146");
 
         // verify if we already have the signing mechanism initialized.
@@ -69,6 +70,7 @@ public class SplashScreenActivity extends Activity {
             SplashScreenActivity.this.finish();
             return;
         }
+
         setContentView(R.layout.activity_splash_screen);
 
         View decorView = getWindow().getDecorView();
@@ -85,12 +87,6 @@ public class SplashScreenActivity extends Activity {
             Globals.setAccessToken(this, null);
             new BackgroundSplashTask().execute();
         }
-    }
-
-    private void queryBatteryStatus(){
-        IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        Intent batteryStatus = context.registerReceiver(null, iFilter);
-        BatteryUtils.updateValues(batteryStatus);
     }
 
     private boolean checkPlayServices() {
@@ -149,14 +145,8 @@ public class SplashScreenActivity extends Activity {
 
             // do not worry about this Thread.sleep
             // this is an async task, it will not disrupt the UI
-            queryBatteryStatus();
             FileUtils.init(getApplicationContext());
             Globals.setDirectorySize(getApplicationContext(), FileUtils.getDirectorySize());
-            try {
-                Thread.sleep(SPLASH_SHOW_TIME);
-            } catch (InterruptedException e) {
-                Log.e(TAG, "error running background", e);
-            }
             return null;
         }
 
