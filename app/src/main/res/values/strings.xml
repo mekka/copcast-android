@@ -116,4 +116,5 @@
     <string name="storing_video">Storing video file</string>
     <string name="forbidden_login">You do not have permission to use Copcast</string>
     <string name="not_supported">Talk - Feature not supported in your device</string>
+    <string name="internal_error">Internal application error</string>
 </resources>

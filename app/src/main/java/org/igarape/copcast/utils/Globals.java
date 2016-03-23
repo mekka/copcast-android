@@ -12,6 +12,8 @@ import android.util.Log;
 
 import org.igarape.copcast.state.IncidentFlagState;
 
+import java.util.UUID;
+
 /**
  * Created by fcavalcanti on 28/10/2014.
  */
@@ -47,7 +49,7 @@ public class Globals {
     private static Bitmap userImage = null;
     private static Long directorySize;
     private static Long directoryUploadedSize;
-    private static Boolean toggling = false;
+    private static Boolean livestreamToggle = false;
     private static Location lastKnownLocation = null;
     private static int rotation;
     private static IncidentFlagState incidentFlag = IncidentFlagState.NOT_FLAGGED;
@@ -55,6 +57,8 @@ public class Globals {
     public static int appCamcoderProfile = CamcorderProfile.QUALITY_QVGA;
     private static String imei;
     private static String simid;
+    private static UUID sessionId;
+    private static StateManager stateManager;
 
 
     public synchronized static String getAccessToken(Context context) {
@@ -235,7 +239,7 @@ public class Globals {
         userLogin = null;
         userName = null;
         userImage = null;
-        toggling = false;
+        livestreamToggle = false;
         serverIpAddress = null;
         streamingPort = 1935;
         streamingUser = null;
@@ -316,12 +320,12 @@ public class Globals {
         }
         return streamingPath;
     }
-    public static void setToggling(boolean value) {
-        toggling = value;
+    public static void setLivestreamToggle(boolean value) {
+        livestreamToggle = value;
     }
 
-    public static Boolean isToggling(){
-        return toggling;
+    public static Boolean getLivestreamToggle(){
+        return livestreamToggle;
     }
     public static void setRotation(int rotation) {
         Globals.rotation = rotation;
@@ -371,5 +375,21 @@ public class Globals {
 
     public static void setImei(String imei) {
         Globals.imei = imei;
+    }
+
+    public static void sessionInit() {
+        sessionId = UUID.randomUUID();
+    }
+
+    public static UUID getSessionID() {
+        return sessionId;
+    }
+
+    public static void initStateManager(Context context) {
+        stateManager = new StateManager(context);
+    }
+
+    public static StateManager getStateManager() {
+        return stateManager;
     }
 }

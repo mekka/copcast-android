@@ -91,19 +91,11 @@ public class RegistrationActivity extends Activity {
                             } catch (SigningServiceException e) {
                                 ILog.e(TAG, "Error removing key (" + reason + ")");
                             }
-                            RegistrationActivity.this.runOnUiThread(new Runnable() {
-                                public void run() {
-                                    OkDialog.display(getFragmentManager(), reason);
-                                }
-                            });
+                            OkDialog.display(RegistrationActivity.this, null, reason);
                         }
                     });
                 } catch (SigningServiceException e) {
-                    RegistrationActivity.this.runOnUiThread(new Runnable() {
-                        public void run() {
-                            OkDialog.display(getFragmentManager(), getString(R.string.error_keystore));
-                        }
-                    });
+                    OkDialog.display(RegistrationActivity.this, null, getString(R.string.error_keystore));
                 }
                 return null;
             }

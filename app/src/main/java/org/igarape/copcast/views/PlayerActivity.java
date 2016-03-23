@@ -245,7 +245,7 @@ public class PlayerActivity extends Activity {
                 adap.notifyDataSetChanged();
 
                 VideoEntry chapter = adap.getItem(arg2);
-                HistoryUtils.registerHistory(getApplicationContext(), State.SEEN_VIDEO, State.SEEN_VIDEO, chapter.video);
+                HistoryUtils.registerHistoryEvent(getApplicationContext(), State.SEEN_VIDEO, chapter.video);
                 videoView.setVideoPath(chapter.path);
                 videoView.start();
                 videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {

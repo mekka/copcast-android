@@ -15,9 +15,6 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -39,8 +36,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
+import org.igarape.copcast.exceptions.StateTransitionException;
 import org.igarape.copcast.receiver.BatteryReceiver;
-import org.igarape.copcast.service.CopcastGcmListenerService;
 import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.service.VideoRecorderService;
 import org.igarape.copcast.service.upload.UploadService;
@@ -50,17 +47,17 @@ import org.igarape.copcast.state.State;
 import org.igarape.copcast.state.UploadServiceEvent;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.utils.HistoryUtils;
 import org.igarape.copcast.utils.HttpResponseCallback;
 import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.NetworkUtils;
+import org.igarape.copcast.utils.OkDialog;
+import org.igarape.copcast.utils.StateManager;
 import org.igarape.util.Promise;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import static org.igarape.copcast.utils.FileUtils.formatMegaBytes;
 import static org.igarape.copcast.utils.Globals.getDirectorySize;
-
 
 public class MainActivity extends Activity {
 
@@ -69,7 +66,7 @@ public class MainActivity extends Activity {
     private static int MINUTES_10 = 600000;
     private BroadcastReceiver broadcastReceiver;
     private BroadcastReceiver uploadFeedbackReceiver;
-    private Button mStarMissionButton;
+    private Button mStartMissionButton;
     private Button mEndMissionButton;
     private Button mPauseRecordingButton;
     private Button mResumeMissionButton;
@@ -113,7 +110,7 @@ public class MainActivity extends Activity {
         FileUtils.init(getApplicationContext());
 
         mStreamSwitch = (Switch) findViewById(R.id.streamSwitch);
-        mStarMissionButton = (Button) findViewById(R.id.startMissionButton);
+        mStartMissionButton = (Button) findViewById(R.id.startMissionButton);
         mEndMissionButton = (Button) findViewById(R.id.endMissionButton);
         mPauseRecordingButton = (Button) findViewById(R.id.pauseRecordingButton);
         mResumeMissionButton = (Button) findViewById(R.id.resumeMissionButton);
@@ -125,14 +122,13 @@ public class MainActivity extends Activity {
         mStreamListener = new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Globals.setToggling(true);
+                Globals.setLivestreamToggle(true);
                 //When toogling, the stopped service will start the other one
                 if (isChecked) {
-                    HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.STREAMING);
-
+                    StateManager.setStateOrDie(MainActivity.this, State.STREAMING);
                     videoRecorderService.startStreaming();
                 } else {
-                    HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.RECORDING_ONLINE);
+                    StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
                     videoRecorderService.stopStreaming();
 
 
@@ -164,7 +160,7 @@ public class MainActivity extends Activity {
                     if (intent.getExtras() != null && intent.getExtras().get("event")!=null) {
                         UploadServiceEvent use = (UploadServiceEvent) intent.getExtras().get("event");
 
-                        if (!use.getRunning())
+                        if (!use.isRunning())
                             resetStatusUpload();
                         else
                             displayUploadBar();
@@ -177,7 +173,7 @@ public class MainActivity extends Activity {
                                 ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes((long) prog), formatMegaBytes((long)p.getMax())));
                                 break;
                             case STARTED:
-                                HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING);
+                                StateManager.setStateOrDie(MainActivity.this, State.UPLOADING);
                                 break;
                             case ABORTED_NO_NETWORK:
                                 Toast.makeText(getApplicationContext(), getString(R.string.network_state_no_network), Toast.LENGTH_LONG).show();
@@ -217,10 +213,10 @@ public class MainActivity extends Activity {
 
         resetStatusUpload();
 
-        mStarMissionButton.setOnClickListener(new View.OnClickListener() {
+        mStartMissionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (isUploading()) {
+                if (Globals.getStateManager().isState(State.UPLOADING)) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
                     builder.setMessage(R.string.stop_uploading)
@@ -244,7 +240,7 @@ public class MainActivity extends Activity {
             }
 
             private void startMission() {
-                mStarMissionButton.setVisibility(View.GONE);
+                mStartMissionButton.setVisibility(View.GONE);
 
                 vibrate(200);
                 talk("mission_started");
@@ -266,12 +262,10 @@ public class MainActivity extends Activity {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startService(intent);
 
-                HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.RECORDING_ONLINE);
-
                 startAlarmBatteryReceiver();
+
+                StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
             }
-
-
         });
 
         mEndMissionButton.setOnClickListener(new View.OnClickListener()
@@ -279,7 +273,6 @@ public class MainActivity extends Activity {
                                              {
                                                  @Override
                                                  public void onClick(View view) {
-
 
                                                      final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
                                                      progressDialog.setTitle(getString(R.string.please_hold));
@@ -295,15 +288,9 @@ public class MainActivity extends Activity {
                                                                  @Override
                                                                  public void run() {
 
-                                                                     if (isStreaming()) {
-                                                                         HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.LOGGED);
-                                                                     } else if (isRecording()) {
-                                                                         HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.LOGGED);
-                                                                     } else if (isPaused()) {
-                                                                         HistoryUtils.registerHistory(getApplicationContext(), State.PAUSED, State.LOGGED);
-                                                                     }
+                                                                     StateManager.setStateOrDie(MainActivity.this, State.IDLE);
 
-                                                                     mStarMissionButton.setVisibility(View.VISIBLE);
+                                                                     mStartMissionButton.setVisibility(View.VISIBLE);
                                                                      mPauseCounter.setVisibility(View.GONE);
                                                                      findViewById(R.id.pauseRecordingButton).setVisibility(View.VISIBLE);
                                                                      findViewById(R.id.pausedLayout).setVisibility(View.GONE);
@@ -336,6 +323,7 @@ public class MainActivity extends Activity {
                                                                      resetStatusUpload();
                                                                      missionCompleted();
                                                                      progressDialog.dismiss();
+//                                                                     MainActivity.this.appState = IDLE;
                                                                  }
                                                              });
                                                          }
@@ -361,6 +349,7 @@ public class MainActivity extends Activity {
                                                                    if (networkState == NetworkState.NETWORK_OK) {
                                                                        resetStatusUpload(); // prevent ghost information from appearing
                                                                        UploadService.doUpload(getApplicationContext());
+                                                                       StateManager.setStateOrDie(MainActivity.this, State.UPLOADING);
                                                                    } else {
                                                                        int msgid = -1;
                                                                        switch (networkState) {
@@ -449,6 +438,7 @@ public class MainActivity extends Activity {
 
         ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes(0L), formatMegaBytes(getDirectorySize(getApplicationContext()))));
         ((TextView) findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, formatMegaBytes(getDirectorySize(getApplicationContext()))));
+        //reset widgets to display amount and upload button
         displayUploadButton();
     }
 
@@ -470,24 +460,14 @@ public class MainActivity extends Activity {
     }
 
     private void startPausedCountdown() {
-        if (isStreaming()) {
-            HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.PAUSED);
-        } else {
-            HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.PAUSED);
-        }
-
-        findViewById(R.id.pausedLayout).setVisibility(View.GONE);
-        findViewById(R.id.resumeMissionButton).setVisibility(View.VISIBLE);
+        StateManager.setStateOrDie(MainActivity.this, State.PAUSED);
 
         unbindService(mConnection);
         Intent intent = new Intent(this, VideoRecorderService.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         stopService(intent);
 
-//
-//        intent = new Intent(this, StreamService.class);
-//        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//        stopService(intent);
+        findViewById(R.id.pausedLayout).setVisibility(View.GONE);
+        findViewById(R.id.resumeMissionButton).setVisibility(View.VISIBLE);
 
         mStreamSwitch.setOnCheckedChangeListener(null);
         mStreamSwitch.setChecked(false);
@@ -500,11 +480,9 @@ public class MainActivity extends Activity {
         ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.pause_title));
     }
 
-    private boolean isStreaming() {
-        return mStreamSwitch.isChecked();
-    }
     private void resumeMission() {
-        HistoryUtils.registerHistory(getApplicationContext(), State.PAUSED, State.RECORDING_ONLINE);
+
+        StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
 
         mStreamSwitch.setEnabled(true);
         mResumeMissionButton.setVisibility(View.GONE);
@@ -538,16 +516,7 @@ public class MainActivity extends Activity {
     private void stopUploading() {
         findViewById(R.id.uploadCancelButton).setVisibility(View.INVISIBLE);
         UploadService.stop(getApplicationContext());
-
-        HistoryUtils.registerHistory(getApplicationContext(), State.UPLOADING, State.LOGGED);
-    }
-
-    private boolean isUploading() {
-        return findViewById(R.id.uploadingLayout).getVisibility() == View.VISIBLE;
-    }
-
-    private boolean isMissionStarted() {
-        return findViewById(R.id.startMissionButton).getVisibility() != View.VISIBLE;
+        StateManager.setStateOrDie(MainActivity.this, State.IDLE);
     }
 
     /*
@@ -617,7 +586,7 @@ public class MainActivity extends Activity {
 
         MenuItem item_playback = menu.findItem(R.id.action_playback);
         if (item_playback != null)
-            item_playback.setVisible (BuildConfig.HAS_VIDEO_PLAYBACK);
+            item_playback.setVisible(BuildConfig.HAS_VIDEO_PLAYBACK);
 
         return true;
     }
@@ -658,16 +627,8 @@ public class MainActivity extends Activity {
     }
 
     private void logout(String reason) {
-        //TODO needs current state?
-        if (isStreaming()) {
-            HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.NOT_LOGGED);
-        } else if (isRecording()){
-            HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.NOT_LOGGED);
-        } else if (isPaused()){
-            HistoryUtils.registerHistory(getApplicationContext(), State.PAUSED, State.NOT_LOGGED);
-        } else {
-            HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.NOT_LOGGED);
-        }
+
+        StateManager.setStateOrDie(MainActivity.this, State.LOGGED_OFF);
         Globals.clear(MainActivity.this);
         killServices();
 
@@ -676,14 +637,6 @@ public class MainActivity extends Activity {
             intent.putExtra("reason", reason);
         startActivity(intent);
         MainActivity.this.finish();
-    }
-
-    private boolean isPaused() {
-        return mResumeMissionButton.getVisibility() == View.VISIBLE;
-    }
-
-    private boolean isRecording() {
-        return !mStreamSwitch.isChecked() && mPauseRecordingButton.getVisibility() == View.VISIBLE;
     }
 
     private void killServices() {
@@ -849,7 +802,7 @@ public class MainActivity extends Activity {
                                 mResumeMissionButton.performClick();
                             } else {
                                 Log.d(TAG, "starting mission by forced incident");
-                                mStarMissionButton.performClick();
+                                mStartMissionButton.performClick();
                             }
                         } else {
                             Globals.setIncidentFlag(IncidentFlagState.FLAGGED);

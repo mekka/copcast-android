@@ -19,10 +19,12 @@ import com.splunk.mint.Mint;
 import org.igarape.copcast.R;
 import org.igarape.copcast.service.sign.SigningService;
 import org.igarape.copcast.service.sign.SigningServiceException;
+import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.BatteryUtils;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.ILog;
+import org.igarape.copcast.utils.StateManager;
 
 import java.security.KeyStore;
 
@@ -66,6 +68,7 @@ public class SplashScreenActivity extends Activity {
 
         if (Globals.getAccessToken(getApplicationContext()) instanceof String){
             Intent intent = new Intent(SplashScreenActivity.this, MainActivity.class);
+            StateManager.setStateOrDie(this, State.IDLE);
             startActivity(intent);
             SplashScreenActivity.this.finish();
             return;

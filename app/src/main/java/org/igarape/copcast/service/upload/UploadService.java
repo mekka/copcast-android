@@ -264,7 +264,7 @@ public class UploadService extends Service {
         Intent intent = new Intent(UPLOAD_FEEDBACK_ACTION);
         intent.putExtra("event", event);
 
-        if (event.getRunning() && uploadedBytes != null) {
+        if (event.isRunning() && uploadedBytes != null) {
             if (uploadedBytes.length>=1)
                 intent.putExtra("uploadedBytes", uploadedBytes[0]);
             if (uploadedBytes.length==2)

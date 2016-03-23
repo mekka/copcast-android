@@ -116,4 +116,5 @@
     <string name="storing_video">Armazenando arquivo de vídeo</string>
     <string name="forbidden_login">Você não possui permissão para acessar o Copcast</string>
     <string name="not_supported">Fala - Funcionalidade não suportada pelo seu celular</string>
+    <string name="internal_error">Erro interno de aplicação</string>
 </resources>
