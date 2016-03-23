@@ -56,10 +56,8 @@ import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.util.Promise;
-
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import static org.igarape.copcast.utils.FileUtils.formatMegaBytes;
 import static org.igarape.copcast.utils.Globals.getDirectorySize;
 
@@ -149,7 +147,6 @@ public class MainActivity extends Activity {
                 ILog.d(TAG, "received generic");
                 if (intent.getAction().equals(BatteryReceiver.BATTERY_LOW_MESSAGE)) {
                     stopUploading();
-                    stopAlarmReceiver();
                 } else if (intent.getAction().equals(BatteryReceiver.BATTERY_OKAY_MESSAGE)) {
                 } else if (intent.getAction().equals(VideoRecorderService.STARTED_STREAMING)) {
                     Log.e(TAG, "EVENTOO!!");
@@ -206,72 +203,17 @@ public class MainActivity extends Activity {
             }
         };
 
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(CopcastGcmListenerService.START_STREAMING_ACTION);
-        filter.addAction(CopcastGcmListenerService.STOP_STREAMING_ACTION);
-        filter.addAction(BatteryReceiver.BATTERY_LOW_MESSAGE);
-        filter.addAction(BatteryReceiver.BATTERY_OKAY_MESSAGE);
-        filter.addAction(VideoRecorderService.STARTED_STREAMING);
-        filter.addAction(VideoRecorderService.STOPPED_STREAMING);
-        Log.d(TAG, broadcastReceiver.toString());
-        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, filter);
+        //generic broadcast filter (battery and videoservice statuses)
+        IntentFilter broadcastFilter = new IntentFilter();
+        broadcastFilter.addAction(BatteryReceiver.BATTERY_LOW_MESSAGE);
+        broadcastFilter.addAction(BatteryReceiver.BATTERY_OKAY_MESSAGE);
+        broadcastFilter.addAction(VideoRecorderService.STARTED_STREAMING);
+        broadcastFilter.addAction(VideoRecorderService.STOPPED_STREAMING);
+        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, broadcastFilter);
+
+        //upload specific broadcast filter
         IntentFilter filterUploadFeedback = new IntentFilter(UploadService.UPLOAD_FEEDBACK_ACTION);
-        Log.d(TAG, uploadFeedbackReceiver.toString());
         LocalBroadcastManager.getInstance(this).registerReceiver(uploadFeedbackReceiver, filterUploadFeedback);
-
-
-        NetworkUtils.get(getApplicationContext(), "/pictures/icon/show", NetworkUtils.Response.BYTEARRAY, new HttpResponseCallback() {
-            @Override
-            public void unauthorized() {
-
-            }
-
-            @Override
-            public void failure(int statusCode) {
-
-            }
-
-            @Override
-            public void noConnection() {
-
-            }
-            @Override
-            public void forbidden() {
-
-            }
-
-            @Override
-            public void badConnection() {
-
-            }
-
-            @Override
-            public void badRequest() {
-
-            }
-
-            @Override
-            public void badResponse() {
-
-            }
-
-            @Override
-            public void success(byte[] response) {
-                final byte[] responseBody = response;
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        Bitmap bm = BitmapFactory.decodeByteArray(responseBody, 0, responseBody.length);
-                        Globals.setUserImage(bm);
-                        ActionBar actionBar = getActionBar();
-                        if (actionBar != null) {
-                            actionBar.setIcon(new BitmapDrawable(MainActivity.this.getResources(), bm));
-                        }
-                    }
-                });
-            }
-        });
 
         resetStatusUpload();
 
