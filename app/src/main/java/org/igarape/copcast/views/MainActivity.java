@@ -82,27 +82,25 @@ public class MainActivity extends Activity {
     private CompoundButton.OnCheckedChangeListener mStreamListener;
 
     private MediaPlayer mySongclick;
-    //private UploadManager uploadManager;
     private Long first_keydown;
     private final int FLAG_TRIGGER_WAIT_TIME = 1000;
     private ProgressDialog pDialog;
     private VideoRecorderService videoRecorderService;
-    boolean mBound = false;
+    boolean videoServiceBound = false;
 
     private ServiceConnection mConnection = new ServiceConnection() {
 
         @Override
         public void onServiceConnected(ComponentName className,
                                        IBinder service) {
-            // We've bound to LocalService, cast the IBinder and get LocalService instance
             VideoRecorderService.LocalBinder binder = (VideoRecorderService.LocalBinder) service;
             videoRecorderService = binder.getService();
-            mBound = true;
+            videoServiceBound = true;
         }
 
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
-            mBound = false;
+            videoServiceBound = false;
         }
     };
 
@@ -111,7 +109,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ActionBar ab = getActionBar(); //needs  import android.app.ActionBar;
+        ActionBar ab = getActionBar();
         ab.setTitle(Globals.getUserName(getApplicationContext()));
         ab.setSubtitle(Globals.getUserLogin(this));
         FileUtils.init(getApplicationContext());
@@ -394,7 +392,6 @@ public class MainActivity extends Activity {
 
                                                                      //reset upload values
                                                                      resetStatusUpload();
-                                                                     stopAlarmReceiver();
                                                                      missionCompleted();
                                                                      progressDialog.dismiss();
                                                                  }
@@ -749,7 +746,7 @@ public class MainActivity extends Activity {
 
     private void killServices() {
         stopService(new Intent(MainActivity.this, LocationService.class));
-        if (mBound)
+        if (videoServiceBound)
             unbindService(mConnection);
         stopService(new Intent(MainActivity.this, VideoRecorderService.class));
         stopService(new Intent(MainActivity.this, UploadService.class));
