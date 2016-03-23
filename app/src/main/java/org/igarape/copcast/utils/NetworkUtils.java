@@ -299,6 +299,19 @@ public class NetworkUtils {
         return null;
     }
 
+    public static String getConnectionType(Context context) {
+        ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+
+        if (networkInfo == null || !networkInfo.isConnectedOrConnecting()) {
+            return null;
+        } else if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI){
+            return "wifi";
+        } else {
+            return "mobile";
+        }
+    }
+
 
     enum Method {
         POST, DELETE, GET;
