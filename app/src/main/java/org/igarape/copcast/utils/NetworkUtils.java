@@ -10,6 +10,7 @@ import android.os.BatteryManager;
 import android.os.Build;
 
 import org.apache.http.NameValuePair;
+import org.igarape.copcast.exceptions.HttpPostException;
 import org.igarape.copcast.service.sign.SigningService;
 import org.igarape.copcast.service.sign.SigningServiceException;
 import org.igarape.copcast.state.NetworkState;
@@ -77,29 +78,29 @@ public class NetworkUtils {
         StringBuilder sb = new StringBuilder();
         String line;
         while ((line = br.readLine()) != null) {
-            sb.append(line+"\n");
+            sb.append(line).append("\n");
         }
         br.close();
         return sb.toString();
     }
 
-    public static void get(Context context, String url, HttpResponseCallback callback) {
+    public static void get(Context context, String url, Promise callback) {
         get(context, url, Response.JSON, callback);
     }
 
-    public static void get(Context context, String url, Response type, HttpResponseCallback callback) {
+    public static void get(Context context, String url, Response type, org.igarape.util.Promise callback) {
         executeRequest(Method.GET, context, null, null, url, type, callback);
     }
 
 
-    public static void post(Context context, String url, List<NameValuePair> params, HttpResponseCallback callback) {
+    public static void post(Context context, String url, List<NameValuePair> params, Promise callback) {
         executeRequest(Method.POST, context, params, null, url, Response.JSON, callback);
     }
 
-    public static void post(Context context, String url, Object jsonObject, HttpResponseCallback callback) {
+    public static void post(Context context, String url, Object jsonObject, Promise callback) {
         post(context, null, url, jsonObject, callback);
     }
-    public static void post(Context context, String server, String url, Object jsonObject, HttpResponseCallback callback) {
+    public static void post(Context context, String server, String url, Object jsonObject, Promise callback) {
         executeRequest(server, Method.POST, context, null, jsonObject, url, Response.JSON, callback);
     }
 
@@ -122,7 +123,10 @@ public class NetworkUtils {
         IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         // intent is immediately returned, as ACTION_BATTERY_CHANGED is sticky.
         Intent batteryStatus = context.registerReceiver(null, iFilter);
-
+        if (batteryStatus == null){
+            // in the case we don't receive any info, treat as worst case.
+            return NetworkState.NOT_CHARGING;
+        }
         int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
 
         boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
@@ -137,7 +141,7 @@ public class NetworkUtils {
         return NetworkState.NETWORK_OK;
     }
 
-    public static void post(final Context context, boolean async, final String url, final List<NameValuePair> params, final File file, final HttpResponseCallback callback) {
+    public static void post(final Context context, boolean async, final String url, final List<NameValuePair> params, final File file, final Promise callback) {
         if (async) {
             new AsyncTask<Void, Void, Void>() {
 
@@ -154,7 +158,7 @@ public class NetworkUtils {
         }
     }
 
-    private static void postMultipart(Context context,  String url,  List<NameValuePair> params,  File file,  HttpResponseCallback callback) {
+    private static void postMultipart(Context context,  String url,  List<NameValuePair> params,  File file,  Promise callback) {
         try {
             MultipartUtility request = new MultipartUtility(Globals.getServerUrl(context) + url, "UTF-8", Globals.getAccessToken(context));
             String token = Globals.getAccessToken(context);
@@ -174,19 +178,19 @@ public class NetworkUtils {
         }
     }
 
-    public static void delete(final Context context, final String url, final HttpResponseCallback callback) {
+    public static void delete(final Context context, final String url, final Promise callback) {
         executeRequest(Method.DELETE, context, null, null, url, Response.JSON, callback);
     }
 
-    private static Void executeRequest(final Method method, final Context context, final List<NameValuePair> params, final Object jsonObject, final String url, final Response type, final HttpResponseCallback callback) {
-        return executeRequest(null, method, context, params, jsonObject, url, type, callback);
+    private static void executeRequest(final Method method, final Context context, final List<NameValuePair> params, final Object jsonObject, final String url, final Response type, final Promise callback) {
+        executeRequest(null, method, context, params, jsonObject, url, type, callback);
     }
 
-    private static Void executeRequest(final String serverUri, final Method method, final Context context, final List<NameValuePair> params, final Object jsonObject, final String url, final Response type, final HttpResponseCallback callback) {
+    private static void executeRequest(final String serverUri, final Method method, final Context context, final List<NameValuePair> params, final Object jsonObject, final String url, final Response type, final Promise callback) {
         if (!hasConnection(context)) {
             if (callback != null) {
-                callback.noConnection();
-                return null;
+                callback.failure(HttpPostException.NO_CONNECTION.asException());
+                return;
             }
         }
 
@@ -231,7 +235,6 @@ public class NetworkUtils {
 
 
                     if (params != null) {
-                        ILog.d("log1-app", "p1");
                         os = urlConnection.getOutputStream();
                         writer = new BufferedWriter(
                                 new OutputStreamWriter(os, "UTF-8"));
@@ -256,14 +259,17 @@ public class NetworkUtils {
                     }
                     // handle issues
 
-
                     urlConnection.connect();
                     statusCode = urlConnection.getResponseCode();
                     if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                        callback.unauthorized();
+                        callback.failure(HttpPostException.UNAUTHORIZED.asException());
+                        return null;
+                    } else if (statusCode == HttpURLConnection.HTTP_FORBIDDEN) {
+                        callback.failure(HttpPostException.FORBIDDEN.asException());
                         return null;
                     } else if (statusCode != HttpURLConnection.HTTP_OK && statusCode != HttpURLConnection.HTTP_CREATED) {
-                        callback.failure(statusCode);
+//                        callback.failure(statusCode);
+                        callback.failure(HttpPostException.UNKNOWN.asException());
                         return null;
                     }
 

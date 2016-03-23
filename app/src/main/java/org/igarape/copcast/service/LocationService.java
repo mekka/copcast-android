@@ -20,9 +20,12 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import org.igarape.copcast.R;
+import org.igarape.copcast.utils.BatteryUtils;
 import org.igarape.copcast.utils.Globals;
+import org.igarape.copcast.utils.HeartBeatUtils;
 import org.igarape.copcast.utils.LocationUtils;
 import org.igarape.copcast.views.MainActivity;
+import org.json.JSONException;
 
 
 /**
@@ -30,9 +33,6 @@ import org.igarape.copcast.views.MainActivity;
  */
 public class LocationService extends Service implements LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static final String TAG = LocationService.class.getName();
-    // A request to connect to Location Services
-    private LocationRequest mLocationRequest;
-
     private int mId = 2;
     private Handler handler;
     private GoogleApiClient mGoogleApiClient;
@@ -59,10 +59,15 @@ public class LocationService extends Service implements LocationListener, Google
 
     @Override
     public void onLocationChanged(Location location) {
-        //LocationUtils.sendLocation(this, Globals.getUserLogin(getApplicationContext()), location);
         if(null != location){
-            Log.d(TAG, "location set");
-            Globals.setLastKnownLocation(location);
+            try {
+                Globals.setLastKnownLocation(location);
+                HeartBeatUtils.sendHeartBeat(getApplicationContext(), LocationUtils.buildJson(location), BatteryUtils.buildJson());
+            } catch (JSONException e) {
+                Log.e(TAG, "error parsing location.", e);
+            }
+        }else{
+            Log.d(TAG, "no location found.");
         }
     }
 
@@ -110,7 +115,7 @@ public class LocationService extends Service implements LocationListener, Google
 
     @Override
     public void onConnected(Bundle bundle) {
-        mLocationRequest =  new LocationRequest();
+        LocationRequest mLocationRequest = new LocationRequest();
 
         /*
          * Set the update interval

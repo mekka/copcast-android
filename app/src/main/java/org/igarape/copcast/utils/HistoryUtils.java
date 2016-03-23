@@ -5,6 +5,7 @@ import android.util.Log;
 
 import org.igarape.copcast.db.JsonDataType;
 import org.igarape.copcast.state.State;
+import org.igarape.copcast.state.State;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -20,26 +21,56 @@ public class HistoryUtils {
 
     private static final String TAG = HistoryUtils.class.getName();
 
-    public static JSONObject buildJson(State currentState, State nextState, String extras) throws JSONException {
+    public static JSONObject buildJson(State currentState, State nextState, JSONObject extras) throws JSONException {
         JSONObject json = new JSONObject();
         TimeZone tz = TimeZone.getTimeZone("UTC");
         DateFormat df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
         df.setTimeZone(tz);
         json.put("previousState", currentState.toString());
         json.put("nextState", nextState.toString());
-        json.put("extras", extras);
+        json.put("extras", extras.toString());
         json.put("date", df.format(new Date()));
         return json;
     }
 
-    public static void registerHistory(Context context, State currentState, State nextState){
-        registerHistory(context, currentState, nextState, null);
+    public static void registerHistoryEvent(Context context, State currentState){
+        registerHistoryEvent(context, currentState, (JSONObject) null);
     }
 
-    public static void registerHistory(final Context context, State currentState, State nextState, String extras) {
+    public static void registerHistoryEvent(final Context context, State currentState, String extras) {
+        registerHistory(context, currentState, currentState, extras);
+    }
+
+    public static void registerHistoryEvent(final Context context, State currentState, JSONObject extras) {
+        registerHistory(context, currentState, currentState, extras);
+    }
+
+     public static void registerHistory(final Context context, State currentState, State newState) {
+
+        registerHistory(context, currentState, newState, (JSONObject) null);
+    }
+
+    public static void registerHistory(final Context context, State currentState, State newState, String extras) {
+
+        JSONObject obj = null;
+
+        try {
+            obj = new JSONObject(extras);
+        } catch (JSONException e) {
+            Log.e(TAG, "Error converting String to JsonObject", e);
+        }
+
+        registerHistory(context, currentState, newState, obj);
+    }
+
+
+    public static void registerHistory(final Context context, State currentState, State nextState, JSONObject extras) {
 
         try {
             final JSONObject history = buildJson(currentState, nextState, extras);
+
+            if (extras != null && extras.get("sessionId") == null)
+                extras.put("sessionId", Globals.getSessionID());
 
             final LoggedHTTPResponseCallback hlogger = new LoggedHTTPResponseCallback(context, JsonDataType.TYPE_HISTORY_DATA, history, TAG);
 

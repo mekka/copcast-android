@@ -5,6 +5,7 @@ package org.igarape.copcast.utils;
  */
 public abstract class Promise {
 
-    public abstract void success(Object payload);
-    public abstract void failure(Object error);
+    public void success(Object payload) {};
+    public void failure(Exception error) {};
+    public void failure(String error_msg) {};
 }

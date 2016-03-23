@@ -1,26 +1,19 @@
 package org.igarape.copcast.views;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.ContextThemeWrapper;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
@@ -29,19 +22,14 @@ import com.google.android.gms.iid.InstanceID;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.igarape.copcast.R;
-import org.igarape.copcast.service.sign.SigningService;
-import org.igarape.copcast.service.sign.SigningServiceException;
 import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.utils.HistoryUtils;
 import org.igarape.copcast.utils.HttpResponseCallback;
-import org.igarape.copcast.utils.ILog;
-import org.igarape.copcast.utils.Promise;
+import org.igarape.copcast.utils.StateManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,7 +42,6 @@ public class LoginActivity extends Activity {
     EditText txtId;
     EditText txtPwd;
     ProgressDialog pDialog;
-    private Button btnLoginOk;
 
 
     @Override
@@ -64,7 +51,7 @@ public class LoginActivity extends Activity {
 
         txtId = (EditText) findViewById(R.id.txtLoginUser);
         txtPwd = (EditText) findViewById(R.id.txtLoginPassword);
-        btnLoginOk = (Button) findViewById(R.id.btn_login_ok);
+        Button btnLoginOk = (Button) findViewById(R.id.btn_login_ok);
         /**
          * Appears a hack
          * On login_activity I added
@@ -190,7 +177,7 @@ public class LoginActivity extends Activity {
                         Globals.setAccessToken(getBaseContext(), token);
                         Globals.setUserLogin(getBaseContext(), loginField);
 
-                        HistoryUtils.registerHistory(getApplicationContext(), State.NOT_LOGGED, State.LOGGED);
+                        StateManager.setStateOrDie(LoginActivity.this, State.IDLE);
 
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                         startActivity(intent);
@@ -200,6 +187,11 @@ public class LoginActivity extends Activity {
                     @Override
                     public void unauthorized() {
                         showToast(R.string.unauthorized_login);
+                    }
+
+                    @Override
+                    public void forbidden() {
+                        showToast(R.string.forbidden_login);
                     }
 
                     private void showToast(final int message) {
@@ -253,14 +245,14 @@ public class LoginActivity extends Activity {
     private boolean hasErrors() {
         final String login = txtId.getText().toString();
         final String password = txtPwd.getText().toString();
-        if (null == login || login.isEmpty()) {
+        if (login.isEmpty()) {
             Log.d(TAG, "login required");
             Toast toast = Toast.makeText(getApplicationContext(), R.string.login_required, Toast.LENGTH_LONG);
             toast.setGravity(Gravity.TOP, 0, 100);
             toast.show();
             return true;
         }
-        if (null == password || password.isEmpty()) {
+        if (password.isEmpty()) {
             Log.d(TAG, "password required");
             Toast toast = Toast.makeText(getApplicationContext(), R.string.password_required, Toast.LENGTH_LONG);
             toast.setGravity(Gravity.TOP, 0, 100);

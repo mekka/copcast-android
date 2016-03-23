@@ -7,12 +7,12 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.media.CamcorderProfile;
-import android.media.CameraProfile;
-import android.media.MediaRecorder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
 import org.igarape.copcast.state.IncidentFlagState;
+
+import java.util.UUID;
 
 /**
  * Created by fcavalcanti on 28/10/2014.
@@ -31,7 +31,6 @@ public class Globals {
     public static final String DIRECTORY_UPLOADED_SIZE = "DIRECTORY_UPLOADED_SIZE";
     public static final long BATTERY_REPEAT_TIME =  1000 * 600; // 10 minutes;
     public static String TAG = Globals.class.getName();
-    public static final String SENDER_ID = "319635303076";
     private static final String PREF_ACCESS_TOKEN = "PREF_ACCESS_TOKEN";
     private static final String PREF_TIME_LOGIN = "PREF_TIME_LOGIN";
     private static final String PREF_USER_LOGIN = "PREF_USER_LOGIN";
@@ -50,15 +49,16 @@ public class Globals {
     private static Bitmap userImage = null;
     private static Long directorySize;
     private static Long directoryUploadedSize;
-    private static Boolean toggling = false;
+    private static Boolean livestreamToggle = false;
     private static Location lastKnownLocation = null;
-    public static final long GPS_REPEAT_TIME = 1000 * 15; // 15 seconds
     private static int rotation;
     private static IncidentFlagState incidentFlag = IncidentFlagState.NOT_FLAGGED;
     private static String currentVideoPath;
     public static int appCamcoderProfile = CamcorderProfile.QUALITY_QVGA;
     private static String imei;
     private static String simid;
+    private static UUID sessionId;
+    private static StateManager stateManager;
 
 
     public synchronized static String getAccessToken(Context context) {
@@ -90,7 +90,7 @@ public class Globals {
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putString(PREF_ACCESS_TOKEN, token);
         editor.putLong(PREF_TIME_LOGIN, java.lang.System.currentTimeMillis());
-        editor.commit();
+        editor.apply();
         accessToken = token;
         if (accessToken == null) {
             setUserImage(null);
@@ -120,7 +120,7 @@ public class Globals {
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putString(PROPERTY_REG_ID, regId);
         editor.putInt(PROPERTY_APP_VERSION, appVersion);
-        editor.commit();
+        editor.apply();
     }
 
     public synchronized static String getRegistrationId(Context context) {
@@ -154,7 +154,7 @@ public class Globals {
         SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putString(PREF_USER_LOGIN, login);
-        editor.commit();
+        editor.apply();
     }
 
     public static Bitmap getUserImage() {
@@ -213,7 +213,7 @@ public class Globals {
         SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putString(USER_NAME, userName);
-        editor.commit();
+        editor.apply();
         Globals.userName = userName;
     }
 
@@ -239,7 +239,7 @@ public class Globals {
         userLogin = null;
         userName = null;
         userImage = null;
-        toggling = false;
+        livestreamToggle = false;
         serverIpAddress = null;
         streamingPort = 1935;
         streamingUser = null;
@@ -251,7 +251,7 @@ public class Globals {
         SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putLong(DIRECTORY_SIZE, directorySize);
-        editor.commit();
+        editor.apply();
         Globals.directorySize = directorySize;
         setDirectoryUploadedSize(context, Long.valueOf(0));
     }
@@ -269,7 +269,7 @@ public class Globals {
         SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putLong(DIRECTORY_UPLOADED_SIZE, directoryUploadedSize);
-        editor.commit();
+        editor.apply();
         Globals.directoryUploadedSize = directoryUploadedSize;
     }
 
@@ -320,12 +320,12 @@ public class Globals {
         }
         return streamingPath;
     }
-    public static void setToggling(boolean value) {
-        toggling = value;
+    public static void setLivestreamToggle(boolean value) {
+        livestreamToggle = value;
     }
 
-    public static Boolean isToggling(){
-        return toggling;
+    public static Boolean getLivestreamToggle(){
+        return livestreamToggle;
     }
     public static void setRotation(int rotation) {
         Globals.rotation = rotation;
@@ -375,5 +375,21 @@ public class Globals {
 
     public static void setImei(String imei) {
         Globals.imei = imei;
+    }
+
+    public static void sessionInit() {
+        sessionId = UUID.randomUUID();
+    }
+
+    public static UUID getSessionID() {
+        return sessionId;
+    }
+
+    public static void initStateManager(Context context) {
+        stateManager = new StateManager(context);
+    }
+
+    public static StateManager getStateManager() {
+        return stateManager;
     }
 }

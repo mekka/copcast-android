@@ -19,10 +19,12 @@ import com.splunk.mint.Mint;
 import org.igarape.copcast.R;
 import org.igarape.copcast.service.sign.SigningService;
 import org.igarape.copcast.service.sign.SigningServiceException;
+import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.BatteryUtils;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.ILog;
+import org.igarape.copcast.utils.StateManager;
 
 import java.security.KeyStore;
 
@@ -37,6 +39,7 @@ public class SplashScreenActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        //splunk initialization
         Mint.initAndStartSession(SplashScreenActivity.this, "0c1e5146");
 
         // verify if we already have the signing mechanism initialized.
@@ -54,15 +57,23 @@ public class SplashScreenActivity extends Activity {
             SplashScreenActivity.this.finish();
         }
 
-        SigningService.loadIDs(this);
+        try {
+            SigningService.loadIDs(this);
+        } catch (SigningServiceException e) {
+            ILog.e(TAG, "Failed to load device ID parameters", e);
+            Toast.makeText(this, getString(R.string.error_keystore), Toast.LENGTH_LONG);
+            SplashScreenActivity.this.finish();
+        }
 
 
         if (Globals.getAccessToken(getApplicationContext()) instanceof String){
             Intent intent = new Intent(SplashScreenActivity.this, MainActivity.class);
+            StateManager.setStateOrDie(this, State.IDLE);
             startActivity(intent);
             SplashScreenActivity.this.finish();
             return;
         }
+
         setContentView(R.layout.activity_splash_screen);
 
         View decorView = getWindow().getDecorView();
@@ -79,12 +90,6 @@ public class SplashScreenActivity extends Activity {
             Globals.setAccessToken(this, null);
             new BackgroundSplashTask().execute();
         }
-    }
-
-    private void queryBatteryStatus(){
-        IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-        Intent batteryStatus = context.registerReceiver(null, iFilter);
-        BatteryUtils.updateValues(batteryStatus);
     }
 
     private boolean checkPlayServices() {
@@ -134,7 +139,6 @@ public class SplashScreenActivity extends Activity {
 
         @Override
         protected String doInBackground(Void... arg0) {
-            String msg = null;
 
             // I have just given a sleep for this thread
             // if you want to load database, make
@@ -144,15 +148,9 @@ public class SplashScreenActivity extends Activity {
 
             // do not worry about this Thread.sleep
             // this is an async task, it will not disrupt the UI
-            queryBatteryStatus();
             FileUtils.init(getApplicationContext());
             Globals.setDirectorySize(getApplicationContext(), FileUtils.getDirectorySize());
-            try {
-                Thread.sleep(SPLASH_SHOW_TIME);
-            } catch (InterruptedException e) {
-                Log.e(TAG, "error running background", e);
-            }
-            return msg;
+            return null;
         }
 
         @Override

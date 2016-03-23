@@ -75,7 +75,6 @@
         <service android:name=".service.StreamService" />
         <receiver android:name=".receiver.AlarmHeartBeatReceiver"/>
         <service android:name=".service.upload.UploadService" />
-
         <receiver
             android:name="com.google.android.gms.gcm.GcmReceiver"
             android:exported="true"

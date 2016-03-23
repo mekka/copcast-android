@@ -40,6 +40,11 @@ public class LoggedHTTPResponseCallback extends HttpResponseCallback {
     }
 
     @Override
+    public void forbidden() {
+        this.logFailedData("forbidden");
+    }
+
+    @Override
     public void failure(int statusCode) {
         this.logFailedData("failure");
     }

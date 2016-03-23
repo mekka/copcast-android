@@ -88,7 +88,7 @@ class VideoEntryAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        LayoutInflater inflater =  (LayoutInflater) LayoutInflater.from(parent.getContext());
+        LayoutInflater inflater =  LayoutInflater.from(parent.getContext());
         convertView = inflater.inflate(R.layout.my_list_item, parent, false);
 
         VideoEntry ve = videoEntries.get(position);
@@ -245,7 +245,7 @@ public class PlayerActivity extends Activity {
                 adap.notifyDataSetChanged();
 
                 VideoEntry chapter = adap.getItem(arg2);
-                HistoryUtils.registerHistory(getApplicationContext(), State.SEEN_VIDEO, State.SEEN_VIDEO, chapter.video);
+                HistoryUtils.registerHistoryEvent(getApplicationContext(), State.SEEN_VIDEO, chapter.video);
                 videoView.setVideoPath(chapter.path);
                 videoView.start();
                 videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {

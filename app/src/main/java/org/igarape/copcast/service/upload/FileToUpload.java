@@ -1,13 +1,13 @@
 package org.igarape.copcast.service.upload;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-
-import android.os.Parcel;
-import android.os.Parcelable;
 
 /**
  * Represents a file to upload.

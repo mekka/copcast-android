@@ -37,6 +37,11 @@ public class SqliteUploader {
                     }
 
                     @Override
+                    public void forbidden() {
+                        errlog(sqlite_key, "forbidden");
+                    }
+
+                    @Override
                     public void failure(int statusCode) {
                         errlog(sqlite_key, "failure - statusCode: " + statusCode);
                     }
