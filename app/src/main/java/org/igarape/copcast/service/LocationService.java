@@ -62,8 +62,7 @@ public class LocationService extends Service implements LocationListener, Google
         if(null != location){
             try {
                 Globals.setLastKnownLocation(location);
-                HeartBeatUtils.sendHeartBeat(getApplicationContext(), Globals.getUserLogin(getApplicationContext()),
-                        LocationUtils.buildJson(location), BatteryUtils.buildJson());
+                HeartBeatUtils.sendHeartBeat(getApplicationContext(), LocationUtils.buildJson(location), BatteryUtils.buildJson());
             } catch (JSONException e) {
                 Log.e(TAG, "error parsing location.", e);
             }

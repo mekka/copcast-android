@@ -16,6 +16,7 @@ import java.util.TimeZone;
  * Created by bruno on 11/5/14.
  */
 public class LocationUtils {
+    private static String TAG = LocationUtils.class.getCanonicalName();
     /*
   * Define a request code to send to Google Play services
   * This code is returned in Activity.onActivityResult

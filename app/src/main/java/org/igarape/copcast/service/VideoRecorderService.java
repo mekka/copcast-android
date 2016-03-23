@@ -295,7 +295,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
 //        if (Globals.isToggling()){
-//            Globals.setToggling(false);
+//            Globals.setLivestreamToggle(false);
 //
 //            Intent intentAux = new Intent(this, StreamService.class);
 //            intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

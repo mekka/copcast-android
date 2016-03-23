@@ -1,6 +1,7 @@
 package org.igarape.copcast.utils;
 
 import android.content.Context;
+import android.location.Location;
 import android.os.Environment;
 import android.util.Log;
 
@@ -113,5 +114,9 @@ public class FileUtils {
             }
         }
         return videoList;
+    }
+
+    public static void logLocation(String a, Location b) {
+
     }
 }

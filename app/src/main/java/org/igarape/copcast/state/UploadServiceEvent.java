@@ -17,7 +17,7 @@ public enum UploadServiceEvent {
         this.running = running;
     }
 
-    public boolean getRunning() {
+    public boolean isRunning() {
         return running;
     }
 }

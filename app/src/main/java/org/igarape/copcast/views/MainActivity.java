@@ -572,6 +572,7 @@ public class MainActivity extends Activity {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(uploadFeedbackReceiver);
         Globals.clear(MainActivity.this);
+        Log.d(TAG, "destroyed");
         super.onDestroy();
     }
 
@@ -688,6 +689,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onStop() {
+        Log.d(TAG, "Stopped");
         super.onStop();
     }
 
@@ -855,5 +857,6 @@ public class MainActivity extends Activity {
         findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
         findViewById(R.id.streamLayout).setVisibility(View.GONE);
     }
+
 
 }

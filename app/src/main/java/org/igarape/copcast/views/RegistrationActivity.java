@@ -82,9 +82,9 @@ public class RegistrationActivity extends Activity {
                         }
 
                         @Override
-                        public void failure(Object error) {
+                        public void failure(String error) {
                             progressDialog.dismiss();
-                            final String reason = (String) error;
+                            final String reason = error;
 
                             try {
                                 SigningService.removeKey();
