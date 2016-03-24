@@ -51,22 +51,15 @@ public class NetworkUtils {
     private static int CONNECTION_TIMEOUT = 15000;
     private static int DATA_RETRIEVAL_TIMEOUT = 5000;
 
-    private static String getQuery(List<NameValuePair> params) throws UnsupportedEncodingException {
-        StringBuilder result = new StringBuilder();
+    private static String getQuery(List<Pair<String, String>> params) throws UnsupportedEncodingException {
+        ArrayList<String> tokens = new ArrayList();
         boolean first = true;
 
-        for (NameValuePair pair : params) {
-            if (first)
-                first = false;
-            else
-                result.append("&");
-
-            result.append(URLEncoder.encode(pair.getName(), "UTF-8"));
-            result.append("=");
-            result.append(URLEncoder.encode(pair.getValue(), "UTF-8"));
+        for (Pair<String, String> pair : params) {
+            tokens.add(URLEncoder.encode(pair.first, "UTF-8") + "=" + URLEncoder.encode(pair.second, "UTF-8"));
         }
 
-        return result.toString();
+        return TextUtils.join("&", tokens);
     }
 
     /**
