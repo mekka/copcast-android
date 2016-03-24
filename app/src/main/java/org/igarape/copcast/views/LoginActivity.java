@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -127,26 +128,11 @@ public class LoginActivity extends Activity {
         new AsyncTask() {
             @Override
             protected Object doInBackground(Object[] args) {
-                final List<NameValuePair> params = new ArrayList<NameValuePair>();
+                final List<Pair<String, String>> params = new ArrayList();
 
-                params.add(new BasicNameValuePair("username", loginField));
-
-                params.add(new BasicNameValuePair("password", passwordField));
-                params.add(new BasicNameValuePair("scope", "client"));
-
-                InstanceID instanceID = InstanceID.getInstance(getApplicationContext());
-                String regId = null;
-
-                try {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("login", loginField);
-                    regId = instanceID.getToken(getString(R.string.gcm_defaultSenderId),
-                            GoogleCloudMessaging.INSTANCE_ID_SCOPE, bundle);
-                    Globals.storeRegistrationId(getApplicationContext(), regId);
-                } catch (IOException e) {
-                    Log.e(TAG, "error getting gcm code ", e);
-                }
-                params.add(new BasicNameValuePair("gcm_registration", regId));
+                params.add(new Pair("username", loginField));
+                params.add(new Pair("password", passwordField));
+                params.add(new Pair("scope", "client"));
 
                 NetworkUtils.post(getApplicationContext(), "/token", params, new Promise() {
                     @Override
