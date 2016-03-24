@@ -161,9 +161,10 @@ public class MainActivity extends Activity {
                     if (intent.getExtras() != null && intent.getExtras().get("event")!=null) {
                         UploadServiceEvent use = (UploadServiceEvent) intent.getExtras().get("event");
 
-                        if (!use.isRunning())
+                        if (!use.isRunning()) {
                             resetStatusUpload();
-                        else
+                            StateManager.setStateOrDie(MainActivity.this, State.IDLE);
+                        } else
                             displayUploadBar();
 
                         switch (use) {
