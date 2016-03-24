@@ -54,6 +54,10 @@ import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.utils.StateManager;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -106,8 +110,10 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         ActionBar ab = getActionBar();
-        ab.setTitle(Globals.getUserName(getApplicationContext()));
-        ab.setSubtitle(Globals.getUserLogin(this));
+        if (ab != null) {
+            ab.setTitle(Globals.getUserName(getApplicationContext()));
+            ab.setSubtitle(Globals.getUserLogin(this));
+        }
         FileUtils.init(getApplicationContext());
 
         mStreamSwitch = (Switch) findViewById(R.id.streamSwitch);
@@ -341,7 +347,6 @@ public class MainActivity extends Activity {
 
         );
 
-
         findViewById(R.id.uploadButton).setOnClickListener(new View.OnClickListener() {
 
                                                                @Override
@@ -350,7 +355,15 @@ public class MainActivity extends Activity {
                                                                    if (networkState == NetworkState.NETWORK_OK) {
                                                                        resetStatusUpload(); // prevent ghost information from appearing
                                                                        UploadService.doUpload(getApplicationContext());
-                                                                       StateManager.setStateOrDie(MainActivity.this, State.UPLOADING);
+                                                                       JSONObject extra = new JSONObject();
+                                                                       try {
+                                                                           extra.put("connection", NetworkUtils.getConnectionType(getApplicationContext()));
+                                                                           extra.put("data", Globals.getDirectorySize(getApplicationContext()));
+                                                                       } catch (JSONException ex) {
+                                                                           Log.e(TAG, "error building json", ex);
+                                                                       }
+                                                                       StateManager.setStateOrDie(MainActivity.this, State.UPLOADING, extra);
+
                                                                    } else {
                                                                        int msgid = -1;
                                                                        switch (networkState) {

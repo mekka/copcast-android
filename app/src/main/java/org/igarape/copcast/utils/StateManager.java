@@ -10,9 +10,6 @@ import org.igarape.copcast.state.State;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-/**
- * Created by martelli on 3/23/16.
- */
 
 public class StateManager {
 
@@ -24,7 +21,7 @@ public class StateManager {
         this.context = context;
     }
 
-    public void setState(State newState) throws StateTransitionException {
+    public void setState(State newState, JSONObject extras) throws StateTransitionException {
 
         Log.d(TAG, "From "+currentState.toString()+" to "+newState.toString());
 
@@ -60,7 +57,9 @@ public class StateManager {
         if (isInvalid)
             throw new StateTransitionException("Transition from ["+currentState.toString()+"] to ["+newState.toString()+"] forbidden.");
 
-        JSONObject extras = new JSONObject();
+        if (extras == null)
+            extras = new JSONObject();
+
         try {
             extras.put("sessionId", Globals.getSessionID());
         } catch (JSONException e) {
@@ -76,9 +75,14 @@ public class StateManager {
         return this.currentState == state;
     }
 
+
     public static void setStateOrDie(Activity activity, State newState) {
+        setStateOrDie(activity, newState, null);
+    }
+
+    public static void setStateOrDie(Activity activity, State newState, JSONObject extras) {
         try {
-            Globals.getStateManager().setState(newState);
+            Globals.getStateManager().setState(newState, extras);
         } catch (StateTransitionException e) {
             OkDialog.displayAndTerminate(activity, activity.getString(R.string.internal_error), e.getMessage());
         }
