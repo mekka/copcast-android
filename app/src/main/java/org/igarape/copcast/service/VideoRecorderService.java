@@ -20,17 +20,18 @@ import android.view.SurfaceView;
 import android.view.WindowManager;
 
 import org.igarape.copcast.R;
+import org.igarape.copcast.exceptions.PromiseException;
+import org.igarape.copcast.exceptions.WebRecorderError;
 import org.igarape.copcast.state.IncidentFlagState;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
+import org.igarape.copcast.utils.Promise;
 import org.igarape.copcast.views.MainActivity;
-import org.igarape.util.Promise;
 import org.igarape.webrecorder.WebRecorder;
 import org.igarape.webrecorder.WebRecorderException;
 
 import java.util.Date;
 import java.util.concurrent.locks.ReentrantLock;
-
 
 public class VideoRecorderService extends Service implements SurfaceHolder.Callback {
 
@@ -321,48 +322,11 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
         Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
 
-//        lock.lock();
-//        Log.d(TAG, "> release locked");
 
-        //clear incident flag;
-
-//        try {
-//            if (mediaRecorder != null) {
-////                mediaRecorder.stop();
-//                mediaRecorder.reset();
-//                mediaRecorder.release();
-//                mediaRecorder = null;
-//            }
-//
-//            if (camera != null) {
-////                try {
-////                    camera.stopPreview();
-////                } catch (Exception e){
-////                    Log.w(TAG, "releasing camera 1", e);
-////                }
-////                try {
-////                    camera.lock();
-//                camera.release();
-////                } catch (Exception e){
-////                    Log.w(TAG, "releasing camera 2", e);
-////                }
-//            }
-//
-//        } catch (IllegalStateException i) {
-//            Log.e(TAG,"IllegalStateException on prepareMediaEncoder", i);
-//        } finally {
-//            lock.unlock();
-//            Log.d(TAG, "< release unlocked");
-//        }
-
-        webRecorder.stop(new Promise() {
+        webRecorder.stop(new Promise<WebRecorderError>() {
             @Override
-            public void success(Object payload) {
-            }
-
-            @Override
-            public void failure(Exception exception) {
-                Log.e(TAG, "Failed to stop webrecorder", exception);
+            public void error(PromiseException<WebRecorderError> exception) {
+                Log.e(TAG, "Failed to stop webrecorder: "+exception.getFailure().toString());
             }
         });
     }
@@ -386,12 +350,10 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 orientation = 0;
                 break;
             case Surface.ROTATION_180:
-                orientation =
-                        270;
+                orientation = 270;
                 break;
             case Surface.ROTATION_270:
-                orientation =
-                        180;
+                orientation = 180;
                 break;
             default:
                 Log.e(TAG, "Unknown screen orientation. Defaulting to " +

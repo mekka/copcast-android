@@ -8,9 +8,12 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Build;
+import android.text.TextUtils;
+import android.util.Log;
 
 import org.apache.http.NameValuePair;
-import org.igarape.copcast.exceptions.HttpPostException;
+import org.igarape.copcast.exceptions.HttpPostError;
+import org.igarape.copcast.exceptions.PromiseException;
 import org.igarape.copcast.service.sign.SigningService;
 import org.igarape.copcast.service.sign.SigningServiceException;
 import org.igarape.copcast.state.NetworkState;
@@ -33,6 +36,7 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -77,18 +81,21 @@ public class NetworkUtils {
         BufferedReader br = new BufferedReader(new InputStreamReader(inStream));
         StringBuilder sb = new StringBuilder();
         String line;
+        ArrayList<String> stringList = new ArrayList<>();
         while ((line = br.readLine()) != null) {
             sb.append(line).append("\n");
+            stringList.add(line);
         }
         br.close();
-        return sb.toString();
+        return TextUtils.join("\n", stringList);
+//        return sb.toString();
     }
 
     public static void get(Context context, String url, Promise callback) {
         get(context, url, Response.JSON, callback);
     }
 
-    public static void get(Context context, String url, Response type, org.igarape.util.Promise callback) {
+    public static void get(Context context, String url, Response type, Promise callback) {
         executeRequest(Method.GET, context, null, null, url, type, callback);
     }
 
@@ -141,7 +148,7 @@ public class NetworkUtils {
         return NetworkState.NETWORK_OK;
     }
 
-    public static void post(final Context context, boolean async, final String url, final List<NameValuePair> params, final File file, final Promise callback) {
+    public static void postX(final Context context, boolean async, final String url, final List<NameValuePair> params, final File file, final Promise callback) {
         if (async) {
             new AsyncTask<Void, Void, Void>() {
 
@@ -172,9 +179,11 @@ public class NetworkUtils {
 
             request.finish();  //send the video to the server
 
-            callback.success(new JSONObject());
+            callback.success();
         } catch (IOException e) {
-            callback.failure(500);
+            PromiseException<HttpPostError> pex = new PromiseException(HttpPostError.FAILURE);
+            pex.put("statusCode", 500);
+            callback.error(pex);
         }
     }
 
@@ -189,7 +198,7 @@ public class NetworkUtils {
     private static void executeRequest(final String serverUri, final Method method, final Context context, final List<NameValuePair> params, final Object jsonObject, final String url, final Response type, final Promise callback) {
         if (!hasConnection(context)) {
             if (callback != null) {
-                callback.failure(HttpPostException.NO_CONNECTION.asException());
+                callback.error(new PromiseException(HttpPostError.NO_CONNECTION));
                 return;
             }
         }
@@ -262,55 +271,61 @@ public class NetworkUtils {
                     urlConnection.connect();
                     statusCode = urlConnection.getResponseCode();
                     if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                        callback.failure(HttpPostException.UNAUTHORIZED.asException());
+                        callback.error(new PromiseException(HttpPostError.NOT_AUTHORIZED));
                         return null;
                     } else if (statusCode == HttpURLConnection.HTTP_FORBIDDEN) {
-                        callback.failure(HttpPostException.FORBIDDEN.asException());
+                        callback.error(new PromiseException(HttpPostError.FORBIDDEN));
                         return null;
                     } else if (statusCode != HttpURLConnection.HTTP_OK && statusCode != HttpURLConnection.HTTP_CREATED) {
 //                        callback.failure(statusCode);
-                        callback.failure(HttpPostException.UNKNOWN.asException());
+                        PromiseException<HttpPostError> pex = new PromiseException(HttpPostError.FAILURE);
+                        pex.put("statusCode", statusCode);
+                        callback.error(pex);
                         return null;
                     }
 
-                    if (type.equals(Response.JSON)){
-                        InputStream in = new BufferedInputStream(
-                                urlConnection.getInputStream());
-
-                        String responseText = getResponseText(in);
-                        try {
-                            JSONObject response = new JSONObject(responseText);
-                            callback.success(response);
-                        } catch (JSONException ex) {
-                            callback.success((JSONObject)null);
+                    if (statusCode == HttpURLConnection.HTTP_OK) {
+                        if (type.equals(Response.JSON)) {
+                            Log.d(TAG, "A");
+                            InputStream in = new BufferedInputStream(
+                                    urlConnection.getInputStream());
+                            Log.d(TAG, "B");
+                            String responseText = getResponseText(in);
+                            Log.d(TAG, "C:" + responseText+"<"+responseText.length());
+                            try {
+                                JSONObject response = new JSONObject(responseText);
+                                Log.d(TAG, ">>>>>" + response);
+                                callback.success(new PromisePayload("response", response));
+                            } catch (JSONException ex) {
+                                callback.success();
+                            }
+                        } else if (type.equals(Response.BYTEARRAY)) {
+                            byte[] buffer = new byte[8192];
+                            int bytesRead;
+                            ByteArrayOutputStream output = new ByteArrayOutputStream();
+                            InputStream inputStream = urlConnection.getInputStream();
+                            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                                output.write(buffer, 0, bytesRead);
+                            }
+                            callback.success(new PromisePayload("response", output.toByteArray()));
                         }
                     } else {
-                        byte[] buffer = new byte[8192];
-                        int bytesRead;
-                        ByteArrayOutputStream output = new ByteArrayOutputStream();
-                        InputStream inputStream = urlConnection.getInputStream();
-                        while ((bytesRead = inputStream.read(buffer)) != -1)
-                        {
-                            output.write(buffer, 0, bytesRead);
-                        }
-
-                        callback.success( output.toByteArray());
+                        Log.d(TAG, "returning sucess");
+                        callback.success();
                     }
-
-
                 } catch (MalformedURLException e) {
-                    callback.badRequest();
+                    callback.error(new PromiseException(HttpPostError.BAD_REQUEST));
                     ILog.e(TAG, "Url error ", e);
                 } catch (SocketTimeoutException e) {
-                    callback.badConnection();
+                    callback.error(new PromiseException(HttpPostError.BAD_CONNECTION));
                     ILog.e(TAG, "Timeout error ", e);
                 } catch (IOException e) {
-                    callback.badResponse();
+                    callback.error(new PromiseException(HttpPostError.BAD_RESPONSE));
                     ILog.e(TAG, "Could not read response body ", e);
                 } catch (SigningServiceException e) {
-                    callback.failure(-1);
+                    callback.error(new PromiseException(HttpPostError.SIGNING_ERROR));
                 } catch (JSONException e) {
-                    callback.failure(-2);
+                    callback.error(new PromiseException(HttpPostError.JSON_ERROR));
                 } finally {
                     try {
                         if (writer != null) {
@@ -329,12 +344,11 @@ public class NetworkUtils {
                 return null;
             }
         }.execute();
-        return null;
     }
 
 
     enum Method {
-        POST, DELETE, GET;
+        POST, DELETE, GET
     }
 
     public enum Response {BYTEARRAY, JSON}

@@ -36,7 +36,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
-import org.igarape.copcast.exceptions.StateTransitionException;
+import org.igarape.copcast.exceptions.HttpPostError;
+import org.igarape.copcast.exceptions.PromiseException;
+import org.igarape.copcast.exceptions.WebRecorderError;
 import org.igarape.copcast.receiver.BatteryReceiver;
 import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.service.VideoRecorderService;
@@ -47,15 +49,14 @@ import org.igarape.copcast.state.State;
 import org.igarape.copcast.state.UploadServiceEvent;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.utils.HttpResponseCallback;
 import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.NetworkUtils;
-import org.igarape.copcast.utils.OkDialog;
+import org.igarape.copcast.utils.Promise;
 import org.igarape.copcast.utils.StateManager;
-import org.igarape.util.Promise;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
 import static org.igarape.copcast.utils.FileUtils.formatMegaBytes;
 import static org.igarape.copcast.utils.Globals.getDirectorySize;
 
@@ -280,9 +281,9 @@ public class MainActivity extends Activity {
                                                      progressDialog.show();
                                                      vibrate(100);
 
-                                                     videoRecorderService.stop(new Promise() {
+                                                     videoRecorderService.stop(new Promise<WebRecorderError>() {
                                                          @Override
-                                                         public void success(Object payload) {
+                                                         public void success() {
 
                                                              runOnUiThread(new Runnable() {
                                                                  @Override
@@ -329,8 +330,8 @@ public class MainActivity extends Activity {
                                                          }
 
                                                          @Override
-                                                         public void failure(Exception exception) {
-                                                             Log.e(TAG, "webrecorder stop error", exception);
+                                                         public void error(PromiseException<WebRecorderError> exception) {
+                                                             Log.e(TAG, "webrecorder stop error: "+exception.getFailure().toString());
                                                              this.success();
                                                          }
                                                      });
@@ -652,38 +653,19 @@ public class MainActivity extends Activity {
     protected void onStart() {
         super.onStart();
 
-        NetworkUtils.get(getApplicationContext(), "/users/me", new HttpResponseCallback() {
-            @Override
-            public void unauthorized() {
-                logout(getString(R.string.token_expired));
-            }
+        NetworkUtils.get(getApplicationContext(), "/users/me", new Promise<HttpPostError>() {
 
             @Override
-            public void failure(int statusCode) {
+            public void error(PromiseException<HttpPostError> error) {
+                switch (error.getFailure()) {
+                    case NOT_AUTHORIZED:
+                        logout(getString(R.string.token_expired));
+                        break;
+                    default:
+                        logout(getString(R.string.server_error));
+                        break;
+                }
             }
-
-            @Override
-            public void noConnection() {
-            }
-
-            @Override
-            public void badConnection() {
-
-            }
-
-            @Override
-            public void forbidden() {
-            }
-
-            @Override
-            public void badResponse() {
-
-            }
-
-            @Override
-            public void badRequest() {
-            }
-
         });
     }
 

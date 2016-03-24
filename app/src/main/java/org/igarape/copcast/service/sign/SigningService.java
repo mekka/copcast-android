@@ -13,11 +13,13 @@ import android.util.Log;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.igarape.copcast.R;
+import org.igarape.copcast.exceptions.HttpPostError;
+import org.igarape.copcast.exceptions.PromiseException;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.utils.HttpResponseCallback;
 import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.Promise;
+import org.igarape.copcast.utils.PromisePayload;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -248,7 +250,7 @@ public class SigningService {
         return null;
     }
 
-    public static void registration(final Context ctx, final String url, String username, String pwd, final Promise promise) throws SigningServiceException {
+    public static void registration(final Context ctx, final String url, String username, String pwd, final Promise<HttpPostError> promise) throws SigningServiceException {
         Long time = System.currentTimeMillis();
         Log.d(TAG, "Registration started");
         String pubkey = init(ctx);
@@ -274,57 +276,35 @@ public class SigningService {
         Log.d(TAG, ">> "+url);
 
         Log.d(TAG, "Registration posting: "+(System.currentTimeMillis()-time));
-        NetworkUtils.post(ctx, url, "/registration", register, new HttpResponseCallback() {
-            @Override
-            public void unauthorized() {
-                Log.d(TAG, "unauthorized");
-                promise.failure(ctx.getString(R.string.unauthorized_login));
+        NetworkUtils.post(ctx, url, "/registration", register, new Promise<HttpPostError>() {
+
+            public void error(PromiseException<HttpPostError> error) {
+
+
+
+                switch (error.getFailure()) {
+                    case NOT_AUTHORIZED:
+                        promise.error(ctx.getString(R.string.unauthorized_login));
+                        break;
+                    case FORBIDDEN:
+                        promise.error(ctx.getString(R.string.server_error));
+                        break;
+                    case NO_CONNECTION:
+                    case BAD_CONNECTION:
+                    case BAD_REQUEST:
+                    case BAD_RESPONSE:
+                    case FAILURE:
+                        promise.error(ctx.getString(R.string.server_error));
+                        break;
+                }
             }
 
             @Override
-            public void forbidden() {
-                Log.d(TAG, "forbidden");
-                promise.failure(ctx.getString(R.string.server_error));
-            }
-
-            @Override
-            public void failure(int statusCode) {
-                Log.d(TAG, "failure");
-                promise.failure(ctx.getString(R.string.server_error));
-            }
-
-            @Override
-            public void noConnection() {
-                Log.d(TAG, "no connection");
-                promise.failure(ctx.getString(R.string.server_error));
-            }
-
-            @Override
-            public void badConnection() {
-                Log.d(TAG, "bad connection");
-                promise.failure(ctx.getString(R.string.server_error));
-            }
-
-            @Override
-            public void badRequest() {
-                Log.d(TAG, "bad request");
-                promise.failure(ctx.getString(R.string.server_error));
-            }
-
-            @Override
-            public void badResponse() {
-                Log.d(TAG, "bad response");
-                promise.failure(ctx.getString(R.string.server_error));
-            }
-
-            @Override
-            public void success(JSONObject response) {
-                if (response != null)
-                    Log.d(TAG, response.toString());
-                promise.success(url);
+            public void success(PromisePayload promisePayload) {
+                promise.success();
             }
         });
-        Log.d(TAG, "Registration sent: " + (System.currentTimeMillis()-time));
+        Log.d(TAG, "Registration sent: " + (System.currentTimeMillis() - time));
     }
 
 }

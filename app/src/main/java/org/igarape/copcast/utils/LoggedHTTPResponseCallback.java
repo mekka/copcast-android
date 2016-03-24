@@ -4,6 +4,8 @@ import android.content.Context;
 import android.util.Log;
 
 import org.igarape.copcast.db.JsonDataType;
+import org.igarape.copcast.exceptions.HttpPostError;
+import org.igarape.copcast.exceptions.PromiseException;
 import org.json.JSONObject;
 
 /**
@@ -14,7 +16,7 @@ import org.json.JSONObject;
  * This class saves some boilerplate and allows a string to be
  * displayed to differentiate between calls.
  */
-public class LoggedHTTPResponseCallback extends HttpResponseCallback {
+public class LoggedHTTPResponseCallback extends Promise<HttpPostError> {
 
     protected Context context;
     protected JSONObject data;
@@ -35,41 +37,13 @@ public class LoggedHTTPResponseCallback extends HttpResponseCallback {
     }
 
     @Override
-    public void unauthorized() {
-        this.logFailedData("unauthorized");
+    public void error(PromiseException<HttpPostError> error) {
+        this.logFailedData(error.toString());
     }
 
     @Override
-    public void forbidden() {
-        this.logFailedData("forbidden");
+    public void success() {
+        Log.d(this.tag, "data sent.");
     }
 
-    @Override
-    public void failure(int statusCode) {
-        this.logFailedData("failure");
-    }
-
-    @Override
-    public void noConnection() {
-        this.logFailedData("noConnection");
-    }
-
-    @Override
-    public void badConnection() {
-        this.logFailedData("badConnection");
-    }
-
-    @Override
-    public void badRequest() {
-        this.logFailedData("badRequest");
-    }
-
-    @Override
-    public void badResponse() {
-        this.logFailedData("badResponse");
-    }
-
-    public void success(byte[] output) {
-        ILog.d(this.tag, "data sent.");
-    }
 }

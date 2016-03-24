@@ -4,6 +4,8 @@ import android.content.Context;
 import android.location.Location;
 import android.util.Log;
 
+import org.igarape.copcast.exceptions.HttpPostError;
+import org.igarape.copcast.exceptions.PromiseException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -40,44 +42,15 @@ public class LocationUtils {
     public static final float SMALLEST_DISPLACEMENT = 0;
 
     public static void sendLocation(Context context, final String login, final Location location) {
-        HttpResponseCallback callback = new HttpResponseCallback() {
+        Promise<HttpPostError> callback = new Promise<HttpPostError>() {
+
             @Override
-            public void failure(int statusCode) {
+            public void error(PromiseException<HttpPostError> exception) {
                 FileUtils.logLocation(login, location);
             }
 
             @Override
-            public void unauthorized() {
-                FileUtils.logLocation(login, location);
-            }
-
-            @Override
-            public void noConnection() {
-                FileUtils.logLocation(login, location);
-            }
-
-            @Override
-            public void forbidden() {
-                FileUtils.logLocation(login, location);
-            }
-
-            @Override
-            public void badConnection() {
-                FileUtils.logLocation(login, location);
-            }
-
-            @Override
-            public void badRequest() {
-                FileUtils.logLocation(login, location);
-            }
-
-            @Override
-            public void badResponse() {
-                FileUtils.logLocation(login, location);
-            }
-
-            @Override
-            public void success(JSONObject response) {
+            public void success() {
                 Log.i(TAG, "location sent successfully");
             }
         };

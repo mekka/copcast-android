@@ -5,9 +5,12 @@ import android.media.MediaRecorder;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
+import org.igarape.copcast.exceptions.PromiseException;
+import org.igarape.copcast.exceptions.WebRecorderError;
+import org.igarape.copcast.utils.Promise;
+
 import java.util.HashMap;
 import java.util.Map;
-import org.igarape.copcast;
 
 /**
  * Created by martelli on 2/14/16.
@@ -233,7 +236,7 @@ public class WebRecorder {
         Log.d(TAG, "ALL STARTED");
     }
 
-    public void stop(final Promise<WebRecorderException> promise) {
+    public void stop(final Promise<WebRecorderError> promise) {
         new Thread() {
             @Override
             public void run() {
@@ -262,7 +265,7 @@ public class WebRecorder {
                         promise.success();
                 } catch (InterruptedException e) {
                     if (promise!=null)
-                        promise.failure(e);
+                        promise.error(new PromiseException<WebRecorderError>(WebRecorderError.OTHER, "exception", e));
                 }
             }
         }.start();

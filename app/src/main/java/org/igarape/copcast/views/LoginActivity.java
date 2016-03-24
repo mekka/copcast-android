@@ -22,9 +22,12 @@ import com.google.android.gms.iid.InstanceID;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.igarape.copcast.R;
+import org.igarape.copcast.exceptions.HttpPostError;
+import org.igarape.copcast.exceptions.PromiseException;
 import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.utils.HttpResponseCallback;
+import org.igarape.copcast.utils.Promise;
+import org.igarape.copcast.utils.PromisePayload;
 import org.igarape.copcast.utils.StateManager;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -124,7 +127,7 @@ public class LoginActivity extends Activity {
         new AsyncTask() {
             @Override
             protected Object doInBackground(Object[] args) {
-                List<NameValuePair> params = new ArrayList<NameValuePair>();
+                final List<NameValuePair> params = new ArrayList<NameValuePair>();
 
                 params.add(new BasicNameValuePair("username", loginField));
 
@@ -145,9 +148,10 @@ public class LoginActivity extends Activity {
                 }
                 params.add(new BasicNameValuePair("gcm_registration", regId));
 
-                post(getApplicationContext(), "/token", params, new HttpResponseCallback() {
+                post(getApplicationContext(), "/token", params, new Promise<HttpPostError>() {
                     @Override
-                    public void success(JSONObject response) {
+                    public void success(PromisePayload payload) {
+                        JSONObject response = (JSONObject) payload.get("response");
                         Log.d(TAG, "@JSONRESPONSE=[" + response + "]");
                         String token = null;
                         try {
@@ -185,13 +189,28 @@ public class LoginActivity extends Activity {
                     }
 
                     @Override
-                    public void unauthorized() {
-                        showToast(R.string.unauthorized_login);
-                    }
-
-                    @Override
-                    public void forbidden() {
-                        showToast(R.string.forbidden_login);
+                    public void error(PromiseException<HttpPostError> error) {
+                        switch(error.getFailure()) {
+                            case NOT_AUTHORIZED:
+                                showToast(R.string.unauthorized_login);
+                                break;
+                            case FORBIDDEN:
+                                showToast(R.string.forbidden_login);
+                                break;
+                            case NO_CONNECTION:
+                                showToast(R.string.network_required);
+                                break;
+                            case BAD_CONNECTION:
+                                showToast(R.string.connection_error);
+                                break;
+                            case BAD_REQUEST:
+                            case BAD_RESPONSE:
+                                showToast(R.string.bad_request_error);
+                                break;
+                            case FAILURE:
+                                showToast(R.string.server_error);
+                                break;
+                        }
                     }
 
                     private void showToast(final int message) {
@@ -209,31 +228,6 @@ public class LoginActivity extends Activity {
 
                             }
                         });
-                    }
-
-                    @Override
-                    public void failure(int statusCode) {
-                        showToast(R.string.server_error);
-                    }
-
-                    @Override
-                    public void noConnection() {
-                        showToast(R.string.network_required);
-                    }
-
-                    @Override
-                    public void badConnection() {
-                        showToast(R.string.connection_error);
-                    }
-
-                    @Override
-                    public void badRequest() {
-                        showToast(R.string.bad_request_error);
-                    }
-
-                    @Override
-                    public void badResponse() {
-                        showToast(R.string.bad_request_error);
                     }
                 });
                 return null;

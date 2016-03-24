@@ -7,16 +7,16 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.igarape.copcast.R;
+import org.igarape.copcast.exceptions.HttpPostError;
 import org.igarape.copcast.service.sign.SigningService;
 import org.igarape.copcast.service.sign.SigningServiceException;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.OkDialog;
 import org.igarape.copcast.utils.Promise;
 
@@ -67,9 +67,9 @@ public class RegistrationActivity extends Activity {
             @Override
             protected Void doInBackground(Void... params) {
                 try {
-                    SigningService.registration(RegistrationActivity.this, url, username, pwd, new Promise() {
+                    SigningService.registration(RegistrationActivity.this, url, username, pwd, new Promise<HttpPostError>() {
                         @Override
-                        public void success(Object payload) {
+                        public void success() {
                             progressDialog.dismiss();
                             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(RegistrationActivity.this);
                             SharedPreferences.Editor edit = sharedPref.edit();
@@ -82,14 +82,14 @@ public class RegistrationActivity extends Activity {
                         }
 
                         @Override
-                        public void failure(String error) {
+                        public void error(String error) {
                             progressDialog.dismiss();
                             final String reason = error;
 
                             try {
                                 SigningService.removeKey();
                             } catch (SigningServiceException e) {
-                                ILog.e(TAG, "Error removing key (" + reason + ")");
+                                Log.e(TAG, "Error removing key (" + reason + ")", e);
                             }
                             OkDialog.display(RegistrationActivity.this, null, reason);
                         }
