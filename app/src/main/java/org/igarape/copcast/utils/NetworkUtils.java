@@ -183,9 +183,7 @@ public class NetworkUtils {
                         urlConnection.setRequestProperty("Authorization", token);
                     }
                     urlConnection.setRequestProperty("Accept-Charset", charset);
-
                     urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=" + charset);
-
                     urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
                     urlConnection.setReadTimeout(DATA_RETRIEVAL_TIMEOUT);
 
@@ -292,5 +290,7 @@ public class NetworkUtils {
         POST, DELETE, GET
     }
 
-    public enum Response {BYTEARRAY, JSON}
+    public enum Response {
+        BYTEARRAY, JSON
+    }
 }
