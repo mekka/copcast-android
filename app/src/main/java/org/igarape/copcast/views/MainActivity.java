@@ -168,6 +168,8 @@ public class MainActivity extends Activity {
                             displayUploadBar();
 
                         switch (use) {
+                            case STARTED:
+                                break;
                             case RUNNING:
                                 ProgressBar p = (ProgressBar) findViewById(R.id.progressBar);
                                 int prog = (int) intent.getExtras().getLong("uploadedBytes");
@@ -191,7 +193,7 @@ public class MainActivity extends Activity {
                                 Toast.makeText(getApplicationContext(), getString(R.string.upload_no_data), Toast.LENGTH_LONG).show();
                                 break;
                             default:
-                                ILog.e(TAG, "Unexpected feedback status: "+use);
+                                ILog.e(TAG, "Unexpected upload feedback status: "+use);
                         }
                     }
                 }
