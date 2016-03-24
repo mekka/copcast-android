@@ -1,9 +1,9 @@
 package com.alexbbb.uploadservice;
 
-import java.io.UnsupportedEncodingException;
-
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import java.io.UnsupportedEncodingException;
 
 /**
  * Represents a request parameter.

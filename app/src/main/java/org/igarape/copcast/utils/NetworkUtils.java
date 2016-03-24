@@ -74,7 +74,7 @@ public class NetworkUtils {
         StringBuilder sb = new StringBuilder();
         String line;
         while ((line = br.readLine()) != null) {
-            sb.append(line+"\n");
+            sb.append(line).append("\n");
         }
         br.close();
         return sb.toString();
@@ -115,7 +115,9 @@ public class NetworkUtils {
 
         IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent batteryStatus = context.registerReceiver(null, iFilter);
-
+        if (batteryStatus == null){
+            return false;
+        }
         int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
 
         boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
@@ -234,6 +236,9 @@ public class NetworkUtils {
                     if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
                         callback.unauthorized();
                         return null;
+                    } else if (statusCode == HttpURLConnection.HTTP_FORBIDDEN) {
+                        callback.forbidden();
+                        return null;
                     } else if (statusCode != HttpURLConnection.HTTP_OK) {
                         callback.failure(statusCode);
                         return null;
@@ -292,6 +297,19 @@ public class NetworkUtils {
             }
         }.execute();
         return null;
+    }
+
+    public static String getConnectionType(Context context) {
+        ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+
+        if (networkInfo == null || !networkInfo.isConnectedOrConnecting()) {
+            return null;
+        } else if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI){
+            return "wifi";
+        } else {
+            return "mobile";
+        }
     }
 
 

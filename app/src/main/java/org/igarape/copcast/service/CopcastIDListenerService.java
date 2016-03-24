@@ -64,6 +64,11 @@ public class CopcastIDListenerService extends InstanceIDListenerService {
                 }
 
                 @Override
+                public void forbidden() {
+
+                }
+
+                @Override
                 public void badResponse() {
 
                 }

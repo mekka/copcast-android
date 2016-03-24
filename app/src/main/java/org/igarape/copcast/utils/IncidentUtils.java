@@ -2,12 +2,9 @@ package org.igarape.copcast.utils;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Vibrator;
 import android.util.Log;
 
 import org.igarape.copcast.db.JsonDataType;
-import org.igarape.copcast.state.IncidentFlagState;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -98,6 +95,11 @@ public class IncidentUtils {
 
             @Override
             public void noConnection() {
+                failedRegisterIncident(context, incident, "noConnection");
+            }
+
+            @Override
+            public void forbidden() {
                 failedRegisterIncident(context, incident, "noConnection");
             }
 

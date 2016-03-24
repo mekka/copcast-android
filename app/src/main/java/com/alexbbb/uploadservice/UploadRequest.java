@@ -1,12 +1,12 @@
 package com.alexbbb.uploadservice;
 
+import android.content.Context;
+import android.content.Intent;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-
-import android.content.Context;
-import android.content.Intent;
 
 /**
  * Represents an upload request.

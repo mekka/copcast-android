@@ -3,12 +3,8 @@ package org.igarape.copcast.utils;
 import android.content.Context;
 import android.util.Log;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
 
 /**
  * Created by brunosiqueira on 13/10/15.
@@ -51,6 +47,13 @@ public class HeartBeatUtils {
 
                 @Override
                 public void badConnection() {
+                    if (batteryJson != null) {
+                        FileUtils.logBattery(login, batteryJson);
+                    }
+                    FileUtils.logLocation(login, locationJson);
+                }
+                @Override
+                public void forbidden() {
                     if (batteryJson != null) {
                         FileUtils.logBattery(login, batteryJson);
                     }

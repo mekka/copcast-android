@@ -7,8 +7,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.media.CamcorderProfile;
-import android.media.CameraProfile;
-import android.media.MediaRecorder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -26,7 +24,6 @@ public class Globals {
     public static final String DIRECTORY_UPLOADED_SIZE = "DIRECTORY_UPLOADED_SIZE";
     public static final long BATTERY_REPEAT_TIME =  1000 * 600; // 10 minutes;
     public static String TAG = Globals.class.getName();
-    public static final String SENDER_ID = "319635303076";
     private static final String PREF_ACCESS_TOKEN = "PREF_ACCESS_TOKEN";
     private static final String PREF_TIME_LOGIN = "PREF_TIME_LOGIN";
     private static final String PREF_USER_LOGIN = "PREF_USER_LOGIN";
@@ -34,6 +31,7 @@ public class Globals {
     private static final String PROPERTY_APP_VERSION = "appVersion";
     private static final String SERVER_URL = "server_url";
     private static final String REQUIRE_WIFI_ONLY = "upload_wifi_only";
+    private static final String STREAM_LIMIT_TIME = "limit_streaming_time";
     private static String accessToken = null;
     private static String userLogin = null;
     private static String userName = null;
@@ -42,7 +40,6 @@ public class Globals {
     private static Long directoryUploadedSize;
     private static Boolean toggling = false;
     private static Location lastKnownLocation = null;
-    public static final long GPS_REPEAT_TIME = 1000 * 15; // 15 seconds
     private static int rotation;
     private static IncidentFlagState incidentFlag = IncidentFlagState.NOT_FLAGGED;
     private static String currentVideoPath;
@@ -70,7 +67,7 @@ public class Globals {
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putString(PREF_ACCESS_TOKEN, token);
         editor.putLong(PREF_TIME_LOGIN, java.lang.System.currentTimeMillis());
-        editor.commit();
+        editor.apply();
         accessToken = token;
         if (accessToken == null) {
             setUserImage(null);
@@ -100,7 +97,7 @@ public class Globals {
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putString(PROPERTY_REG_ID, regId);
         editor.putInt(PROPERTY_APP_VERSION, appVersion);
-        editor.commit();
+        editor.apply();
     }
 
     public synchronized static String getRegistrationId(Context context) {
@@ -134,7 +131,7 @@ public class Globals {
         SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putString(PREF_USER_LOGIN, login);
-        editor.commit();
+        editor.apply();
     }
 
     public static Bitmap getUserImage() {
@@ -150,7 +147,7 @@ public class Globals {
         SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putString(USER_NAME, userName);
-        editor.commit();
+        editor.apply();
         Globals.userName = userName;
     }
 
@@ -183,7 +180,7 @@ public class Globals {
         SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putLong(DIRECTORY_SIZE, directorySize);
-        editor.commit();
+        editor.apply();
         Globals.directorySize = directorySize;
         setDirectoryUploadedSize(context, Long.valueOf(0));
     }
@@ -201,7 +198,7 @@ public class Globals {
         SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putLong(DIRECTORY_UPLOADED_SIZE, directoryUploadedSize);
-        editor.commit();
+        editor.apply();
         Globals.directoryUploadedSize = directoryUploadedSize;
     }
 
@@ -237,6 +234,11 @@ public class Globals {
     public static Boolean isWifiOnly(Context context){
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         return sharedPref.getBoolean(REQUIRE_WIFI_ONLY, true);
+    }
+
+    public static Boolean hasStreamTimeLimit(Context context){
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPref.getBoolean(STREAM_LIMIT_TIME, true);
     }
 
     public static String getCurrentVideoPath() {
