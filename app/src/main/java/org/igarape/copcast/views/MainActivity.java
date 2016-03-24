@@ -173,9 +173,6 @@ public class MainActivity extends Activity {
                                 p.setProgress(prog);
                                 ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes((long) prog), formatMegaBytes((long)p.getMax())));
                                 break;
-                            case STARTED:
-                                StateManager.setStateOrDie(MainActivity.this, State.UPLOADING);
-                                break;
                             case ABORTED_NO_NETWORK:
                                 Toast.makeText(getApplicationContext(), getString(R.string.network_state_no_network), Toast.LENGTH_LONG).show();
                                 ILog.d(TAG, "No network available");
