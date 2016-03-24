@@ -13,13 +13,13 @@ import android.util.Log;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.igarape.copcast.R;
-import org.igarape.copcast.exceptions.HttpPostError;
-import org.igarape.copcast.exceptions.PromiseException;
+import org.igarape.copcast.promises.HttpPromiseError;
+import org.igarape.copcast.promises.PromiseError;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.NetworkUtils;
-import org.igarape.copcast.utils.Promise;
-import org.igarape.copcast.utils.PromisePayload;
+import org.igarape.copcast.promises.Promise;
+import org.igarape.copcast.promises.PromisePayload;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -250,7 +250,7 @@ public class SigningService {
         return null;
     }
 
-    public static void registration(final Context ctx, final String url, String username, String pwd, final Promise<HttpPostError> promise) throws SigningServiceException {
+    public static void registration(final Context ctx, final String url, String username, String pwd, final Promise promise) throws SigningServiceException {
         Long time = System.currentTimeMillis();
         Log.d(TAG, "Registration started");
         String pubkey = init(ctx);
@@ -276,13 +276,10 @@ public class SigningService {
         Log.d(TAG, ">> "+url);
 
         Log.d(TAG, "Registration posting: "+(System.currentTimeMillis()-time));
-        NetworkUtils.post(ctx, url, "/registration", register, new Promise<HttpPostError>() {
+        NetworkUtils.postToServer(ctx, url, "/registration", register, new Promise() {
 
-            public void error(PromiseException<HttpPostError> error) {
-
-
-
-                switch (error.getFailure()) {
+            public void error(PromiseError error) {
+                switch ((HttpPromiseError) error) {
                     case NOT_AUTHORIZED:
                         promise.error(ctx.getString(R.string.unauthorized_login));
                         break;

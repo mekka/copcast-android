@@ -1,4 +1,4 @@
-package org.igarape.copcast.utils;
+package org.igarape.copcast.promises;
 
 import java.util.HashMap;
 

@@ -20,12 +20,11 @@ import android.view.SurfaceView;
 import android.view.WindowManager;
 
 import org.igarape.copcast.R;
-import org.igarape.copcast.exceptions.PromiseException;
-import org.igarape.copcast.exceptions.WebRecorderError;
+import org.igarape.copcast.promises.PromiseError;
 import org.igarape.copcast.state.IncidentFlagState;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.utils.Promise;
+import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.views.MainActivity;
 import org.igarape.webrecorder.WebRecorder;
 import org.igarape.webrecorder.WebRecorderException;
@@ -323,10 +322,10 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
 
 
-        webRecorder.stop(new Promise<WebRecorderError>() {
+        webRecorder.stop(new Promise() {
             @Override
-            public void error(PromiseException<WebRecorderError> exception) {
-                Log.e(TAG, "Failed to stop webrecorder: "+exception.getFailure().toString());
+            public void error(PromiseError exception) {
+                Log.e(TAG, "Failed to stop webrecorder: "+exception.toString());
             }
         });
     }

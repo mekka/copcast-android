@@ -3,11 +3,11 @@ package org.igarape.copcast.service.upload;
 import android.content.Context;
 
 import org.igarape.copcast.db.JsonDataType;
-import org.igarape.copcast.exceptions.HttpPostError;
-import org.igarape.copcast.exceptions.PromiseException;
+import org.igarape.copcast.promises.HttpPromiseError;
+import org.igarape.copcast.promises.PromiseError;
 import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.NetworkUtils;
-import org.igarape.copcast.utils.Promise;
+import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.utils.SqliteUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,11 +31,11 @@ public class SqliteUploader {
             if (entries.length() == 0)
                 ILog.d(TAG, "No data available for: "+sqlite_key.getType());
             else
-                NetworkUtils.post(context, sqlite_key.getUrl() + "/" + userLogin, entries, new Promise<HttpPostError>() {
+                NetworkUtils.post(context, sqlite_key.getUrl() + "/" + userLogin, entries, new Promise() {
 
                     @Override
-                    public void error(PromiseException<HttpPostError> exception) {
-                        if (exception.getFailure() == HttpPostError.FAILURE)
+                    public void error(PromiseError exception) {
+                        if (exception == HttpPromiseError.FAILURE)
                             errlog(sqlite_key, "failure - statusCode: " + exception.get("statusCode"));
                         else
                             errlog(sqlite_key, exception.toString());

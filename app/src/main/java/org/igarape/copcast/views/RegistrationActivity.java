@@ -13,12 +13,11 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import org.igarape.copcast.R;
-import org.igarape.copcast.exceptions.HttpPostError;
 import org.igarape.copcast.service.sign.SigningService;
 import org.igarape.copcast.service.sign.SigningServiceException;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.OkDialog;
-import org.igarape.copcast.utils.Promise;
+import org.igarape.copcast.promises.Promise;
 
 /**
  * Created by martelli on 2/2/16.
@@ -67,7 +66,7 @@ public class RegistrationActivity extends Activity {
             @Override
             protected Void doInBackground(Void... params) {
                 try {
-                    SigningService.registration(RegistrationActivity.this, url, username, pwd, new Promise<HttpPostError>() {
+                    SigningService.registration(RegistrationActivity.this, url, username, pwd, new Promise() {
                         @Override
                         public void success() {
                             progressDialog.dismiss();

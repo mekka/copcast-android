@@ -4,8 +4,8 @@ import android.content.Context;
 import android.util.Log;
 
 import org.igarape.copcast.db.JsonDataType;
-import org.igarape.copcast.exceptions.HttpPostError;
-import org.igarape.copcast.exceptions.PromiseException;
+import org.igarape.copcast.promises.Promise;
+import org.igarape.copcast.promises.PromiseError;
 import org.json.JSONObject;
 
 /**
@@ -16,7 +16,7 @@ import org.json.JSONObject;
  * This class saves some boilerplate and allows a string to be
  * displayed to differentiate between calls.
  */
-public class LoggedHTTPResponseCallback extends Promise<HttpPostError> {
+public class LoggedHTTPResponseCallback extends Promise {
 
     protected Context context;
     protected JSONObject data;
@@ -37,7 +37,7 @@ public class LoggedHTTPResponseCallback extends Promise<HttpPostError> {
     }
 
     @Override
-    public void error(PromiseException<HttpPostError> error) {
+    public void error(PromiseError error) {
         this.logFailedData(error.toString());
     }
 

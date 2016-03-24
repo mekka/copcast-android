@@ -28,7 +28,8 @@ public class HistoryUtils {
         df.setTimeZone(tz);
         json.put("previousState", currentState.toString());
         json.put("nextState", nextState.toString());
-        json.put("extras", extras.toString());
+        if (extras != null)
+            json.put("extras", extras.toString());
         json.put("date", df.format(new Date()));
         return json;
     }
@@ -57,7 +58,11 @@ public class HistoryUtils {
         try {
             obj = new JSONObject(extras);
         } catch (JSONException e) {
-            Log.e(TAG, "Error converting String to JsonObject", e);
+            try {
+                obj = new JSONObject('"'+extras+'"');
+            } catch (JSONException e2) {
+                Log.e(TAG, "Error converting String to JsonObject", e2);
+            }
         }
 
         registerHistory(context, currentState, newState, obj);

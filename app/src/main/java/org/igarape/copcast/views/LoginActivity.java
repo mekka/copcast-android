@@ -22,12 +22,13 @@ import com.google.android.gms.iid.InstanceID;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.igarape.copcast.R;
-import org.igarape.copcast.exceptions.HttpPostError;
-import org.igarape.copcast.exceptions.PromiseException;
+import org.igarape.copcast.promises.HttpPromiseError;
+import org.igarape.copcast.promises.PromiseError;
 import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.utils.Promise;
-import org.igarape.copcast.utils.PromisePayload;
+import org.igarape.copcast.promises.Promise;
+import org.igarape.copcast.promises.PromisePayload;
+import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.StateManager;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,7 +38,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.view.Gravity.CENTER_HORIZONTAL;
-import static org.igarape.copcast.utils.NetworkUtils.post;
 
 public class LoginActivity extends Activity {
 
@@ -148,7 +148,7 @@ public class LoginActivity extends Activity {
                 }
                 params.add(new BasicNameValuePair("gcm_registration", regId));
 
-                post(getApplicationContext(), "/token", params, new Promise<HttpPostError>() {
+                NetworkUtils.post(getApplicationContext(), "/token", params, new Promise() {
                     @Override
                     public void success(PromisePayload payload) {
                         JSONObject response = (JSONObject) payload.get("response");
@@ -189,8 +189,8 @@ public class LoginActivity extends Activity {
                     }
 
                     @Override
-                    public void error(PromiseException<HttpPostError> error) {
-                        switch(error.getFailure()) {
+                    public void error(PromiseError error) {
+                        switch((HttpPromiseError) error) {
                             case NOT_AUTHORIZED:
                                 showToast(R.string.unauthorized_login);
                                 break;

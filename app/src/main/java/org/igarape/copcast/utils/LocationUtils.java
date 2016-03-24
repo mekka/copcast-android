@@ -4,11 +4,10 @@ import android.content.Context;
 import android.location.Location;
 import android.util.Log;
 
-import org.igarape.copcast.exceptions.HttpPostError;
-import org.igarape.copcast.exceptions.PromiseException;
+import org.igarape.copcast.promises.Promise;
+import org.igarape.copcast.promises.PromiseError;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -42,10 +41,10 @@ public class LocationUtils {
     public static final float SMALLEST_DISPLACEMENT = 0;
 
     public static void sendLocation(Context context, final String login, final Location location) {
-        Promise<HttpPostError> callback = new Promise<HttpPostError>() {
+        Promise callback = new Promise() {
 
             @Override
-            public void error(PromiseException<HttpPostError> exception) {
+            public void error(PromiseError exception) {
                 FileUtils.logLocation(login, location);
             }
 

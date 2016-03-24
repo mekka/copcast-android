@@ -36,9 +36,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
-import org.igarape.copcast.exceptions.HttpPostError;
-import org.igarape.copcast.exceptions.PromiseException;
-import org.igarape.copcast.exceptions.WebRecorderError;
+import org.igarape.copcast.promises.HttpPromiseError;
+import org.igarape.copcast.promises.PromiseError;
+import org.igarape.copcast.promises.WebRecorderPromiseError;
 import org.igarape.copcast.receiver.BatteryReceiver;
 import org.igarape.copcast.service.LocationService;
 import org.igarape.copcast.service.VideoRecorderService;
@@ -52,7 +52,7 @@ import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.NetworkUtils;
-import org.igarape.copcast.utils.Promise;
+import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.utils.StateManager;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -279,7 +279,7 @@ public class MainActivity extends Activity {
                                                      progressDialog.show();
                                                      vibrate(100);
 
-                                                     videoRecorderService.stop(new Promise<WebRecorderError>() {
+                                                     videoRecorderService.stop(new Promise<WebRecorderPromiseError>() {
                                                          @Override
                                                          public void success() {
 
@@ -328,8 +328,8 @@ public class MainActivity extends Activity {
                                                          }
 
                                                          @Override
-                                                         public void error(PromiseException<WebRecorderError> exception) {
-                                                             Log.e(TAG, "webrecorder stop error: "+exception.getFailure().toString());
+                                                         public void error(PromiseError exception) {
+                                                             Log.e(TAG, "webrecorder stop error: " + exception.toString());
                                                              this.success();
                                                          }
                                                      });
@@ -651,17 +651,15 @@ public class MainActivity extends Activity {
     protected void onStart() {
         super.onStart();
 
-        NetworkUtils.get(getApplicationContext(), "/users/me", new Promise<HttpPostError>() {
+        NetworkUtils.get(getApplicationContext(), "/users/me", new Promise() {
 
             @Override
-            public void error(PromiseException<HttpPostError> error) {
-                switch (error.getFailure()) {
-                    case NOT_AUTHORIZED:
-                        logout(getString(R.string.token_expired));
-                        break;
-                    default:
-                        logout(getString(R.string.server_error));
-                        break;
+            public void error(PromiseError error) {
+                if (error.equals(HttpPromiseError.NOT_AUTHORIZED)) {
+                    logout(getString(R.string.token_expired));
+                } else {
+                    logout(getString(R.string.server_error));
+
                 }
             }
         });

@@ -5,9 +5,8 @@ import android.media.MediaRecorder;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
-import org.igarape.copcast.exceptions.PromiseException;
-import org.igarape.copcast.exceptions.WebRecorderError;
-import org.igarape.copcast.utils.Promise;
+import org.igarape.copcast.promises.WebRecorderPromiseError;
+import org.igarape.copcast.promises.Promise;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -236,7 +235,7 @@ public class WebRecorder {
         Log.d(TAG, "ALL STARTED");
     }
 
-    public void stop(final Promise<WebRecorderError> promise) {
+    public void stop(final Promise<WebRecorderPromiseError> promise) {
         new Thread() {
             @Override
             public void run() {
@@ -265,7 +264,7 @@ public class WebRecorder {
                         promise.success();
                 } catch (InterruptedException e) {
                     if (promise!=null)
-                        promise.error(new PromiseException<WebRecorderError>(WebRecorderError.OTHER, "exception", e));
+                        promise.error(WebRecorderPromiseError.OTHER.put("exception", e));
                 }
             }
         }.start();
