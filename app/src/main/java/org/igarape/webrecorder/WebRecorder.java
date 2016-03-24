@@ -5,10 +5,9 @@ import android.media.MediaRecorder;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
-import org.igarape.util.Promise;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.igarape.copcast;
 
 /**
  * Created by martelli on 2/14/16.
@@ -234,7 +233,7 @@ public class WebRecorder {
         Log.d(TAG, "ALL STARTED");
     }
 
-    public void stop(final Promise promise) {
+    public void stop(final Promise<WebRecorderException> promise) {
         new Thread() {
             @Override
             public void run() {

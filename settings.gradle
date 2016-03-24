@@ -1,1 +1,1 @@
-include ':app', ':androidwebrecorder'
+include ':app'
