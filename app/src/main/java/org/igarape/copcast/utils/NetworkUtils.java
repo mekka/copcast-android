@@ -98,10 +98,10 @@ public class NetworkUtils {
         _executeRequest(null, Method.POST, context, params, null, url, Response.JSON, callback);
     }
 
-    public static void post(Context context, String url, Object jsonObject, Promise callback) {
+    public static void post(Context context, String url, JSONObject jsonObject, Promise callback) {
         _executeRequest(null, Method.POST, context, null, jsonObject, url, Response.JSON, callback);
     }
-    public static void postToServer(Context context, String server, String url, Object jsonObject, Promise callback) {
+    public static void postToServer(Context context, String server, String url, JSONObject jsonObject, Promise callback) {
         _executeRequest(server, Method.POST, context, null, jsonObject, url, Response.JSON, callback);
     }
 
@@ -142,7 +142,7 @@ public class NetworkUtils {
         return NetworkState.NETWORK_OK;
     }
 
-    private static void _executeRequest(final String serverUri, final Method method, final Context context, final List<Pair<String,String>> params, final Object jsonObject, final String url, final Response type, final Promise callback) {
+    private static void _executeRequest(final String serverUri, final Method method, final Context context, final List<Pair<String,String>> params, final JSONObject jsonObject, final String url, final Response type, final Promise callback) {
         if (!hasConnection(context)) {
             if (callback != null) {
                 callback.error(HttpPromiseError.NO_CONNECTION);
@@ -197,7 +197,14 @@ public class NetworkUtils {
                         writer.close();
                         os.close();
                     } else if (jsonObject != null) {
-                        JSONObject obj = (JSONObject) jsonObject;
+                        JSONObject obj;
+                        try {
+                         obj = (JSONObject) jsonObject;
+                        } catch (Exception ex) {
+                            Log.d(TAG, jsonObject.toString());
+                            Log.e(TAG, "Json casting error", ex);
+                            throw ex;
+                        }
                         obj.put("imei", Globals.getImei());
                         obj.put("simid", Globals.getSimid());
                         ILog.d(TAG, obj.toString());

@@ -11,6 +11,7 @@ import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.utils.SqliteUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Created by martelli on 12/8/15.
@@ -30,8 +31,10 @@ public class SqliteUploader {
 
             if (entries.length() == 0)
                 ILog.d(TAG, "No data available for: "+sqlite_key.getType());
-            else
-                NetworkUtils.post(context, sqlite_key.getUrl() + "/" + userLogin, entries, new Promise() {
+            else {
+                JSONObject payload = new JSONObject();
+                payload.put("bulk", entries);
+                NetworkUtils.post(context, sqlite_key.getUrl() + "/" + userLogin, payload, new Promise() {
 
                     @Override
                     public void error(PromiseError exception) {
@@ -44,10 +47,10 @@ public class SqliteUploader {
                     @Override
                     public void success() {
                         SqliteUtils.clearByType(context, userLogin, sqlite_key);
-                        ILog.d(TAG, "Entries for "+sqlite_key.getType()+ " deleted.");
+                        ILog.d(TAG, "Entries for " + sqlite_key.getType() + " deleted.");
                     }
                 });
-
+            }
         } catch (JSONException e) {
             ILog.e(TAG, "Could not upload json data", e);
         }

@@ -61,6 +61,7 @@ public class HistoryUtils {
             try {
                 obj = new JSONObject('"'+extras+'"');
             } catch (JSONException e2) {
+                Log.d(TAG, extras);
                 Log.e(TAG, "Error converting String to JsonObject", e2);
             }
         }
