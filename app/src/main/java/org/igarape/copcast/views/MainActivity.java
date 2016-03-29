@@ -81,7 +81,7 @@ public class MainActivity extends Activity {
     private CompoundButton.OnCheckedChangeListener mStreamListener;
 
     private MediaPlayer mySongclick;
-    private Long first_keydown;
+    private boolean longPress = false;
     private final int FLAG_TRIGGER_WAIT_TIME = 1000;
     private ProgressDialog pDialog;
     private VideoRecorderService videoRecorderService;
@@ -750,47 +750,73 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
+    public boolean onKeyLongPress(int keyCode, KeyEvent event) {
 
         switch(keyCode) {
             case KeyEvent.KEYCODE_VOLUME_DOWN:
             case KeyEvent.KEYCODE_VOLUME_UP:
 
-                if (first_keydown == null) {
-                    first_keydown = System.currentTimeMillis(); // first keydown sets start time
-                } else if (System.currentTimeMillis() - first_keydown > FLAG_TRIGGER_WAIT_TIME) {
-                    if (Globals.getIncidentFlag() == IncidentFlagState.NOT_FLAGGED) {
+                Log.d(TAG, "LONG PRESS");
 
-                        first_keydown = null; //reset state
+                if (Globals.getIncidentFlag() == IncidentFlagState.NOT_FLAGGED) {
 
-                        if (!VideoRecorderService.serviceRunning) {
+                    if (!VideoRecorderService.serviceRunning) {
 
-                            Globals.setIncidentFlag(IncidentFlagState.FLAG_PENDING);
-                            Log.d(TAG, "Flag incident scheduled");
+                        Globals.setIncidentFlag(IncidentFlagState.FLAG_PENDING);
+                        Log.d(TAG, "Flag incident scheduled");
 
-                            if (((TextView) findViewById(R.id.welcome)).getText().equals(getString(R.string.pause_title))) {
-                                Log.d(TAG, "resuming mission by forced incident");
-                                mResumeMissionButton.performClick();
-                            } else {
-                                Log.d(TAG, "starting mission by forced incident");
-                                mStartMissionButton.performClick();
-                            }
+                        if (((TextView) findViewById(R.id.welcome)).getText().equals(getString(R.string.pause_title))) {
+                            Log.d(TAG, "resuming mission by forced incident");
+                            mResumeMissionButton.performClick();
                         } else {
-                            Globals.setIncidentFlag(IncidentFlagState.FLAGGED);
-                            Log.d(TAG, "Flag incident immediately");
-                            IncidentUtils.registerIncident(getApplicationContext(), Globals.getCurrentVideoPath());
-                            Toast.makeText(this, getResources().getString(R.string.registered_incident), Toast.LENGTH_LONG).show();
+                            Log.d(TAG, "starting mission by forced incident");
+                            mStartMissionButton.performClick();
                         }
                     } else {
-                        Log.d(TAG, "Incident already reported. Skipping");
+                        Globals.setIncidentFlag(IncidentFlagState.FLAGGED);
+                        Log.d(TAG, "Flag incident immediately");
+                        IncidentUtils.registerIncident(getApplicationContext(), Globals.getCurrentVideoPath());
+                        Toast.makeText(this, getResources().getString(R.string.registered_incident), Toast.LENGTH_LONG).show();
                     }
+                } else {
+                    Log.d(TAG, "Incident already reported. Skipping");
                 }
+                return true;
+        }
+        return super.onKeyLongPress(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        switch(keyCode) {
+            case KeyEvent.KEYCODE_VOLUME_DOWN:
+            case KeyEvent.KEYCODE_VOLUME_UP:
+                event.startTracking();
+                longPress = longPress || event.isLongPress();
+
+                Log.d(TAG, "UP:"+keyCode);
+                Log.d(TAG, "Event: " + event.toString());
+                Log.d(TAG, "?: "+longPress);
+
                 return true;
             case KeyEvent.KEYCODE_BACK:
                 onBackPressed();
-                return true;
+                break;
         }
+
         return super.onKeyDown(keyCode, event);
+    }
+
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (!longPress) {
+            KeyEvent event2 = new KeyEvent(KeyEvent.ACTION_DOWN, event.getKeyCode());
+            super.onKeyDown(keyCode, event2);
+            Log.d(TAG, "keydown revert");
+        }
+
+        longPress = false;
+
+        return super.onKeyUp(keyCode, event);
     }
 
     @Override

@@ -367,6 +367,8 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     public void stop(Promise promise) {
         webRecorder.stop(promise);
         webRecorder = null;
+        serviceRunning = false;
+        Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
         this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
         this.stopSelf();
     }
