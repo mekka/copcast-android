@@ -168,7 +168,7 @@ public class NetworkUtils {
 
                 try {
                     URL urlToRequest = new URL(pServerUri + url);
-                    ILog.d(TAG, urlToRequest.toString());
+                    Log.d(TAG, urlToRequest.toString());
                     urlConnection = (HttpURLConnection) urlToRequest.openConnection();
 
                     if (method.equals(Method.POST)) {
@@ -197,19 +197,11 @@ public class NetworkUtils {
                         writer.close();
                         os.close();
                     } else if (jsonObject != null) {
-                        JSONObject obj;
-                        try {
-                         obj = (JSONObject) jsonObject;
-                        } catch (Exception ex) {
-                            Log.d(TAG, jsonObject.toString());
-                            Log.e(TAG, "Json casting error", ex);
-                            throw ex;
-                        }
-                        obj.put("imei", Globals.getImei());
-                        obj.put("simid", Globals.getSimid());
-                        ILog.d(TAG, obj.toString());
-                        String signature = SigningService.signature(obj);
-                        obj.put("mac", signature);
+                        jsonObject.put("imei", Globals.getImei());
+                        jsonObject.put("simid", Globals.getSimid());
+                        Log.d(TAG, jsonObject.toString());
+                        String signature = SigningService.signature(jsonObject);
+                        jsonObject.put("mac", signature);
 
                         urlConnection.setRequestProperty("Content-Type", "application/json;charset=" + charset);
                         os = urlConnection.getOutputStream();
@@ -261,13 +253,13 @@ public class NetworkUtils {
                     }
                 } catch (MalformedURLException e) {
                     callback.error(HttpPromiseError.BAD_REQUEST);
-                    ILog.e(TAG, "Url error ", e);
+                    Log.e(TAG, "Url error ", e);
                 } catch (SocketTimeoutException e) {
                     callback.error(HttpPromiseError.BAD_CONNECTION);
-                    ILog.e(TAG, "Timeout error ", e);
+                    Log.e(TAG, "Timeout error ", e);
                 } catch (IOException e) {
                     callback.error(HttpPromiseError.BAD_RESPONSE);
-                    ILog.e(TAG, "Could not read response body ", e);
+                    Log.e(TAG, "Could not read response body ", e);
                 } catch (SigningServiceException e) {
                     callback.error(HttpPromiseError.SIGNING_ERROR);
                 } catch (JSONException e) {
