@@ -53,17 +53,12 @@ public class HistoryUtils {
 
     public static void registerHistory(final Context context, State currentState, State newState, String extras) {
 
-        JSONObject obj = null;
+        JSONObject obj = new JSONObject();
 
         try {
-            obj = new JSONObject(extras);
+            obj = obj.put("extras", extras);
         } catch (JSONException e) {
-            try {
-                obj = new JSONObject('"'+extras+'"');
-            } catch (JSONException e2) {
-                Log.d(TAG, extras);
-                Log.e(TAG, "Error converting String to JsonObject", e2);
-            }
+            Log.e(TAG, "falhou", e);
         }
 
         registerHistory(context, currentState, newState, obj);
@@ -75,7 +70,7 @@ public class HistoryUtils {
         try {
             final JSONObject history = buildJson(currentState, nextState, extras);
 
-            if (extras != null && extras.get("sessionId") == null)
+            if (extras != null)
                 extras.put("sessionId", Globals.getSessionID());
 
             final LoggedHTTPResponseCallback hlogger = new LoggedHTTPResponseCallback(context, JsonDataType.TYPE_HISTORY_DATA, history, TAG);
