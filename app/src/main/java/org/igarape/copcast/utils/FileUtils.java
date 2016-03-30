@@ -52,17 +52,23 @@ public class FileUtils {
         return getUserPath(userLogin);
     }
 
-    public static String[] getUserFolders() {
+    public static String[] getNonEmptyUserFolders() {
         return new File(path).list(new FilenameFilter() {
             @Override
             public boolean accept(File current, String name) {
-                return new File(current, name).isDirectory();
+                File dir = new File(current, name);
+                if (dir.listFiles() == null || dir.listFiles().length == 0) {
+                    dir.delete();
+                    return false;
+                }
+                return dir.isDirectory();
             }
         });
     }
 
     public static File getAlbumStorageDir(String albumName, Context context) {
-        File file = null;
+
+        File file;
 
         //internal storage todo: remove after test
         file = new File(context.getFilesDir(), albumName);
