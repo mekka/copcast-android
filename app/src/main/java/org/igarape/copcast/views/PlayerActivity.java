@@ -240,7 +240,7 @@ public class PlayerActivity extends Activity {
                 if (task != null)
                     task.cancel(true);
 
-                unsetPlay("I");
+                unsetPlay();
                 adap.setCurrentVideo(arg2);
                 adap.notifyDataSetChanged();
 
@@ -292,8 +292,7 @@ public class PlayerActivity extends Activity {
         });
     }
 
-    private void unsetPlay(String a) {
-        Log.d(TAG, ">> "+a);
+    private void unsetPlay() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -340,7 +339,7 @@ public class PlayerActivity extends Activity {
                 try {
                     publishProgress((int) (current * 100 / duration));
                     if(mProgressBar.getProgress() >= 100){
-                        unsetPlay("100%");
+                        unsetPlay();
                         break;
                     }
                 } catch (Exception e) {
