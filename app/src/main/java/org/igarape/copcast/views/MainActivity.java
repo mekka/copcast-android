@@ -15,6 +15,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -82,10 +83,10 @@ public class MainActivity extends Activity {
 
     private MediaPlayer mySongclick;
     private boolean longPress = false;
-    private final int FLAG_TRIGGER_WAIT_TIME = 1000;
     private ProgressDialog pDialog;
     private VideoRecorderService videoRecorderService;
     boolean videoServiceBound = false;
+    private AudioManager audioManager;
 
     private ServiceConnection mConnection = new ServiceConnection() {
 
@@ -120,6 +121,8 @@ public class MainActivity extends Activity {
                 }
             }
         });
+
+        audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
 
         ActionBar ab = getActionBar();
         if (ab != null) {
@@ -760,8 +763,6 @@ public class MainActivity extends Activity {
             case KeyEvent.KEYCODE_VOLUME_DOWN:
             case KeyEvent.KEYCODE_VOLUME_UP:
 
-                Log.d(TAG, "LONG PRESS");
-
                 if (Globals.getIncidentFlag() == IncidentFlagState.NOT_FLAGGED) {
 
                     if (!VideoRecorderService.serviceRunning) {
@@ -797,11 +798,6 @@ public class MainActivity extends Activity {
             case KeyEvent.KEYCODE_VOLUME_UP:
                 event.startTracking();
                 longPress = longPress || event.isLongPress();
-
-                Log.d(TAG, "UP:"+keyCode);
-                Log.d(TAG, "Event: " + event.toString());
-                Log.d(TAG, "?: "+longPress);
-
                 return true;
             case KeyEvent.KEYCODE_BACK:
                 onBackPressed();
@@ -812,14 +808,15 @@ public class MainActivity extends Activity {
     }
 
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        if (!longPress) {
-            KeyEvent event2 = new KeyEvent(KeyEvent.ACTION_DOWN, event.getKeyCode());
-            super.onKeyDown(keyCode, event2);
+        if (!longPress) { //KEYCODE_VOLUME_{UP,DOWN} implied here
             Log.d(TAG, "keydown revert");
+            if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
+                audioManager.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_PLAY_SOUND | AudioManager.FLAG_SHOW_UI);
+            else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP)
+                audioManager.adjustVolume(AudioManager.ADJUST_RAISE, AudioManager.FLAG_PLAY_SOUND | AudioManager.FLAG_SHOW_UI);
         }
 
         longPress = false;
-
         return super.onKeyUp(keyCode, event);
     }
 
