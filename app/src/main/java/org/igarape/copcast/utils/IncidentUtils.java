@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import org.igarape.copcast.db.JsonDataType;
+import org.igarape.copcast.exceptions.SqliteDbException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -94,6 +95,8 @@ public class IncidentUtils {
         } catch (JSONException e) {
             Log.e(TAG, "Error building incident JSON. Video name not stored.");
             Log.d(TAG, e.toString());
+        } catch (SqliteDbException e) {
+            Log.e(TAG, "error storing data into db", e);
         }
     }
 

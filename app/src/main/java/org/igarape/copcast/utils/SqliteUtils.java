@@ -9,6 +9,7 @@ import android.util.Log;
 import org.igarape.copcast.db.JsonDataContract.JsonDataEntry;
 import org.igarape.copcast.db.JsonDataDbHelper;
 import org.igarape.copcast.db.JsonDataType;
+import org.igarape.copcast.exceptions.SqliteDbException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,7 +29,17 @@ public class SqliteUtils {
         return dbHelper.getWritableDatabase();
     }
 
-    public static void storeToDb(Context context, String user, JsonDataType type, String value) {
+    public static void storeToDb(Context context, String user, JsonDataType type, String value) throws SqliteDbException {
+
+        if (user == null)
+            throw new SqliteDbException(TAG, "Invalid user: null");
+
+        if (type == null)
+            throw new SqliteDbException(TAG, "Invalid type: null");
+
+        if (value == null)
+            throw new SqliteDbException(TAG, "Invalid value: null");
+
         long newRowId;
 
         SQLiteDatabase db = SqliteUtils.getWriteDb(context);
@@ -44,7 +55,7 @@ public class SqliteUtils {
         db.close();
     }
 
-    public static void storeToDb(Context context, String user, JsonDataType type, JSONObject obj) {
+    public static void storeToDb(Context context, String user, JsonDataType type, JSONObject obj) throws SqliteDbException {
         storeToDb(context, user, type, obj.toString());
     }
 

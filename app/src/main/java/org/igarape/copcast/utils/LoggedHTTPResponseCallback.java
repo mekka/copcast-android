@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import org.igarape.copcast.db.JsonDataType;
+import org.igarape.copcast.exceptions.SqliteDbException;
 import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.promises.PromiseError;
 import org.json.JSONObject;
@@ -33,7 +34,11 @@ public class LoggedHTTPResponseCallback extends Promise {
     protected void logFailedData(String id) {
         Log.e(this.tag, "data not sent successfully: " + id);
         String userLogin = Globals.getUserLogin(this.context);
-        SqliteUtils.storeToDb(this.context, userLogin, this.jsonDataType, this.data);
+        try {
+            SqliteUtils.storeToDb(this.context, userLogin, this.jsonDataType, this.data);
+        } catch (SqliteDbException e) {
+            Log.e(this.tag, "error storing data into db", e);
+        }
     }
 
     @Override

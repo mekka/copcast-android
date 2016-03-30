@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import org.igarape.copcast.db.JsonDataType;
+import org.igarape.copcast.exceptions.SqliteDbException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -24,7 +25,9 @@ class HeartbeatLoggedCallback extends LoggedHTTPResponseCallback {
         try {
             SqliteUtils.storeToDb(this.context, userLogin, JsonDataType.TYPE_LOCATION_INFO, this.data.getJSONObject("location"));
         } catch (JSONException e) {
-            ILog.e(this.tag, "heartbeat object without location information", e);
+            Log.e(this.tag, "heartbeat object without location information", e);
+        } catch (SqliteDbException e) {
+            Log.e(this.tag, "error storing data into db", e);
         }
 
         if (this.data.has("battery"))
@@ -32,6 +35,8 @@ class HeartbeatLoggedCallback extends LoggedHTTPResponseCallback {
                 SqliteUtils.storeToDb(this.context, userLogin, JsonDataType.TYPE_BATTERY_STATUS, this.data.getJSONObject("battery"));
             } catch (JSONException e) {
                 ILog.e(this.tag, "heartbeat with wrong battery field", e);
+            } catch (SqliteDbException e) {
+                Log.e(this.tag, "error storing data into db", e);
             }
     }
 }
