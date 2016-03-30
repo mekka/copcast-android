@@ -77,14 +77,6 @@ public class Globals {
         return accessToken != null ? accessToken : null;
     }
 
-    public synchronized static String getAccessTokenStraight(Context context) {
-        if (accessToken == null) {
-            SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
-            accessToken = sharedPrefs.getString(PREF_ACCESS_TOKEN, null);
-        }
-        return accessToken != null ? accessToken : null;
-    }
-
     public synchronized static void setAccessToken(Context context, String token) {
         SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
