@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.VideoView;
 
 import org.igarape.copcast.R;
+import org.igarape.copcast.exceptions.HistoryException;
 import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
@@ -245,7 +246,11 @@ public class PlayerActivity extends Activity {
                 adap.notifyDataSetChanged();
 
                 VideoEntry chapter = adap.getItem(arg2);
-                HistoryUtils.registerHistoryEvent(getApplicationContext(), State.SEEN_VIDEO, chapter.video);
+                try {
+                    HistoryUtils.registerHistoryEvent(getApplicationContext(), State.SEEN_VIDEO, chapter.video);
+                } catch (HistoryException e) {
+                    Log.e(TAG, "Error uploading SEEN VIDEO event", e);
+                }
                 videoView.setVideoPath(chapter.path);
                 videoView.start();
                 videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import org.igarape.copcast.db.JsonDataType;
+import org.igarape.copcast.exceptions.HistoryException;
 import org.igarape.copcast.state.State;
 import org.igarape.copcast.state.State;
 import org.json.JSONException;
@@ -34,24 +35,24 @@ public class HistoryUtils {
         return json;
     }
 
-    public static void registerHistoryEvent(Context context, State currentState){
+    public static void registerHistoryEvent(Context context, State currentState) throws HistoryException {
         registerHistoryEvent(context, currentState, (JSONObject) null);
     }
 
-    public static void registerHistoryEvent(final Context context, State currentState, String extras) {
+    public static void registerHistoryEvent(final Context context, State currentState, String extras) throws HistoryException {
         registerHistory(context, currentState, currentState, extras);
     }
 
-    public static void registerHistoryEvent(final Context context, State currentState, JSONObject extras) {
+    public static void registerHistoryEvent(final Context context, State currentState, JSONObject extras) throws HistoryException {
         registerHistory(context, currentState, currentState, extras);
     }
 
-     public static void registerHistory(final Context context, State currentState, State newState) {
+     public static void registerHistory(final Context context, State currentState, State newState) throws HistoryException {
 
         registerHistory(context, currentState, newState, (JSONObject) null);
     }
 
-    public static void registerHistory(final Context context, State currentState, State newState, String extras) {
+    public static void registerHistory(final Context context, State currentState, State newState, String extras) throws HistoryException {
 
         JSONObject obj = new JSONObject();
 
@@ -65,7 +66,13 @@ public class HistoryUtils {
     }
 
 
-    public static void registerHistory(final Context context, State currentState, State nextState, JSONObject extras) {
+    public static void registerHistory(final Context context, State currentState, State nextState, JSONObject extras) throws HistoryException {
+
+        if (currentState == null)
+            throw new HistoryException("Current state cannot be null");
+
+        if (nextState == null)
+            throw new HistoryException("Next state cannot be null");
 
         try {
             final JSONObject history = buildJson(currentState, nextState, extras);

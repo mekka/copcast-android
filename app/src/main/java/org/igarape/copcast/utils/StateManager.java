@@ -5,6 +5,7 @@ import android.content.Context;
 import android.util.Log;
 
 import org.igarape.copcast.R;
+import org.igarape.copcast.exceptions.HistoryException;
 import org.igarape.copcast.exceptions.StateTransitionException;
 import org.igarape.copcast.state.State;
 import org.json.JSONException;
@@ -66,7 +67,11 @@ public class StateManager {
             throw new StateTransitionException("Error setting sessionId into JsonObject");
         }
 
-        HistoryUtils.registerHistory(context, currentState, newState, extras);
+        try {
+            HistoryUtils.registerHistory(context, currentState, newState, extras);
+        } catch (HistoryException e) {
+            Log.e(TAG, "Error uploading history event", e);
+        }
 
         currentState = newState;
     }
