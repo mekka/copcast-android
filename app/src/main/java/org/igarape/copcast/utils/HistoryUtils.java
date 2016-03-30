@@ -40,10 +40,12 @@ public class HistoryUtils {
     }
 
     public static void registerHistoryEvent(final Context context, State currentState, String extras) throws HistoryException {
+        //events repeat current state
         registerHistory(context, currentState, currentState, extras);
     }
 
     public static void registerHistoryEvent(final Context context, State currentState, JSONObject extras) throws HistoryException {
+        //events repeat current state
         registerHistory(context, currentState, currentState, extras);
     }
 
