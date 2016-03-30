@@ -108,6 +108,19 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        NetworkUtils.get(getApplicationContext(), "/users/me", new Promise() {
+
+            @Override
+            public void error(PromiseError error) {
+                if (error.equals(HttpPromiseError.NOT_AUTHORIZED)) {
+                    logout(getString(R.string.token_expired));
+                } else {
+                    logout(getString(R.string.server_error));
+
+                }
+            }
+        });
+
         ActionBar ab = getActionBar();
         if (ab != null) {
             ab.setTitle(Globals.getUserName(getApplicationContext()));
@@ -166,6 +179,8 @@ public class MainActivity extends Activity {
                     if (intent.getExtras() != null && intent.getExtras().get("event")!=null) {
                         UploadServiceEvent use = (UploadServiceEvent) intent.getExtras().get("event");
 
+                        Log.d(TAG, "Received upload event: "+use);
+
                         if (!use.isRunning()) {
                             resetStatusUpload();
                             StateManager.setStateOrDie(MainActivity.this, State.IDLE);
@@ -193,9 +208,6 @@ public class MainActivity extends Activity {
                                 break;
                             case ABORTED_USER:
                                 ILog.d(TAG, "user aborted upload");
-                                break;
-                            case NO_DATA:
-                                Toast.makeText(getApplicationContext(), getString(R.string.upload_no_data), Toast.LENGTH_LONG).show();
                                 break;
                             default:
                                 ILog.e(TAG, "Unexpected upload feedback status: "+use);
@@ -353,15 +365,19 @@ public class MainActivity extends Activity {
                                                                    NetworkState networkState = NetworkUtils.checkUploadState(getApplicationContext());
                                                                    if (networkState == NetworkState.NETWORK_OK) {
                                                                        resetStatusUpload(); // prevent ghost information from appearing
-                                                                       UploadService.doUpload(getApplicationContext());
-                                                                       JSONObject extra = new JSONObject();
-                                                                       try {
-                                                                           extra.put("connection", NetworkUtils.getConnectionType(getApplicationContext()));
-                                                                           extra.put("data", Globals.getDirectorySize(getApplicationContext()));
-                                                                       } catch (JSONException ex) {
-                                                                           Log.e(TAG, "error building json", ex);
+                                                                       if (UploadService.doUpload(getApplicationContext())) {
+                                                                           JSONObject extra = new JSONObject();
+                                                                           try {
+                                                                               extra.put("connection", NetworkUtils.getConnectionType(getApplicationContext()));
+                                                                               extra.put("data", Globals.getDirectorySize(getApplicationContext()));
+                                                                           } catch (JSONException ex) {
+                                                                               Log.e(TAG, "error building json", ex);
+                                                                           }
+                                                                           StateManager.setStateOrDie(MainActivity.this, State.UPLOADING, extra);
+                                                                       } else {
+                                                                           Toast.makeText(getApplicationContext(), getString(R.string.upload_no_data), Toast.LENGTH_LONG).show();
+                                                                           Log.d(TAG, "Upload requested, but nothing to upload");
                                                                        }
-                                                                       StateManager.setStateOrDie(MainActivity.this, State.UPLOADING, extra);
 
                                                                    } else {
                                                                        int msgid = -1;
@@ -665,19 +681,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-
-        NetworkUtils.get(getApplicationContext(), "/users/me", new Promise() {
-
-            @Override
-            public void error(PromiseError error) {
-                if (error.equals(HttpPromiseError.NOT_AUTHORIZED)) {
-                    logout(getString(R.string.token_expired));
-                } else {
-                    logout(getString(R.string.server_error));
-
-                }
-            }
-        });
     }
 
     @Override
@@ -699,6 +702,7 @@ public class MainActivity extends Activity {
         if (Globals.getAccessToken(getApplicationContext()) == null) {
             logout(getString(R.string.invalid_token));
         }
+
         if (pDialog != null){
             pDialog.dismiss();
             pDialog = null;

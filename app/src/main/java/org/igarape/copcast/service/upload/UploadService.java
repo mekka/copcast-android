@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.db.JsonDataType;
@@ -31,7 +32,6 @@ import java.util.UUID;
 public class UploadService extends Service {
 
     private static final String TAG = "AndroidUploadService";
-    public static final String PARAM_FILES = "org.igarape.copcast.to_upload_files";
     public static final String PARAM_TOKEN = "org.igarape.copcast.token";
     public static final String PARAM_MAX_RETRIES = "org.igarape.copcast.maxRetries";
     public static final String UPLOAD_FEEDBACK_ACTION = "org.igarape.copcast.service.upload.feedback";
@@ -40,33 +40,66 @@ public class UploadService extends Service {
     private boolean errorOccured = false;
 
 
-    public static void doUpload(Context context) {
+    public static boolean doUpload(Context context) {
 
         NetworkState networkState = NetworkUtils.checkUploadState(context);
         if (networkState != NetworkState.NETWORK_OK) {
             feedback(context, UploadServiceEvent.ABORTED_NO_NETWORK, null);
+            return false;
         }
 
+        ArrayList<String> users = new ArrayList<>();
+        ArrayList<String> dbUsers = SqliteUtils.getUsersInDb(context);
+        Collections.addAll(users, FileUtils.getNonEmptyUserFolders());
+        Collections.addAll(users, dbUsers.toArray(new String[dbUsers.size()]));
+
+        if ((users == null || users.isEmpty()) && SqliteUtils.countEntries(context) == 0){
+            return false;
+        }
+
+        Intent videoUploadIntent = new Intent(context, UploadService.class);
+        Bundle b = new Bundle();
+        b.putString(UploadService.PARAM_TOKEN, Globals.getAccessToken(context));
+        b.putInt(UploadService.PARAM_MAX_RETRIES, 2);
+
+        videoUploadIntent.putExtras(b);
+
+        ILog.d(TAG, "calling service...");
+        videoUploadIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startService(videoUploadIntent);
+        return true;
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+
+        Context context = getApplicationContext();
+        UploadRequest request;
+
+        ILog.d(TAG, "UPLOAD Service STARTED!");
+        feedback(context, UploadServiceEvent.STARTED, null);
 
         ArrayList<String> users = new ArrayList<>();
         ArrayList<String> dbUsers = SqliteUtils.getUsersInDb(context);
         String userPath;
         GenericExtFilter filter = new GenericExtFilter(".mp4");
 
-
-        Collections.addAll(users, FileUtils.getUserFolders());
+        Collections.addAll(users, FileUtils.getNonEmptyUserFolders());
         ILog.d(TAG, "from user folders:"+users.toString());
         ILog.d(TAG, "from sqlite:" + dbUsers.toString());
         Collections.addAll(users, dbUsers.toArray(new String[dbUsers.size()]));
 
         if ((users == null || users.isEmpty()) && SqliteUtils.countEntries(context) == 0){
-            feedback(context, UploadServiceEvent.NO_DATA, null);
-            return;
+            Log.e(TAG, "Upload service started but no data to upload!");
         }
 
         ArrayList<FileToUpload> filesToUpload = new ArrayList<>();
-
-        feedback(context, UploadServiceEvent.STARTED, null);
 
         for (String userLogin : new LinkedHashSet<>(users)) {
 
@@ -100,58 +133,14 @@ public class UploadService extends Service {
 
         if (filesToUpload.isEmpty()) {
             feedback(context, UploadServiceEvent.FINISHED, null);
-            return;
+            return START_NOT_STICKY;
         }
 
         ILog.d(TAG, "Num of files: " + filesToUpload.size());
 
-        Intent videoUploadIntent = new Intent(context, UploadService.class);
-        Bundle b = new Bundle();
-        b.putParcelableArrayList(UploadService.PARAM_FILES, filesToUpload);
-        b.putString(UploadService.PARAM_TOKEN, Globals.getAccessToken(context));
-        b.putInt(UploadService.PARAM_MAX_RETRIES, 2);
 
-        videoUploadIntent.putExtras(b);
-
-        ILog.d(TAG, "calling service...");
-        videoUploadIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startService(videoUploadIntent);
-    }
-
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-
-        UploadRequest request;
-
-        ILog.d(TAG, "UPLOAD Service STARTED!");
-
-//            String message = getString(R.string.upload_denied) + ". ";
-//            switch (uploadState) {
-//                case NOT_CHARGING:
-//                    message += getString(R.string.upload_state_not_charging);
-//                    break;
-//                case NO_NETWORK:
-//                    message += getString(R.string.upload_state_no_network);
-//                    break;
-//                case WIFI_REQUIRED:
-//                    message += getString(R.string.upload_state_wifi_required);
-//                    break;
-//            }
-//            message += ".";
-
-        //    broadcast(getApplicationContext(), uploadState, null);
-
-        Bundle b = intent.getExtras();
-
-        final ArrayList<FileToUpload> files = b.getParcelableArrayList(PARAM_FILES);
-        if (files != null)
-            ILog.d(TAG, "# of files: "+files.size());
+        if (filesToUpload != null)
+            ILog.d(TAG, "# of files: "+filesToUpload.size());
         else
             ILog.d(TAG, "No files to upload");
 
@@ -159,7 +148,7 @@ public class UploadService extends Service {
         request.setMaxRetries(intent.getIntExtra(PARAM_MAX_RETRIES, 0));
         request.setMethod("POST");
         request.addHeader("Authorization", intent.getStringExtra(PARAM_TOKEN));
-        request.setFilesToUpload(files);
+        request.setFilesToUpload(filesToUpload);
 
         ILog.d(TAG, request.toString());
 
