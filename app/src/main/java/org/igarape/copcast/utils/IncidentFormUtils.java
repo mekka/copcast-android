@@ -27,7 +27,7 @@ public class IncidentFormUtils {
         try {
             incidentFormJSON = buildJson(incidentForm);
 
-            final LoggedHTTPResponseCallback hlogger = new LoggedHTTPResponseCallback(context, JsonDataType.TYPE_HISTORY_DATA, incidentFormJSON, TAG);
+            final LoggedHTTPResponseCallback hlogger = new LoggedHTTPResponseCallback(context, JsonDataType.TYPE_INCIDENT_FORM, incidentFormJSON, TAG);
 
             NetworkUtils.post(context, JsonDataType.TYPE_INCIDENT_FORM.getUrl(), incidentFormJSON, hlogger);
 
