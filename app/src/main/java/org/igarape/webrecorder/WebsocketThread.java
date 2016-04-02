@@ -29,11 +29,9 @@ class WebsocketThread extends Thread {
     private String url;
     private byte[] sps;
     private final int fps;
-    Map<String, String> websocketHeaders;
 
-    public WebsocketThread(String websocket_server_url, Map<String, String> websocketHeaders, final int fps) {
-        this.websocketHeaders = websocketHeaders;
-        this.url = websocket_server_url;
+    public WebsocketThread(Socket websocket, final int fps) {
+        this.ws = websocket;
         Log.d(TAG, "Created.");
         this.fps = fps;
     }
@@ -50,26 +48,26 @@ class WebsocketThread extends Thread {
         Log.d(TAG, "Thread started.");
 
         try {
-            Log.d(TAG, "Websocket server: "+url);
+//            Log.d(TAG, "Websocket server: "+url);
 //            ws = factory.createSocket(url, 5000);
-            String query = "";
-            for (String k : websocketHeaders.keySet()) {
-                if (query.length() > 0)
-                    query += "&";
-                query += k+"="+websocketHeaders.get(k);
-            }
-            Log.d(TAG, "Websocket query: "+query);
-
-            try {
-                IO.Options opts = new IO.Options();
-                opts.forceNew = true;
-                opts.query = query;
-                opts.reconnection = true;
-                ws = IO.socket(url, opts);
-            } catch (URISyntaxException e) {
-                Log.e(TAG, "error connecting socket", e);
-            }
-            ws.connect();
+//            String query = "";
+//            for (String k : websocketHeaders.keySet()) {
+//                if (query.length() > 0)
+//                    query += "&";
+//                query += k+"="+websocketHeaders.get(k);
+//            }
+//            Log.d(TAG, "Websocket query: "+query);
+//
+//            try {
+//                IO.Options opts = new IO.Options();
+//                opts.forceNew = true;
+//                opts.query = query;
+//                opts.reconnection = true;
+//                ws = IO.socket(url, opts);
+//            } catch (URISyntaxException e) {
+//                Log.e(TAG, "error connecting socket", e);
+//            }
+//            ws.connect();
             ws.on("startStreaming", new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {

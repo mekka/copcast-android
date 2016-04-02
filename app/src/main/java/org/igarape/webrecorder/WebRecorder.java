@@ -11,6 +11,8 @@ import org.igarape.copcast.promises.Promise;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.socket.client.Socket;
+
 /**
  * Created by martelli on 2/14/16.
  */
@@ -52,24 +54,17 @@ public class WebRecorder {
     private int videoFrameRate;
     private int iFrameInterval;
     private final String outputPath;
-    private String websocketServerUrl;
-    private Map<String, String> websocketHeaders;
-    private Runnable streamingStartedRunnable;
-    private Runnable streamingStoppedRunnable;
-
+    private Socket websocket;
     private boolean isRunning;
 
     public static class Builder {
-        private final int videoWidth;
-        private final int videoHeight;
+        private int videoWidth;
+        private int videoHeight;
         private Integer videoBitrate;
         private Integer videoFramerate;
         private Integer videoIFrameInterval;
-        private String websocketServerUrl;
+        private Socket websocket;
         private String outputPath;
-        private Map<String, String> websocketHeaders = new HashMap<>();
-        private Runnable streamingStartedRunnable;
-        private Runnable streamingStoppedRunnable;
 
         public Builder(String outputPath, final int videoWidth, final int videoHeight) {
             this.videoHeight = videoHeight;
@@ -92,23 +87,8 @@ public class WebRecorder {
             return this;
         }
 
-        public Builder setWebsocketServer(String websocketServerUrl) {
-            this.websocketServerUrl = websocketServerUrl;
-            return this;
-        }
-
-        public Builder addHeader(String key, String value) {
-            this.websocketHeaders.put(key, value);
-            return this;
-        }
-
-        public Builder setStreamStartedRunnable(Runnable runnable) {
-            this.streamingStartedRunnable = runnable;
-            return this;
-        }
-
-        public Builder setStreamStoppedRunnable(Runnable runnable) {
-            this.streamingStoppedRunnable = runnable;
+        public Builder setWebsocket(Socket ws) {
+            this.websocket = ws;
             return this;
         }
 
@@ -129,8 +109,7 @@ public class WebRecorder {
                 this.videoIFrameInterval = WebRecorder.DEFAULT_KEY_I_FRAME_INTERVAL;
 
             return new WebRecorder(outputPath, videoWidth, videoHeight,
-                    videoBitrate, videoFramerate, videoIFrameInterval, websocketServerUrl,
-                    websocketHeaders, streamingStartedRunnable, streamingStoppedRunnable);
+                    videoBitrate, videoFramerate, videoIFrameInterval, websocket);
         }
     }
 
@@ -141,21 +120,15 @@ public class WebRecorder {
                         Integer videoBitrate,
                         Integer videoFramerate,
                         Integer iFrameInterval,
-                        String websocketServerUrl,
-                        Map<String, String> websocketHeaders,
-                        Runnable streamingStartedRunnable,
-                        Runnable streamingStoppedRunnable
+                        Socket websocket
     ) {
         this.outputPath = outputPath;
         this.videoWidth = videoWidth;
         this.videoHeight = videoHeight;
-        this.websocketServerUrl = websocketServerUrl;
         this.videoFrameRate = videoFramerate;
         this.videoBitRate = videoBitrate;
         this.iFrameInterval = iFrameInterval;
-        this.websocketHeaders = websocketHeaders;
-        this.streamingStartedRunnable = streamingStartedRunnable;
-        this.streamingStoppedRunnable = streamingStoppedRunnable;
+        this.websocket = websocket;
     }
 
     private long getTimestamp() {
@@ -172,24 +145,16 @@ public class WebRecorder {
 
     public void stopBroadcasting() {
         videoConsumerThread.setStreaming(false);
-        if (this.streamingStoppedRunnable != null) {
-            Log.e(TAG, "stopping runnable");
-            this.streamingStoppedRunnable.run();
-        }
     }
 
     public void startBroadcasting() {
         videoConsumerThread.setStreaming(true);
-        if (this.streamingStartedRunnable != null) {
-            Log.e(TAG, "starting runnable");
-            this.streamingStartedRunnable.run();
-        }
     }
 
     public void prepare(SurfaceHolder surfaceHolder) throws WebRecorderException {
 
-        if (websocketServerUrl != null)
-            websocketThread = new WebsocketThread(websocketServerUrl, websocketHeaders, videoFrameRate);
+        if (websocket != null)
+            websocketThread = new WebsocketThread(websocket, videoFrameRate);
 
         videoCodec = new VideoCodec(videoWidth, videoHeight, videoBitRate, videoFrameRate, iFrameInterval);
         audioCodec = new AudioCodec();
@@ -205,7 +170,7 @@ public class WebRecorder {
 
         videoConsumerThread = new VideoConsumer();
         videoConsumerThread.setCodec(videoCodec.getCodec());
-        if (websocketServerUrl != null)
+        if (websocket != null)
             videoConsumerThread.setWebsocketThread(websocketThread);
         videoConsumerThread.setMuxer(muxerThread);
 
@@ -218,7 +183,7 @@ public class WebRecorder {
 
         isRunning = true;
 
-        if (websocketServerUrl != null)
+        if (websocket != null)
             websocketThread.start();
 
         videoCodec.start();

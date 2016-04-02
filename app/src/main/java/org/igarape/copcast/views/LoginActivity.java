@@ -30,6 +30,7 @@ import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.promises.PromisePayload;
 import org.igarape.copcast.utils.NetworkUtils;
+import org.igarape.copcast.utils.OkDialog;
 import org.igarape.copcast.utils.StateManager;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -142,18 +143,12 @@ public class LoginActivity extends Activity {
                         String token = null;
                         try {
                             token = (String) response.get("token");
-                            if (response.get("streamingPort") instanceof Integer){
-                                Globals.setStreamingPort(getApplicationContext(), (Integer) response.get("streamingPort"));
-                            } else {
-                                Globals.setStreamingPort(getApplicationContext(), Integer.parseInt(response.getString("streamingPort")));
-                            }
-                            Globals.setServerIpAddress(getApplicationContext(), response.getString("ipAddress"));
-                            Globals.setStreamingUser(getApplicationContext(), response.getString("streamingUser"));
-                            Globals.setStreamingPassword(getApplicationContext(), response.getString("streamingPassword"));
-                            Globals.setStreamingPath(getApplicationContext(), response.getString("streamingPath"));
                             Globals.setUserName(getApplicationContext(), response.getString("userName"));
+                            Globals.setUserId(getApplicationContext(), response.getInt("userId"));
                         } catch (JSONException e) {
+                            OkDialog.displayAndTerminate(LoginActivity.this, getString(R.string.warning), getString(R.string.internal_error));
                             Log.e(TAG, "error on login", e);
+                            return;
                         }
                         runOnUiThread(new Runnable() {
                             @Override

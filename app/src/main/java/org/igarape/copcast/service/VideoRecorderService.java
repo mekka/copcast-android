@@ -29,8 +29,14 @@ import org.igarape.copcast.views.MainActivity;
 import org.igarape.webrecorder.WebRecorder;
 import org.igarape.webrecorder.WebRecorderException;
 
+import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.concurrent.locks.ReentrantLock;
+
+import io.socket.client.IO;
+import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
+
 
 public class VideoRecorderService extends Service implements SurfaceHolder.Callback {
 
@@ -50,7 +56,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     private static String videoFileName;
     WebRecorder webRecorder;
     LocalBroadcastManager localBroadcastManager;
-
+    private Socket ws;
 
 
     public class LocalBinder extends Binder {
@@ -67,6 +73,41 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             stopSelf();
             return START_STICKY;
         }
+
+        String query = "token="+Globals.getPlainToken(this);
+        query += "&userId="+Globals.getUserId(this);
+        query += "&clientType=android";
+
+        try {
+            IO.Options opts = new IO.Options();
+            opts.forceNew = true;
+            opts.query = query;
+            opts.reconnection = true;
+            ws = IO.socket(Globals.getServerUrl(this), opts);
+        } catch (URISyntaxException e) {
+            Log.e(TAG, "error connecting socket", e);
+        }
+
+        ws.on("startStreaming", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                VideoRecorderService.this.startStreaming();
+                VideoRecorderService.this.sendBroadcast(VideoRecorderService.STARTED_STREAMING);
+
+                Log.e(TAG, "Start Stream!!!");
+            }
+        });
+
+        ws.on("stopStreaming", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                VideoRecorderService.this.stopStreaming();
+                VideoRecorderService.this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
+                Log.e(TAG, "Stop Stream!!!");
+            }
+        });
+
+        ws.connect();
 
         serviceRunning = true;
 
@@ -228,36 +269,28 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         videoFileName = FileUtils.getPath(Globals.getUserLogin(getBaseContext())) +
                 android.text.format.DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime())+".mp4";
 
-        String url = Globals.getServerUrl(this);
-
-        String username = Globals.getUserLogin(this);
-
         webRecorder = new WebRecorder.Builder(videoFileName, 320, 240)
                 .setVideoBitRate(200000)
                 .setVideoFrameRate(10)
                 .setVideoIFrameInterval(2)
-                .addHeader("token", Globals.getPlainToken(this))
-                .addHeader("user",  username)
-                .addHeader("clientType",  "android")
-                .setWebsocketServer(url)
-
-                .setStreamStartedRunnable(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.e(TAG, "runnable start");
-                        VideoRecorderService.this.sendBroadcast(VideoRecorderService.STARTED_STREAMING);
-                    }
-                })
-
-                .setStreamStoppedRunnable(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.e(TAG, "runnable stop");
-                        VideoRecorderService.this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
-                    }
-                })
-
+                .setWebsocket(VideoRecorderService.this.ws)
                 .build();
+//                .setStreamStartedRunnable(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        Log.e(TAG, "runnable start");
+
+//                    }
+//                })
+//
+//                .setStreamStoppedRunnable(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        Log.e(TAG, "runnable stop");
+//                    }
+//                })
+
+
 
         try {
             webRecorder.prepare(this.surfaceHolder);

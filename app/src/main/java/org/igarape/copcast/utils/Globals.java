@@ -27,6 +27,7 @@ public class Globals {
     public static final String STREAMING_PASSWORD = "STREAMING_PASSWORD";
     public static final String STREAMING_PATH = "STREAMING_PATH";
     public static final String USER_NAME = "USER_NAME";
+    public static final String USER_ID = "USER_ID";
     public static final String DIRECTORY_SIZE = "DIRECTORY_SIZE";
     public static final String DIRECTORY_UPLOADED_SIZE = "DIRECTORY_UPLOADED_SIZE";
     public static final long BATTERY_REPEAT_TIME =  1000 * 600; // 10 minutes;
@@ -59,7 +60,7 @@ public class Globals {
     private static String simid;
     private static UUID sessionId;
     private static StateManager stateManager;
-
+    private static Integer userId;
 
     public synchronized static String getAccessToken(Context context) {
         if (accessToken == null) {
@@ -216,7 +217,6 @@ public class Globals {
         }
         return userName;
     }
-
 
     public static void clear(Context context) {
         SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
@@ -384,4 +384,21 @@ public class Globals {
     public static StateManager getStateManager() {
         return stateManager;
     }
+
+    public static void setUserId(Context context,int userId) {
+        SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.putString(USER_ID, String.valueOf(new Integer(userId)));
+        editor.apply();
+        Globals.userId = userId;
+    }
+
+    public static Integer getUserId(Context context) {
+        if (userId == null) {
+            SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
+            userId = Integer.parseInt(sharedPrefs.getString(USER_ID, null));
+        }
+        return userId;
+    }
+
 }
