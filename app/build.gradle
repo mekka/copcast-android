@@ -4,6 +4,7 @@ android {
 
     lintOptions {
         disable 'InvalidPackage','TypographyFractions','TypographyQuotes', 'MissingTranslation'
+        abortOnError false
     }
 
     signingConfigs {
