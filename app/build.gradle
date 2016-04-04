@@ -3,7 +3,7 @@ apply plugin: 'com.google.gms.google-services'
 android {
 
     lintOptions {
-        disable 'InvalidPackage','TypographyFractions','TypographyQuotes', 'MissingTranslation'
+        disable 'InvalidPackage','TypographyFractions','TypographyQuotes', 'MissingTranslation', 'GoogleAppIndexingWarning'
         abortOnError false
     }
 
