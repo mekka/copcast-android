@@ -39,7 +39,7 @@ public class StateManager {
                 break;
 
             case RECORDING:
-                isInvalid = (currentState != State.IDLE && currentState != State.STREAMING);
+                isInvalid = (currentState != State.IDLE && currentState != State.STREAMING && currentState != State.PAUSED);
                 break;
 
             case STREAMING:
