@@ -6,48 +6,58 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
+import android.hardware.Camera;
 import android.media.CamcorderProfile;
+import android.opengl.GLSurfaceView;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.WindowManager;
+
+import com.github.nkzawa.socketio.client.IO;
+import com.github.nkzawa.socketio.client.Socket;
+
+import net.majorkernelpanic.streaming.Session;
+import net.majorkernelpanic.streaming.SessionBuilder;
+import net.majorkernelpanic.streaming.audio.AudioQuality;
+import net.majorkernelpanic.streaming.gl.SurfaceView;
+import net.majorkernelpanic.streaming.rtsp.RtspClient;
+import net.majorkernelpanic.streaming.video.VideoQuality;
 
 import org.igarape.copcast.R;
 import org.igarape.copcast.utils.Globals;
+import org.igarape.copcast.utils.VideoUtils;
 import org.igarape.copcast.views.MainActivity;
-import org.webrtc.MediaStream;
+import org.json.JSONObject;
 
-import webrtcclient.PeerConnectionParameters;
-import webrtcclient.WebRtcClient;
+import java.net.URISyntaxException;
 
 
 /**
  * Created by bruno on 11/19/14.
  */
-public class StreamService extends Service implements SurfaceHolder.Callback, WebRtcClient.RtcListener {
-    private WebRtcClient client;
-    private static final String VIDEO_CODEC_VP9 = "VP9";
-    private static final String AUDIO_CODEC_OPUS = "opus";
-    private int mId = 5;
-    private WindowManager mWindowManager;
+public class StreamService extends Service implements RtspClient.Callback, Session.Callback, SurfaceHolder.Callback {
+    public static String TAG = StreamService.class.getName();
+    private static Session mSession;
+    private static RtspClient mClient;
+    private static boolean IsStreaming = false;
     private SurfaceView mSurfaceView;
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
+    private WindowManager mWindowManager;
+    private int mId = 5;
+    private SurfaceHolder mSurfaceHolder;
+    private boolean bitrateStarted;
+    private Socket mSocketClient;
 
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent == null){
-            stopSelf();
+        super.onStartCommand(intent, flags, startId);
+        if (IsStreaming) {
             return START_STICKY;
         }
-
         Intent resultIntent = new Intent(this, MainActivity.class);
         Context context = getApplicationContext();
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
@@ -71,9 +81,20 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
         // mId allows you to update the notification later on.
         mNotificationManager.notify(mId, mBuilder.build());
 
-        // Create new SurfaceView, set its size to 1x1, move it to the top left corner and set this service as a callback
+        try {
+            IO.Options opts = new IO.Options();
+            opts.forceNew = true;
+            opts.query = "token=" + Globals.getAccessTokenStraight(getApplicationContext()) + "&clientType=android";
+            opts.reconnection = true;
+            mSocketClient = IO.socket(Globals.getServerUrl(getApplicationContext()), opts);
+            mSocketClient.connect();
+        } catch (URISyntaxException e) {
+            Log.e(TAG, "error connecting socket", e);
+        }
+
         mWindowManager = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
-        mSurfaceView = new SurfaceView(this);
+
+        mSurfaceView = new SurfaceView(this, null);
         WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(
                 1, 1,
                 WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
@@ -82,36 +103,30 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
         );
         layoutParams.gravity = Gravity.START | Gravity.TOP;
         mWindowManager.addView(mSurfaceView, layoutParams);
-        mSurfaceView.getHolder().addCallback(this);
+        mSurfaceHolder = mSurfaceView.getHolder();
+        mSurfaceHolder.addCallback(this);
 
         return START_STICKY;
     }
 
-
-    private void init() {
-
-        CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
-
-        PeerConnectionParameters params = new PeerConnectionParameters(
-                true, false, profile.videoFrameWidth, profile.videoFrameHeight, 15, 1, VIDEO_CODEC_VP9, true, 1, AUDIO_CODEC_OPUS, true);
-
-        client = new WebRtcClient(this, Globals.getServerUrl(getApplicationContext()), params, Globals.getAccessTokenStraight(getApplicationContext()));
-
-
-    }
-
     @Override
-    public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        init();
-    }
+    public void onDestroy() {
+        super.onDestroy();
+        mClient.stopStream();
+        mClient.release();
+        mSession.release();
+        IsStreaming = false;
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-    @Override
-    public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
+        mNotificationManager.cancel(mId);
+        /**
+         * Here we`ll tell node(server) that user stopped streaming
+         */
+        mSocketClient.emit("disconnect", new JSONObject());
+        mSocketClient.disconnect();
+        mSocketClient.close();
 
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
         if (Globals.isToggling()){
             Globals.setToggling(false);
             Intent intentAux = new Intent(this, VideoRecorderService.class);
@@ -120,36 +135,104 @@ public class StreamService extends Service implements SurfaceHolder.Callback, We
         }
     }
 
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+    }
 
     @Override
-    public void onDestroy() {
-        if(client != null) {
-            client.onDestroy();
-            if (mSurfaceView != null) {
-                mWindowManager.removeView(mSurfaceView);
-            }
+    public void surfaceCreated(SurfaceHolder holder) {
+        this.bitrateStarted = false;
 
+        Globals.appCamcoderProfile = CamcorderProfile.QUALITY_LOW;
+        CamcorderProfile profile = CamcorderProfile.get(Globals.appCamcoderProfile);
+
+        SessionBuilder builder = SessionBuilder.getInstance()
+                .setCamera(Camera.CameraInfo.CAMERA_FACING_BACK)
+                .setContext(getApplicationContext())
+                .setAudioEncoder(SessionBuilder.AUDIO_NONE)
+                .setVideoEncoder(SessionBuilder.VIDEO_H264)
+                .setSurfaceView(mSurfaceView)
+                .setPreviewOrientation(VideoUtils.DEGREES)
+                .setVideoQuality(new VideoQuality(176,144,20,200000))
+                .setCallback(this);
+
+//        if (android.os.Build.VERSION.SDK_INT <= 16) {
+//            builder = builder.setVideoQuality(new VideoQuality(176, 144, 15, 200000));
+//        }
+        // Configures the SessionBuilder
+        mSession = builder.setCallback(this)
+                .build();
+
+
+        // Configures the RTSP mSocketClient
+        mClient = new RtspClient();
+
+        mClient.setCredentials(Globals.getStreamingUser(getApplicationContext()), Globals.getStreamingPassword(getApplicationContext()));
+        mClient.setServerAddress(Globals.getServerIpAddress(getApplicationContext()), Globals.getStreamingPort(getApplicationContext()));
+        mClient.setStreamPath(Globals.getStreamingPath(getApplicationContext()));
+
+
+        mClient.setSession(mSession);
+        mClient.setCallback(this);
+
+        mSession.startPreview();
+        mClient.startStream();
+        IsStreaming = true;
+
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+
+    }
+
+    @Override
+    public void onBitrateUpdate(long bitrate) {
+        if (bitrate > 0 && !bitrateStarted) {
+            bitrateStarted = true;
+            /**
+             * Here we`ll tell node(server) that user is streaming
+             */
+           mSocketClient.emit("readyToStream", new JSONObject());
         }
-        NotificationManager mNotificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        mNotificationManager.cancel(mId);
-
-        super.onDestroy();
-    }
-
-    @Override
-    public void onCallReady(String callId) {
-        client.start("android_test");
-    }
-
-
-    @Override
-    public void onStatusChanged(String newStatus) {
+        Log.i(TAG, bitrate / 1000 + " kbps");
 
     }
 
     @Override
-    public void onLocalStream(MediaStream localStream) {
+    public void onSessionError(int reason, int streamType, Exception e) {
+        Log.e(TAG, "On Session Error", e);
+    }
+
+    @Override
+    public void onPreviewStarted() {
+
+    }
+
+    @Override
+    public void onSessionConfigured() {
+
+    }
+
+    @Override
+    public void onSessionStarted() {
+
+    }
+
+    @Override
+    public void onSessionStopped() {
+
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    @Override
+    public void onRtspUpdate(int message, Exception e) {
+        Log.e(TAG, "RTSP update", e);
     }
 }

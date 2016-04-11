@@ -48,18 +48,19 @@ public class UploadManager {
     private List<String> users = null;
     private final GenericExtFilter filter = new GenericExtFilter(".mp4");
     private ArrayList<File> videos;
-    private static final SimpleDateFormat df;
+
+    private Context context;
+    private String userLogin;
+    private String userPath;
+    private File nextVideo;
+
+    private static SimpleDateFormat df;
 
     static{
         TimeZone tz = TimeZone.getTimeZone("UTC");
         df = new SimpleDateFormat(FileUtils.DATE_FORMAT);
         df.setTimeZone(tz);
     }
-    private Context context;
-    private String userLogin;
-    private String userPath;
-    private File nextVideo;
-
     public UploadManager(Context applicationContext) {
         this.context = applicationContext;
 
@@ -89,6 +90,7 @@ public class UploadManager {
             uploadLocations(userLogin);
             uploadIncidents(userLogin);
             uploadBattery(userLogin);
+            uploadIncidentForms(userLogin);
             userPath = FileUtils.getPath(userLogin);
             SqliteUtils.clearByType(context, userLogin, JsonDataType.TYPE_FLAGGED_VIDEO);
 
@@ -420,6 +422,72 @@ public class UploadManager {
             }
         });
     }
+
+    /*
+    After a post failed, this function started by uploadbutton, will try to resend the json form
+     */
+    private void uploadIncidentForms(final String userLogin) {
+
+        JSONArray incidentsForms;
+
+        try {
+            incidentsForms = SqliteUtils.getFromDb(context, userLogin, JsonDataType.TYPE_INCIDENT_FORM);
+        } catch (JSONException e) {
+            Log.e(TAG, "Unable to read incidentsForms from database");
+            Log.d(TAG, e.toString());
+            return;
+        }
+
+        if (incidentsForms.length() == 0) {
+            Log.d(TAG, "No failed incidentsForms to upload");
+            return;
+        }
+
+        Log.d(TAG, "# of incidentsForms: " + incidentsForms.length());
+
+        NetworkUtils.post(context, "/incidentForms/"+userLogin, incidentsForms, new HttpResponseCallback() {
+            @Override
+            public void unauthorized() {
+                Log.e(TAG, "incidentsForms unauthorized");
+            }
+
+            @Override
+            public void forbidden() {
+                Log.e(TAG, "forbidden access" );
+            }
+
+            @Override
+            public void failure(int statusCode) {
+                Log.e(TAG, "incidentsForms failure - statusCode: " + statusCode);
+            }
+
+            @Override
+            public void success(JSONObject response) {
+                SqliteUtils.clearByType(context, userLogin, JsonDataType.TYPE_INCIDENT_FORM);
+            }
+
+            @Override
+            public void noConnection() {
+                Log.e(TAG, "incidentsForms noConnection");
+            }
+
+            @Override
+            public void badConnection() {
+                Log.e(TAG, "incidentsForms badConnection");
+            }
+
+            @Override
+            public void badRequest() {
+                Log.e(TAG, "incidentsForms badRequest");
+            }
+
+            @Override
+            public void badResponse() {
+                Log.e(TAG, "incidentsForms badResponse");
+            }
+        });
+    }
+
 
     public static void sendCancelToUI(LocalBroadcastManager broadcaster) {
         Intent intent = new Intent(CANCEL_UPLOAD_ACTION);

@@ -1,14 +1,11 @@
 language: android
 jdk: oraclejdk7
-cache:
-  directories:
-    - node_modules
 sudo: false
 
 env:
   global:
     - ANDROID_API_LEVEL=21
-    - ANDROID_BUILD_TOOLS_VERSION=21.0.1
+    - ANDROID_BUILD_TOOLS_VERSION=21.1.2
     - ANDROID_ABI=armeabi-v7a
     - ADB_INSTALL_TIMEOUT=8 # minutes (2 minutes by default)
 
@@ -20,7 +17,7 @@ android:
     #- tools
 
     # The BuildTools version used by your project
-    - build-tools-21.0.1
+    - build-tools-21.1.2
 
     # The SDK version used to compile your project
     - android-21
@@ -35,7 +32,7 @@ android:
 
     # Specify at least one system image,
     # if you need to run emulator(s) during your tests
-    - sys-img-armeabi-v7a-android-21
+    # - sys-img-armeabi-v7a-android-21
     # - sys-img-x86-android-17
 
   licenses:
