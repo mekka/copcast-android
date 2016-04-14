@@ -7,6 +7,7 @@ import android.view.SurfaceHolder;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by martelli on 2/18/16.
@@ -82,9 +83,11 @@ class VideoProducer implements Camera.PreviewCallback {
 
     public void end() {
         Log.d(TAG, "Stop requested.");
-        camera.stopPreview();
-        camera.setPreviewCallback(null);
-        camera.release();
+        if (camera != null) {
+            camera.stopPreview();
+            camera.setPreviewCallback(null);
+            camera.release();
+        }
         camera = null;
         isRunning = false;
         Log.d(TAG, "Stopped.");

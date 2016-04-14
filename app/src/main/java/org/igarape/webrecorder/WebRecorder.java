@@ -144,11 +144,13 @@ public class WebRecorder {
     }
 
     public void stopBroadcasting() {
-        videoConsumerThread.setStreaming(false);
+        if (videoConsumerThread != null)
+            videoConsumerThread.setStreaming(false);
     }
 
     public void startBroadcasting() {
-        videoConsumerThread.setStreaming(true);
+        if (videoConsumerThread != null)
+            videoConsumerThread.setStreaming(true);
     }
 
     public void prepare(SurfaceHolder surfaceHolder) throws WebRecorderException {
@@ -205,11 +207,21 @@ public class WebRecorder {
             @Override
             public void run() {
 
-                videoProducerThread.end();
-                audioProducerThread.end();
-                muxerThread.end();
-                audioConsumerThread.end();
-                videoConsumerThread.end();
+                if (videoProducerThread != null)
+                    videoProducerThread.end();
+
+                if (audioProducerThread != null)
+                    audioProducerThread.end();
+
+                if (muxerThread != null)
+                    muxerThread.end();
+
+                if (audioConsumerThread != null)
+                    audioConsumerThread.end();
+
+                if (videoConsumerThread != null)
+                    videoConsumerThread.end();
+
                 if (websocketThread != null)
                     websocketThread.end();
 
@@ -224,13 +236,14 @@ public class WebRecorder {
 
                     muxerThread.join();
 
-                    isRunning = false;
                     if (promise!=null)
                         promise.success();
                 } catch (InterruptedException e) {
                     if (promise!=null)
                         promise.error(WebRecorderPromiseError.OTHER.put("exception", e));
                 }
+
+                isRunning = false;
             }
         }.start();
     }

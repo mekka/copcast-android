@@ -21,6 +21,7 @@ class Mp4Muxer extends Thread {
     private int audioTrackIndex;
     private int videoTrackIndex;
     private boolean isRunning = false;
+    private boolean muxerStarted = false;
     private MediaFormat audioFormat;
     private MediaFormat videoFormat;
     private ArrayBlockingQueue<MediaFrame> queue;
@@ -71,6 +72,7 @@ class Mp4Muxer extends Thread {
         videoTrackIndex = mediaMuxer.addTrack(videoFormat);
         audioTrackIndex = mediaMuxer.addTrack(audioFormat);
         mediaMuxer.start();
+        muxerStarted = true;
         Log.d(TAG, "permits before: " + muxerLock.availablePermits());
         muxerLock.release();
         Log.d(TAG, "permits after: " + muxerLock.availablePermits());
@@ -94,9 +96,9 @@ class Mp4Muxer extends Thread {
 
         Log.d(TAG, "Loop started.");
 
-        while(isRunning || frame != null) { // we test last frame to make sure we consume all available frames before leaving
+        while(isRunning) {
             try {
-                frame = queue.poll(100, TimeUnit.MILLISECONDS);
+                frame = queue.poll(10, TimeUnit.MILLISECONDS);
 //                Log.d(TAG, "queue size: "+queue.size());
                 if (frame != null) {
                     trackIndex = frame.getMediaType() == MediaType.AUDIO_FRAME ? audioTrackIndex : videoTrackIndex;
@@ -107,7 +109,8 @@ class Mp4Muxer extends Thread {
             }
         }
         Log.d(TAG, "Loop finished.");
-        mediaMuxer.release();
+        if (muxerStarted)
+            mediaMuxer.release();
         mediaMuxer = null;
         Log.d(TAG, "Thread finished.");
     }
@@ -115,6 +118,7 @@ class Mp4Muxer extends Thread {
     public void end() {
         Log.d(TAG, "Stop requested.");
         isRunning = false;
+        muxerLock.release();
         Log.d(TAG, "Waiting for loop to finish.");
     }
 }

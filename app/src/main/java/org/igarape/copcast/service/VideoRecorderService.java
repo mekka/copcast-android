@@ -83,6 +83,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             opts.forceNew = true;
             opts.query = query;
             opts.reconnection = true;
+            opts.timeout = 5000;
             ws = IO.socket(Globals.getServerUrl(this), opts);
         } catch (URISyntaxException e) {
             Log.e(TAG, "error connecting socket", e);
@@ -269,6 +270,9 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         videoFileName = FileUtils.getPath(Globals.getUserLogin(getBaseContext())) +
                 android.text.format.DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime())+".mp4";
 
+        lock.lock();
+        Log.d(TAG, "> prepare locked");
+
         webRecorder = new WebRecorder.Builder(videoFileName, 320, 240)
                 .setVideoBitRate(200000)
                 .setVideoFrameRate(10)
@@ -294,11 +298,15 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
         try {
             webRecorder.prepare(this.surfaceHolder);
+            webRecorder.start();
         } catch (WebRecorderException e) {
             e.printStackTrace();
+        } finally {
+            lock.unlock();
+            Log.d(TAG, "< prepare unlocked");
         }
 
-        webRecorder.start();
+
 
         return true;
     }
@@ -347,18 +355,18 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     }
 
     public void stopStreaming() {
-        webRecorder.stopBroadcasting();
+        if (webRecorder != null)
+            webRecorder.stopBroadcasting();
     }
 
     private void releaseMediaRecorder() {
 
         Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
 
-
         webRecorder.stop(new Promise() {
             @Override
             public void error(PromiseError exception) {
-                Log.e(TAG, "Failed to stop webrecorder: "+exception.toString());
+                Log.e(TAG, "Failed to stop webrecorder: " + exception.toString());
             }
         });
     }
@@ -398,12 +406,21 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     }
 
     public void stop(Promise promise) {
-        webRecorder.stop(promise);
-        webRecorder = null;
-        serviceRunning = false;
-        Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
-        this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
-        this.stopSelf();
+
+        lock.lock();
+        Log.d(TAG, "< stop locked");
+        try {
+            webRecorder.stop(promise);
+            webRecorder = null;
+            serviceRunning = false;
+            Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
+            this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
+            this.stopSelf();
+        } finally {
+            lock.unlock();
+            Log.d(TAG, "< stop unlocked");
+
+        }
     }
 
     public void sendBroadcast(String intentType) {
