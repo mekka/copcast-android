@@ -12,6 +12,7 @@ import android.util.Log;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
 import org.igarape.copcast.promises.HttpPromiseError;
 import org.igarape.copcast.promises.PromiseError;
@@ -78,8 +79,12 @@ public class SigningService {
         if (imei == null)
             throw new SigningServiceException("IMEI is NULL");
 
-        if (simno == null)
-            throw new SigningServiceException("SimID is NULL");
+        if (simno == null) {
+            if (BuildConfig.DEBUG)
+                simno = "FakeSimNo";
+            else
+               throw new SigningServiceException("SimID is NULL");
+        }
 
         Globals.setImei(imei);
         Globals.setSimid(simno);
