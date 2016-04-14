@@ -194,7 +194,7 @@ public class UploadManager {
             lastModified = lastModified - mp.getDuration();
             mp.release();
         } else {
-            Log.e(TAG, "NO duration for video "+nextVideo.getName() );
+            Log.e(TAG, "NO duration for video "+nextVideo.getName() + " size: " +nextVideo.length() );
         }
 
         request.addParameter("date", df.format(new Date(lastModified)));
