@@ -664,7 +664,6 @@ public class MainActivity extends Activity {
 
         StateManager.setStateOrDie(MainActivity.this, State.LOGGED_OFF);
         Globals.clear(MainActivity.this);
-        killServices();
 
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         if (reason != null)
@@ -674,9 +673,11 @@ public class MainActivity extends Activity {
     }
 
     private void killServices() {
+        if (videoServiceBound) {
+            Log.e(TAG, this.getClass().getCanonicalName()+"<<<");
+            this.unbindService(mConnection);
+        }
         stopService(new Intent(MainActivity.this, LocationService.class));
-        if (videoServiceBound)
-            unbindService(mConnection);
         stopService(new Intent(MainActivity.this, VideoRecorderService.class));
         stopService(new Intent(MainActivity.this, UploadService.class));
     }
