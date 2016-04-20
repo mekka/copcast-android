@@ -7,6 +7,8 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -26,10 +28,10 @@ class Mp4Muxer extends Thread {
     private MediaFormat videoFormat;
     private ArrayBlockingQueue<MediaFrame> queue;
     private Semaphore muxerLock = new Semaphore(1);
-    private String outputPath;
+    private String outputDir;
 
-    public Mp4Muxer(String outputPath) throws WebRecorderException {
-        this.outputPath = outputPath;
+    public Mp4Muxer(String outputDir) throws WebRecorderException {
+        this.outputDir = outputDir;
         queue = new ArrayBlockingQueue(1000);
         try {
             muxerLock.acquire();
@@ -59,9 +61,20 @@ class Mp4Muxer extends Thread {
     }
 
     private boolean initMuxer() throws WebRecorderException {
-        if (audioFormat != null && videoFormat != null && mediaMuxer == null) {
+        return initMuxer(false);
+    }
+
+    private boolean initMuxer(boolean forcedRestart) throws WebRecorderException {
+        // if forcedRestart is false, initMuxer won't inicialize de MediaMuxer even if called
+        // multiple times. This is desired because the videoConsumer can call 'setVideoFormat'
+        // more than once, but we don't want to touch de MediaMuxer after it has been started.
+        if (audioFormat != null && videoFormat != null && (mediaMuxer == null || forcedRestart)) {
             try {
-                mediaMuxer = new MediaMuxer(outputPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+                Date data = new Date();
+                SimpleDateFormat dataFmt = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+                String file_name = this.outputDir+dataFmt.format(data)+".mp4";
+                Log.d(TAG, "Starting file: "+file_name);
+                mediaMuxer = new MediaMuxer(file_name, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             } catch (IOException e) {
                 throw new WebRecorderException(e);
             }
@@ -83,8 +96,10 @@ class Mp4Muxer extends Thread {
     public void run() {
         Log.d(TAG, "Thread started.");
         isRunning = true;
-        MediaFrame frame = new MediaFrame(null, null, null);
+        MediaFrame frame;
         int trackIndex;
+        long videoInitialTS = -1;
+        long MINUTES_5 = 5*60*1000000;
 
         try {
             muxerLock.acquire();
@@ -101,11 +116,24 @@ class Mp4Muxer extends Thread {
                 frame = queue.poll(10, TimeUnit.MILLISECONDS);
 //                Log.d(TAG, "queue size: "+queue.size());
                 if (frame != null) {
+
+//                    Log.e(TAG, frame.getBufferInfo().presentationTimeUs+"/"+videoInitialTS);
+                    if ((frame.getBufferInfo().presentationTimeUs - videoInitialTS)>MINUTES_5) {
+
+                        if (videoInitialTS > -1) {
+                            mediaMuxer.release();
+                            initMuxer(true); //forced muxer will restart even if the muxer object is not null.
+                        }
+                        videoInitialTS = frame.getBufferInfo().presentationTimeUs;
+                    }
+
                     trackIndex = frame.getMediaType() == MediaType.AUDIO_FRAME ? audioTrackIndex : videoTrackIndex;
                     mediaMuxer.writeSampleData(trackIndex, frame.getBuffer(), frame.getBufferInfo());
                 }
             } catch (InterruptedException e) {
                 Log.e(TAG, "Error writing data to muxer", e);
+            } catch (WebRecorderException e) {
+                Log.e(TAG, "Error starting new muxer", e);
             }
         }
         Log.d(TAG, "Loop finished.");
