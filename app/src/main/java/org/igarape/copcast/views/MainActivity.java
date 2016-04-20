@@ -329,11 +329,7 @@ public class MainActivity extends Activity {
                                                                      mStreamSwitch.setChecked(false);
                                                                      mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
 
-                                                                     Intent intent = new Intent(MainActivity.this, VideoRecorderService.class);
-                                                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-                                                                     intent = new Intent(MainActivity.this, LocationService.class);
-                                                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                                     Intent intent = new Intent(MainActivity.this, LocationService.class);
                                                                      stopService(intent);
 
                                                                      mCountDownTenPaused.cancel();
@@ -771,7 +767,8 @@ public class MainActivity extends Activity {
                         Globals.setIncidentFlag(IncidentFlagState.FLAG_PENDING);
                         Log.d(TAG, "Flag incident scheduled");
 
-                        if (((TextView) findViewById(R.id.welcome)).getText().equals(getString(R.string.pause_title))) {
+//                        if (((TextView) findViewById(R.id.welcome)).getText().equals(getString(R.string.pause_title))) {
+                        if (Globals.getStateManager().isState(State.PAUSED)) {
                             Log.d(TAG, "resuming mission by forced incident");
                             mResumeMissionButton.performClick();
                         } else {
@@ -781,7 +778,7 @@ public class MainActivity extends Activity {
                     } else {
                         Globals.setIncidentFlag(IncidentFlagState.FLAGGED);
                         Log.d(TAG, "Flag incident immediately");
-                        IncidentUtils.registerIncident(getApplicationContext(), Globals.getCurrentVideoPath());
+                        IncidentUtils.registerIncident(getApplicationContext());
                         Toast.makeText(this, getResources().getString(R.string.registered_incident), Toast.LENGTH_LONG).show();
                     }
                 } else {

@@ -2,10 +2,13 @@ package org.igarape.copcast.utils;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import org.igarape.copcast.db.JsonDataType;
 import org.igarape.copcast.exceptions.SqliteDbException;
+import org.igarape.copcast.state.IncidentFlagState;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,42 +33,35 @@ public class IncidentUtils {
 
         JSONObject json = new JSONObject();
         json.put("date", df.format(new Date()));
-        json.put("lat", Globals.getLastKnownLocation().getLatitude());
-        json.put("lng", Globals.getLastKnownLocation().getLongitude());
+
+        try {
+            json.put("lat", Globals.getLastKnownLocation().getLatitude());
+            json.put("lng", Globals.getLastKnownLocation().getLongitude());
+        } catch (Exception ex) {
+            Log.e(TAG, "Failed to fetch last known location. Sending empty incident.");
+        }
+
         return json;
     }
 
-    public static void registerIncident(final Context context, final String videoPath) {
 
-        final JSONObject[] incident = new JSONObject[1];
+    public static void registerIncident(final Context context) {
 
-        saveVideoPath(context, videoPath);
+        // add delayed call to reset incident flag state;
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.postDelayed(new Runnable(){
+            @Override
+            public void run(){
+                Log.d(TAG, "Resetting incident flag state to NOT_FLAGGED");
+                Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
+            }
+        }, 5000);
+
+        saveIncident(context);
         try {
-            incident[0] = buildJson();
-            sendIncident(context, incident[0]);
-        } catch (Exception e) {
-            Log.e(TAG, "error building incident JSON. Replay in 2s.");
-            Log.d(TAG, e.toString());
-            //Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED); // this will reset the flag state and allow for a longer volume press to take place;
-
-            new AsyncTask<Void, Void, Void>() {
-
-                @Override
-                protected Void doInBackground(Void... params) {
-                    try{
-                        Thread.sleep(2000);
-                        Log.d(TAG, "TRYING AGAIN");
-                        incident[0] = buildJson();
-                        sendIncident(context, incident[0]);
-                    } catch (Exception e) {
-                        Log.e(TAG, "Failed second try");
-                        Log.d(TAG, e.toString());
-                    }
-                    return null;
-                }
-
-            }.execute();
-
+            sendIncident(context, buildJson());
+        } catch (JSONException e) {
+            Log.e(TAG, "Could not build incident json (date error?). Not sending any incident");
         }
 
     }
@@ -79,21 +75,15 @@ public class IncidentUtils {
         NetworkUtils.post(context, "/incidents", incident, ilogger);
     }
 
-    public static void saveVideoPath(Context context, String videoPath) {
-
-        if (videoPath == null || videoPath.length() == 0) {
-            Log.w(TAG, "saveVideoPath called without video argument");
-            return;
-        }
+    public static void saveIncident(Context context) {
 
         try {
             JSONObject obj = new JSONObject();
             obj.put("date", TimeUtils.getTimestamp().toString());
-            obj.put("videoPath", videoPath);
             SqliteUtils.storeToDb(context, Globals.getUserLogin(context),
                     JsonDataType.TYPE_FLAGGED_VIDEO, obj.toString());
         } catch (JSONException e) {
-            Log.e(TAG, "Error building incident JSON. Video name not stored.");
+            Log.e(TAG, "Error building incident JSON");
             Log.d(TAG, e.toString());
         } catch (SqliteDbException e) {
             Log.e(TAG, "error storing data into db", e);

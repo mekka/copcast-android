@@ -25,6 +25,7 @@ import org.igarape.copcast.state.IncidentFlagState;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.promises.Promise;
+import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.views.MainActivity;
 import org.igarape.webrecorder.WebRecorder;
 import org.igarape.webrecorder.WebRecorderException;
@@ -53,7 +54,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     private ReentrantLock lock = new ReentrantLock();
     private boolean serviceExiting = false;
     public static boolean serviceRunning = false;
-    private static String videoFileName;
+    private static String baseDir;
     WebRecorder webRecorder;
     LocalBroadcastManager localBroadcastManager;
     private Socket ws;
@@ -224,17 +225,13 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 //            // Apply to MediaRecorder
 //            mediaRecorder.setProfile(profile);
 //
-//            videoFileName = FileUtils.getPath(Globals.getUserLogin(getBaseContext())) +
+//            baseDir = FileUtils.getPath(Globals.getUserLogin(getBaseContext())) +
 //                    android.text.format.DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime()) +
 //                    ".mp4";
 //
-//            Globals.setCurrentVideoPath(videoFileName);
-//            mediaRecorder.setOutputFile(videoFileName);
+//            Globals.setCurrentVideoPath(baseDir);
+//            mediaRecorder.setOutputFile(baseDir);
 //
-//            if (Globals.getIncidentFlag() == IncidentFlagState.FLAG_PENDING) {
-//                IncidentUtils.registerIncident(getApplicationContext(), Globals.getCurrentVideoPath());
-//                Globals.setIncidentFlag(IncidentFlagState.FLAGGED);
-//            }
 //
 //            mediaRecorder.setOrientationHint(getScreenOrientation(Globals.getRotation()));
 //            mediaRecorder.setMaxDuration(MAX_DURATION_MS);
@@ -267,34 +264,23 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 //            Log.d(TAG, "< prepare unlocked");
 //        }
 
-        videoFileName = FileUtils.getPath(Globals.getUserLogin(getBaseContext())) +
-                android.text.format.DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime())+".mp4";
+        baseDir = FileUtils.getPath(Globals.getUserLogin(getBaseContext()));
+
+        if (Globals.getIncidentFlag() == IncidentFlagState.FLAG_PENDING) {
+            Globals.setIncidentFlag(IncidentFlagState.FLAGGED);
+            IncidentUtils.registerIncident(getApplicationContext());
+        }
+
 
         lock.lock();
         Log.d(TAG, "> prepare locked");
 
-        webRecorder = new WebRecorder.Builder(videoFileName, 320, 240)
+        webRecorder = new WebRecorder.Builder(baseDir, 320, 240)
                 .setVideoBitRate(200000)
                 .setVideoFrameRate(10)
                 .setVideoIFrameInterval(2)
                 .setWebsocket(VideoRecorderService.this.ws)
                 .build();
-//                .setStreamStartedRunnable(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        Log.e(TAG, "runnable start");
-
-//                    }
-//                })
-//
-//                .setStreamStoppedRunnable(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        Log.e(TAG, "runnable stop");
-//                    }
-//                })
-
-
 
         try {
             webRecorder.prepare(this.surfaceHolder);
@@ -305,8 +291,6 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             lock.unlock();
             Log.d(TAG, "< prepare unlocked");
         }
-
-
 
         return true;
     }
@@ -407,6 +391,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
     public void stop(Promise promise) {
 
+        Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
         lock.lock();
         Log.d(TAG, "< stop locked");
         try {
