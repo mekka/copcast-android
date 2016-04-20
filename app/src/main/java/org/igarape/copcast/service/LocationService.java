@@ -34,7 +34,6 @@ import org.json.JSONException;
 public class LocationService extends Service implements LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static final String TAG = LocationService.class.getName();
     private int mId = 2;
-    private Handler handler;
     private GoogleApiClient mGoogleApiClient;
 
     @Override
@@ -56,9 +55,9 @@ public class LocationService extends Service implements LocationListener, Google
         return null;
     }
 
-
     @Override
     public void onLocationChanged(Location location) {
+        Log.d(TAG, "Location info received");
         if(null != location){
             try {
                 Globals.setLastKnownLocation(location);
@@ -109,6 +108,7 @@ public class LocationService extends Service implements LocationListener, Google
                 .addApi(LocationServices.API).build();
         mGoogleApiClient.connect();
 
+        Log.d(TAG, "Location service started");
 
         return START_STICKY;
     }
@@ -134,6 +134,7 @@ public class LocationService extends Service implements LocationListener, Google
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 mGoogleApiClient, mLocationRequest, this);
 
+        Log.d(TAG, "Location service connected");
     }
 
     @Override
