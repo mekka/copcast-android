@@ -55,13 +55,17 @@ public class LocationService extends Service implements LocationListener, Google
         return null;
     }
 
+    public void sendHeartbeat(Location location) throws JSONException {
+        Globals.setLastKnownLocation(location);
+        HeartBeatUtils.sendHeartBeat(getApplicationContext(), LocationUtils.buildJson(location), BatteryUtils.buildJson());
+    }
+
     @Override
     public void onLocationChanged(Location location) {
         Log.d(TAG, "Location info received");
         if(null != location){
             try {
-                Globals.setLastKnownLocation(location);
-                HeartBeatUtils.sendHeartBeat(getApplicationContext(), LocationUtils.buildJson(location), BatteryUtils.buildJson());
+                sendHeartbeat(location);
             } catch (JSONException e) {
                 Log.e(TAG, "error parsing location.", e);
             }
@@ -115,6 +119,14 @@ public class LocationService extends Service implements LocationListener, Google
 
     @Override
     public void onConnected(Bundle bundle) {
+
+        // set and send last known location right before setting up request service.
+        try {
+            sendHeartbeat(LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient));
+        } catch(JSONException ex) {
+            Log.e(TAG, "Tried to send initial location, but got null instead.");
+        }
+
         LocationRequest mLocationRequest = new LocationRequest();
 
         /*
