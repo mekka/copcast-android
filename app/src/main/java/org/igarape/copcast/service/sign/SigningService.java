@@ -2,7 +2,9 @@ package org.igarape.copcast.service.sign;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
@@ -291,9 +293,11 @@ public class SigningService {
                     case FORBIDDEN:
                         promise.error(ctx.getString(R.string.server_error));
                         break;
+                    case BAD_REQUEST:
+                        promise.error(ctx.getString(R.string.incomplete_registration));
+                        break;
                     case NO_CONNECTION:
                     case BAD_CONNECTION:
-                    case BAD_REQUEST:
                     case BAD_RESPONSE:
                     case FAILURE:
                         promise.error(ctx.getString(R.string.server_error));
@@ -303,7 +307,14 @@ public class SigningService {
 
             @Override
             public void success(PromisePayload promisePayload) {
+
+                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(ctx);
+                SharedPreferences.Editor edit = sharedPref.edit();
+                edit.putString(Globals.APP_REGISTERED, url);
+                edit.commit();
+                Log.d(TAG, "App registered with server: "+url);
                 promise.success();
+
             }
         });
         Log.d(TAG, "Registration sent: " + (System.currentTimeMillis() - time));

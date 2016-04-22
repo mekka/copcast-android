@@ -19,6 +19,7 @@ import java.util.UUID;
  */
 public class Globals {
 
+    public static final String APP_REGISTERED = "APP_REGISTERED";
     public static final String AUTH = "AUTH";
     public static final String DATA = "DATA";
     public static final String STREAMING_PORT = "STREAMING_PORT";
@@ -330,6 +331,11 @@ public class Globals {
     public static String getServerUrl(Context context){
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         return sharedPref.getString(SERVER_URL, "");
+    }
+
+    public static String getAppRegistered(Context context){
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPref.getString(APP_REGISTERED, "");
     }
 
     public static Boolean isWifiOnly(Context context){

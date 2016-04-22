@@ -44,18 +44,14 @@ public class SplashScreenActivity extends Activity {
 
         // verify if we already have the signing mechanism initialized.
         // if not, prompt the user for server and credentials.
-        try {
-            if (SigningService.fetchKey() == null) {
-                Intent intent = new Intent(SplashScreenActivity.this, RegistrationActivity.class);
-                startActivity(intent);
-                SplashScreenActivity.this.finish();
-            }
-
-        } catch (SigningServiceException e) {
-            ILog.e(TAG, "Failed to fetch keystore information", e);
-            Toast.makeText(this, getString(R.string.error_keystore), Toast.LENGTH_LONG);
+        String server_url = Globals.getServerUrl(this);
+        String registered_server_url = Globals.getAppRegistered(this);
+        if (registered_server_url == null || registered_server_url.compareTo(server_url)!=0) {
+            Intent intent = new Intent(SplashScreenActivity.this, RegistrationActivity.class);
+            startActivity(intent);
             SplashScreenActivity.this.finish();
         }
+
 
         try {
             SigningService.loadIDs(this);

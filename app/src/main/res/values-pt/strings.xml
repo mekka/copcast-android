@@ -117,4 +117,5 @@
     <string name="forbidden_login">Você não possui permissão para acessar o Copcast</string>
     <string name="not_supported">Fala - Funcionalidade não suportada pelo seu celular</string>
     <string name="internal_error">Erro interno de aplicação</string>
+    <string name="incomplete_registration">Parâmetros de registro faltante. Reinicie a aplicação.</string>
 </resources>

@@ -220,6 +220,9 @@ public class NetworkUtils {
                     } else if (statusCode == HttpURLConnection.HTTP_FORBIDDEN) {
                         callback.error(HttpPromiseError.FORBIDDEN);
                         return null;
+                    } else if (statusCode == HttpURLConnection.HTTP_BAD_REQUEST) {
+                        callback.error(HttpPromiseError.BAD_REQUEST);
+                        return null;
                     } else if (statusCode != HttpURLConnection.HTTP_OK && statusCode != HttpURLConnection.HTTP_CREATED) {
 //                        callback.failure(statusCode);
                         callback.error(HttpPromiseError.FAILURE.put("statusCode", statusCode));
