@@ -81,10 +81,13 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
         try {
             IO.Options opts = new IO.Options();
-            opts.forceNew = true;
+            opts.forceNew = false;
             opts.query = query;
             opts.reconnection = true;
-            opts.timeout = 5000;
+            opts.reconnectionDelay=1000;
+            opts.reconnectionDelayMax=1000;
+            opts.timeout = 4000;
+            opts.transports = new String[] {"websocket"};
             ws = IO.socket(Globals.getServerUrl(this), opts);
         } catch (URISyntaxException e) {
             Log.e(TAG, "error connecting socket", e);
@@ -97,6 +100,27 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 VideoRecorderService.this.sendBroadcast(VideoRecorderService.STARTED_STREAMING);
 
                 Log.e(TAG, "Start Stream!!!");
+            }
+        });
+
+        ws.on("connect", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                Log.e(TAG, "connect");
+            }
+        });
+
+        ws.on("reconnect", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                Log.e(TAG, "reconnect");
+            }
+        });
+
+        ws.on("reconnect_attempt", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                Log.e(TAG, "reconnect attempt");
             }
         });
 
