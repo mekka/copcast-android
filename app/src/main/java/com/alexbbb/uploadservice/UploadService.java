@@ -141,6 +141,7 @@ public class UploadService extends IntentService {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        stopCurrentUpload();
      //   wakeLock.release();
     }
 
@@ -169,7 +170,7 @@ public class UploadService extends IntentService {
                 shouldContinue = true;
                // wakeLock.acquire();
                 int attempts = 0;
-                int errorDelay = 1000;
+                int errorDelay = 10000;
                 int maxErrorDelay = 10 * 60 * 1000;
 
                 createNotification();
@@ -182,17 +183,17 @@ public class UploadService extends IntentService {
                     } catch (Exception exc) {
                         if (attempts > maxRetries || !shouldContinue) {
                             //broadcastError(uploadId, exc);
-                            //TODO UploadManager.sendFailedToUI(LocalBroadcastManager.getInstance(getApplicationContext()));
+                            UploadManager.sendFailedToUI(LocalBroadcastManager.getInstance(getApplicationContext()));
                         } else {
                             Log.e(getClass().getName(), "Error in uploadId " + uploadId + " on attempt " + attempts
                                             + ". Waiting " + errorDelay / 1000 + "s before next attempt",
                                     exc);
                             SystemClock.sleep(errorDelay);
 
-                            errorDelay *= 10;
-                            if (errorDelay > maxErrorDelay) {
-                                errorDelay = maxErrorDelay;
-                            }
+//                            errorDelay *= 10;
+//                            if (errorDelay > maxErrorDelay) {
+//                                errorDelay = maxErrorDelay;
+//                            }
                         }
                     }
                 }
@@ -252,12 +253,12 @@ public class UploadService extends IntentService {
                 if (serverResponseCode / 100 == 2) {
                     UploadManager.sendUpdateToUI(getApplicationContext(), LocalBroadcastManager.getInstance(getApplicationContext()), totalFileBytes);
                 } else { // getErrorStream if the response code is not 2xx
-                    UploadManager.sendFailedToUI(LocalBroadcastManager.getInstance(getApplicationContext()));
+                    //UploadManager.sendFailedToUI(LocalBroadcastManager.getInstance(getApplicationContext()));
                     throw new IOException("Request returned code "+serverResponseCode);
                 }
             } catch(Exception e){
                 Log.e(TAG, "error receiving code status", e);
-                UploadManager.sendFailedToUI(LocalBroadcastManager.getInstance(getApplicationContext()));
+                //UploadManager.sendFailedToUI(LocalBroadcastManager.getInstance(getApplicationContext()));
                 throw e;
             }
 
