@@ -182,8 +182,9 @@ public class UploadService extends IntentService {
                     } catch (Exception exc) {
                         if (attempts > maxRetries || !shouldContinue) {
                             //broadcastError(uploadId, exc);
+                            //TODO UploadManager.sendFailedToUI(LocalBroadcastManager.getInstance(getApplicationContext()));
                         } else {
-                            Log.w(getClass().getName(), "Error in uploadId " + uploadId + " on attempt " + attempts
+                            Log.e(getClass().getName(), "Error in uploadId " + uploadId + " on attempt " + attempts
                                             + ". Waiting " + errorDelay / 1000 + "s before next attempt",
                                     exc);
                             SystemClock.sleep(errorDelay);
@@ -237,7 +238,7 @@ public class UploadService extends IntentService {
             if (android.os.Build.VERSION.SDK_INT >= 19) {
                 conn.setFixedLengthStreamingMode(bodyLength);
             } else {
-                conn.setFixedLengthStreamingMode((int) bodyLength);
+                conn.setChunkedStreamingMode((int) bodyLength);
             }
 
             requestStream = conn.getOutputStream();
@@ -252,10 +253,12 @@ public class UploadService extends IntentService {
                     UploadManager.sendUpdateToUI(getApplicationContext(), LocalBroadcastManager.getInstance(getApplicationContext()), totalFileBytes);
                 } else { // getErrorStream if the response code is not 2xx
                     UploadManager.sendFailedToUI(LocalBroadcastManager.getInstance(getApplicationContext()));
+                    throw new IOException("Request returned code "+serverResponseCode);
                 }
             } catch(Exception e){
                 Log.e(TAG, "error receiving code status", e);
                 UploadManager.sendFailedToUI(LocalBroadcastManager.getInstance(getApplicationContext()));
+                throw e;
             }
 
         } finally {

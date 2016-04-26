@@ -211,7 +211,7 @@ public class UploadManager {
         request.setNotificationClickIntent(new Intent(context, MainActivity.class));
 
         // set the maximum number of automatic upload retries on error
-        request.setMaxRetries(2);
+        request.setMaxRetries(4);
 
         try {
             UploadService.startUpload(request);
