@@ -81,7 +81,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
         try {
             IO.Options opts = new IO.Options();
-            opts.forceNew = false;
+            opts.forceNew = true;
             opts.query = query;
             opts.reconnection = true;
             opts.reconnectionDelay=1000;
@@ -89,6 +89,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             opts.timeout = 4000;
             opts.transports = new String[] {"websocket"};
             ws = IO.socket(Globals.getServerUrl(this), opts);
+
         } catch (URISyntaxException e) {
             Log.e(TAG, "error connecting socket", e);
         }
