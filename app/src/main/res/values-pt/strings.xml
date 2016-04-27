@@ -8,17 +8,12 @@
     <string name="login_hint">Usuário</string>
     <string name="password_hint">Senha</string>
     <string name="unauthorized_login">Login ou senha inválido</string>
-    <string name="settings"> Configurações </string>
     <string name="login_required"> Login obrigatório </string>
     <string name="password_required"> Senha obrigatória </string>
     <string name="network_required"> Rede deve estar ativa </string>
     <string name="copcast_main_title"> CopCast </string>
-    <string name="videos_label"> Vídeos gravados: </string>
-    <string name="start_streaming">Iniciar Transmissão</string>
     <string name="start_mission"> Iniciar Missão </string>
     <string name="recording_started"> Registrando... </string>
-    <string name="start_uploading">Iniciar o Envio</string>
-    <string name="uploading_videos">Enviando Vídeos</string>
     <string name="notification_record_title"> CopCast Câmera </string>
     <string name="notification_record_description"> Gravando no SDCard </string>
     <string name="notification_location_title"> Buscando Localização</string>
@@ -44,7 +39,6 @@
     <string name="uploading_size">Enviando (%1$sMB of %2$sMB)</string>
     <string name="upload_disabled">Não é possível enviar neste momento. É necessário que o celular esteja carregando ou com bateria cheia.</string>
     <string name="upload_stopped">Envio cancelado devido a restrições de rede/bateria</string>
-    <string name="under_construction"> Em Construção </string>
     <string name="upload_completed"> Envio concluído! </string>
     <string name="stop_uploading">Você está enviando dados. Deseja interromper e iniciar nova missão?</string>
     <string name="ok"> Ok </string>
