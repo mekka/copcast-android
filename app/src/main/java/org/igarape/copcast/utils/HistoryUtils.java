@@ -30,7 +30,7 @@ public class HistoryUtils {
         json.put("previousState", currentState.toString());
         json.put("nextState", nextState.toString());
         if (extras != null)
-            json.put("extras", extras.toString());
+            json.put("extras", extras);
         json.put("date", df.format(new Date()));
         return json;
     }
