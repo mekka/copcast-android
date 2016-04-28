@@ -16,6 +16,7 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="true" />
@@ -42,7 +43,6 @@
             android:theme="@android:style/Theme.Holo.NoActionBar.Fullscreen" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -72,18 +72,7 @@
         <service android:name=".service.VideoRecorderService" />
         <service android:name=".service.LocationService" />
 
-        <service android:name=".service.StreamService" />
-        <receiver android:name=".receiver.AlarmHeartBeatReceiver"/>
         <service android:name=".service.upload.UploadService" />
-        <receiver
-            android:name="com.google.android.gms.gcm.GcmReceiver"
-            android:exported="true"
-            android:permission="com.google.android.c2dm.permission.SEND" >
-            <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-                <category android:name="org.igarape.copcast" />
-            </intent-filter>
-        </receiver>
         <receiver android:name=".receiver.BatteryReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_BATTERY_LOW" />
