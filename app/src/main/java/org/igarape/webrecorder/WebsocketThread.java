@@ -1,5 +1,6 @@
 package org.igarape.webrecorder;
 
+import android.util.Base64;
 import android.util.Log;
 
 //import com.neovisionaries.ws.client.WebSocket;
@@ -84,7 +85,7 @@ class WebsocketThread extends Thread {
         Log.d(TAG, "Loop started.");
         while(isRunning) {
             try {
-                packet = pipe.poll(1, TimeUnit.SECONDS);
+                packet = pipe.poll(20, TimeUnit.MILLISECONDS);
                 if (packet != null) {
 
                     lastTenSecond = System.currentTimeMillis()/10000;
@@ -98,7 +99,7 @@ class WebsocketThread extends Thread {
 
                     if (counter++ % fps == 0) {
                         ws.emit("frame", sps);
-                        Log.d(TAG, "Sending SPS");
+//                        Log.d(TAG, "Sending SPS");
                     }
 
                     ws.emit("frame", packet);
@@ -107,7 +108,7 @@ class WebsocketThread extends Thread {
                 Log.e(TAG, "error polling", e);
             }
         }
-        ws.disconnect();
+        //ws.disconnect();
         Log.d(TAG, "Loop and thread finished.");
     }
 
@@ -124,9 +125,13 @@ class WebsocketThread extends Thread {
     }
 
     public void setStreaming(boolean isStreaming) {
-        if (isStreaming)
-            ws.emit("streamStarted");
-        else
-            ws.emit("streamStopped");
+        try {
+            if (isStreaming)
+                ws.emit("streamStarted");
+            else
+                ws.emit("streamStopped");
+        } catch (IllegalStateException e) {
+            Log.e(TAG, "Error sending stream command", e);
+        }
     }
 }
