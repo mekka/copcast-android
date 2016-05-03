@@ -87,6 +87,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             opts.reconnectionDelay=1000;
             opts.reconnectionDelayMax=1000;
             opts.timeout = 4000;
+            opts.upgrade = true;
             opts.transports = new String[] {"websocket"};
             ws = IO.socket(Globals.getServerUrl(this), opts);
 
@@ -122,6 +123,9 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             @Override
             public void call(Object... args) {
                 Log.e(TAG, "reconnect attempt");
+                VideoRecorderService.this.stopStreaming();
+                VideoRecorderService.this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
+                Log.e(TAG, "Stop Stream!!!");
             }
         });
 
@@ -423,6 +427,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             webRecorder.stop(promise);
             webRecorder = null;
             serviceRunning = false;
+            ws.disconnect();
             Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
             this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
             this.stopSelf();
