@@ -119,7 +119,6 @@ class WebsocketThread extends Thread {
 
     public void end() {
         Log.d(TAG, "Stop requested.");
-        ws.disconnect();
         isRunning = false;
         Log.d(TAG, "Waiting for loop to finish.");
     }
