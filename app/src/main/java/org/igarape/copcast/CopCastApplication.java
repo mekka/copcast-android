@@ -30,18 +30,6 @@ public class CopCastApplication extends Application {
         FileUtils.init(getApplicationContext());
         Globals.setAccessToken(this, null);
         Globals.setDirectorySize(getApplicationContext(), FileUtils.getDirectorySize());
-
-        String fileName = "logcat_"+System.currentTimeMillis()+".txt";
-        File outputFile = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES),fileName);
-        try {
-            @SuppressWarnings("unused")
-            Process process = Runtime.getRuntime().exec("logcat -f "+outputFile.getAbsolutePath());
-            Log.e("DEBUG", outputFile.getAbsolutePath());
-        } catch (IOException e) {
-            Toast.makeText(this, "Logcat error", Toast.LENGTH_LONG).show();
-        }
-
     }
 
 
