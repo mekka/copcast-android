@@ -1,14 +1,14 @@
 package org.igarape.copcast.views;
 
-import android.app.Activity;
 import android.os.Bundle;
+import android.preference.PreferenceActivity;
 
 import org.igarape.copcast.settings.SettingsFragment;
 
 /**
  * Created by brunosiqueira on 27/08/15.
  */
-public class SettingsActivity extends Activity {
+public class SettingsActivity extends PreferenceActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -18,5 +18,10 @@ public class SettingsActivity extends Activity {
                 .replace(android.R.id.content, new SettingsFragment())
                 .commit();
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
     }
 }

@@ -17,5 +17,13 @@
         android:summary="@string/stream_limit"
         android:defaultValue="@string/LIMIT_STREAMING_TIME" />
 
+    <PreferenceCategory
+        android:title="@string/about">
+        <PreferenceScreen
+            android:title="@string/version_name"
+            android:key="version_name"
+            android:summary="@string/VERSION_NAME">
+        </PreferenceScreen>
+    </PreferenceCategory>
 
 </PreferenceScreen>
