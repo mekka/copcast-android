@@ -101,4 +101,6 @@
     <string name="not_supported">Talk - Feature not supported in your device</string>
     <string name="stream_limit">Video will stream uninterrupted for 20 minutes at a time</string>
     <string name="limit_streaming_time">Limit streaming time</string>
+    <string name="about">About</string>
+    <string name="version_name">Version</string>
 </resources>
