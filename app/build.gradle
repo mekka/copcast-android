@@ -32,25 +32,30 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
     productFlavors {
         local {
             //resValue "string", "SERVER_URL_DEFAULT", "\"http://mogi-api.igarape.org\""
             resValue "string", "SERVER_URL_DEFAULT", "\"http://192.168.0.103:3000\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "true"
             resValue "string", "LIMIT_STREAMING_TIME", "true"
+            resValue "string", "VERSION_NAME", android.defaultConfig.versionName
         }
         general {
             resValue "string", "SERVER_URL_DEFAULT", "\"https://api.mycopcast.com\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "true"
             resValue "string", "LIMIT_STREAMING_TIME", "true"
+            resValue "string", "VERSION_NAME", android.defaultConfig.versionName
             signingConfig signingConfigs.config
         }
         capeTown {
             resValue "string", "SERVER_URL_DEFAULT", "\"https://docs-api.mycopcast.com\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "false"
             resValue "string", "LIMIT_STREAMING_TIME", "true"
+            resValue "string", "VERSION_NAME", android.defaultConfig.versionName
         }
     }
+
     dexOptions {
         incremental true
     }

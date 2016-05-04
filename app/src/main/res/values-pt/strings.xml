@@ -93,4 +93,6 @@
     <string name="not_supported">Fala - Funcionalidade não suportada pelo seu celular</string>
     <string name="stream_limit">Vídeo transmitirá por 20 minutos sem interrupções</string>
     <string name="limit_streaming_time">Limitar tempo de transmissão</string>
+    <string name="about">Sobre</string>
+    <string name="version_name">Versão</string>
 </resources>
