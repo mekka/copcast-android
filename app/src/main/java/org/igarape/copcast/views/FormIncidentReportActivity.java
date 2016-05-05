@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.location.Address;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -19,6 +21,10 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
+
 import org.igarape.copcast.R;
 import org.igarape.copcast.bo.IncidentForm;
 import org.igarape.copcast.fragments.DatePickerFragment;
@@ -33,7 +39,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-public class FormIncidentReportActivity extends Activity {
+public class FormIncidentReportActivity extends Activity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     //context
     Context context;
@@ -67,7 +73,8 @@ public class FormIncidentReportActivity extends Activity {
 
     private Button btnSendForm;
     private String TAG = FormIncidentReportActivity.class.getName();
-    private GPSTracker mGpsTracker;
+    private GoogleApiClient mGoogleApiClient;
+    private Location mLocation;
 
 
     @Override
@@ -77,7 +84,7 @@ public class FormIncidentReportActivity extends Activity {
         context = this;
         Log.d(TAG, "FormIncident created");
         setContentView(R.layout.activity_form_incident_report);
-        sv = (ScrollView)findViewById(R.id.scrollView1);
+        sv = (ScrollView) findViewById(R.id.scrollView1);
         form = (LinearLayout) findViewById(R.id.form);
         btnSetDate = (ImageButton) findViewById(R.id.btnSetDate);
         btnSetTime = (ImageButton) findViewById(R.id.btnSetTime);
@@ -94,6 +101,13 @@ public class FormIncidentReportActivity extends Activity {
                 }
             }
         });
+
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API).build();
+        mGoogleApiClient.connect();
 
     }
 
@@ -129,9 +143,8 @@ public class FormIncidentReportActivity extends Activity {
                 Toast.makeText(context, getString(R.string.fill_fine_type), Toast.LENGTH_SHORT).show();
             }
         }
-        if (chkAccident.isChecked())
-        {
-            if ( txtAccNumInjured.getText().toString().length() == 0) {
+        if (chkAccident.isChecked()) {
+            if (txtAccNumInjured.getText().toString().length() == 0) {
                 validated = false;
                 Toast.makeText(context, getString(R.string.fill_number_injured), Toast.LENGTH_SHORT).show();
             }
@@ -166,51 +179,6 @@ public class FormIncidentReportActivity extends Activity {
         chkArrResUseForce = (CheckBox) findViewById(R.id.chkArrResUseForce);
         chkArrResUseLetahlForce = (CheckBox) findViewById(R.id.chkArrResUseLetahlForce);
 
-
-
-        String strLatitude = "--";
-        String strLongitude = "--";
-        mGpsTracker = new GPSTracker(this);
-
-        if (mGpsTracker.getIsGPSTrackingEnabled()) {
-
-            if (mGpsTracker.getLatitude() != null) {
-                strLatitude = String.valueOf(mGpsTracker.getLatitude());
-                strLongitude = String.valueOf(mGpsTracker.getLongitude());
-            }
-
-            StringBuffer address = new StringBuffer();
-            if (mGpsTracker.getAddressLine(this) != null){
-                address.append(mGpsTracker.getAddressLine(this));
-            }
-            if (mGpsTracker.getLocality(this) != null){
-                address.append("\n");
-                address.append(mGpsTracker.getLocality(this));
-            }
-            if (mGpsTracker.getPostalCode(this) != null){
-                address.append("\n");
-                address.append(mGpsTracker.getPostalCode(this));
-            }
-            if (mGpsTracker.getCountryName(this) != null){
-                address.append("\n");
-                address.append(mGpsTracker.getCountryName(this));
-            }
-
-            if (address.length() > 0)
-                txtAddress.setText(address.toString());
-
-        } else {
-            // can't get location
-            // GPS or Network is not enabled
-            // Ask user to enable GPS/network in settings
-            mGpsTracker.showSettingsAlert();
-        }
-        txtLocation.setText(strLatitude + " / " + strLongitude);
-
-        mGpsTracker.stopUsingGPS();
-
-        txtLocation.setText(strLatitude + " / " + strLongitude);
-
         chkAccident.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -229,9 +197,8 @@ public class FormIncidentReportActivity extends Activity {
             @Override
             public void onClick(View v) {
                 setScrollDown(chkFine, false);
-                if (((CheckBox)v).isChecked()){
+                if (((CheckBox) v).isChecked()) {
                     findViewById(R.id.fineLayout).setVisibility(View.VISIBLE);
-//                    sv.scrollTo(0, sv.getBottom());
                     sv.fullScroll(ScrollView.FOCUS_DOWN);
                 } else {
                     txtFineType.setText(null);
@@ -244,7 +211,7 @@ public class FormIncidentReportActivity extends Activity {
             @Override
             public void onClick(View v) {
                 setScrollDown(chkArrest, true);
-                if (((CheckBox)v).isChecked()){
+                if (((CheckBox) v).isChecked()) {
                     findViewById(R.id.arrestLayout).setVisibility(View.VISIBLE);
                 } else {
                     chkArrResistance.setChecked(false);
@@ -277,7 +244,7 @@ public class FormIncidentReportActivity extends Activity {
             @Override
             public void onClick(View v) {
                 DialogFragment newFragment = new DatePickerFragment();
-                ((DatePickerFragment)newFragment).setTxtView(txtDate);
+                ((DatePickerFragment) newFragment).setTxtView(txtDate);
                 newFragment.show(getFragmentManager(), "datePicker");
             }
 
@@ -287,14 +254,14 @@ public class FormIncidentReportActivity extends Activity {
             @Override
             public void onClick(View v) {
                 DialogFragment newFragment = new TimePickerFragment();
-                ((TimePickerFragment)newFragment).setTxtView(txtTime);
+                ((TimePickerFragment) newFragment).setTxtView(txtTime);
                 newFragment.show(getFragmentManager(), "timePicker");
             }
         });
 
         //touching the gravity ticks sets its value
-        int[] ticks = new int[] {R.id.gv1, R.id.gv2, R.id.gv3, R.id.gv4, R.id.gv5};
-        for(int i=0; i<=4; i++) {
+        int[] ticks = new int[]{R.id.gv1, R.id.gv2, R.id.gv3, R.id.gv4, R.id.gv5};
+        for (int i = 0; i <= 4; i++) {
             final int num = i;
             int v = ticks[i];
             findViewById(v).setOnTouchListener(new View.OnTouchListener() {
@@ -314,7 +281,7 @@ public class FormIncidentReportActivity extends Activity {
         color = btnSendForm.getBackground();
         try {
             //change button behavior
-            btnSendForm.setBackgroundColor( color.getOpacity() );
+            btnSendForm.setBackgroundColor(color.getOpacity());
             btnSendForm.setEnabled(false);
 
             incident = getIncidentForm();
@@ -326,9 +293,7 @@ public class FormIncidentReportActivity extends Activity {
             btnSendForm.setEnabled(true);
 
             finish();
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             Log.e(TAG, "error sending the form", e);
             Toast.makeText(context, getString(R.string.error_sending_form), Toast.LENGTH_LONG).show();
             btnSendForm.setBackground(color);
@@ -346,33 +311,20 @@ public class FormIncidentReportActivity extends Activity {
     }
 
     private IncidentForm getIncidentForm() {
-
-        // check if GPS enabled
-        GPSTracker gpsTracker = new GPSTracker(this);
-        String address="";
         String strLatitude = "0.0";
-        String strLongitude = "0.0" ;
+        String strLongitude = "0.0";
 
+        if (mLocation != null) {
+            strLatitude = String.valueOf(mLocation.getLatitude());
+            strLongitude = String.valueOf(mLocation.getLongitude());
 
-
-        if (gpsTracker.getIsGPSTrackingEnabled()) {
-            strLatitude = String.valueOf(gpsTracker.getLatitude());
-            strLongitude = String.valueOf(gpsTracker.getLongitude());
-
-        } else {
-            // can't get location
-            // GPS or Network is not enabled
-            // Ask user to enable GPS/network in settings
-            gpsTracker.showSettingsAlert();
         }
-
         IncidentForm incidentForm = new IncidentForm();
-
 
 
         try {
             DateFormat format = new SimpleDateFormat("yyyy/MM/dd HH:mm");
-            Date date = format.parse(txtDate.getText().toString()+" "+txtTime.getText().toString());
+            Date date = format.parse(txtDate.getText().toString() + " " + txtTime.getText().toString());
             incidentForm.setDate(date);
         } catch (ParseException e) {
             Log.e(TAG, "error parsing date", e);
@@ -384,7 +336,7 @@ public class FormIncidentReportActivity extends Activity {
         incidentForm.setAddress(txtAddress.getText().toString());
 
         incidentForm.setAccident(chkAccident.isChecked());
-        incidentForm.setGravity(skbAccGravity.getProgress()+1);
+        incidentForm.setGravity(skbAccGravity.getProgress() + 1);
         if (chkAccident.isChecked()) {
             incidentForm.setInjured(Integer.parseInt(txtAccNumInjured.getText().toString()));
         }
@@ -398,5 +350,52 @@ public class FormIncidentReportActivity extends Activity {
 
         return incidentForm;
 
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        mLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+        if (mLocation != null) {
+            Address address = GPSTracker.getGeocoderAddress(getApplicationContext(), mLocation);
+            if (address != null) {
+                String strLatitude = String.valueOf(mLocation.getLatitude());
+                String strLongitude = String.valueOf(mLocation.getLongitude());
+
+                StringBuilder addressString = new StringBuilder();
+                if (address.getAddressLine(0) != null) {
+                    addressString.append(address.getAddressLine(0));
+                }
+                if (address.getLocality() != null) {
+                    addressString.append("\n");
+                    addressString.append(address.getLocality());
+                }
+                if (address.getPostalCode() != null) {
+                    addressString.append("\n");
+                    addressString.append(address.getPostalCode());
+                }
+                if (address.getCountryName() != null) {
+                    addressString.append("\n");
+                    addressString.append(address.getCountryName());
+                }
+
+                if (addressString.length() > 0) {
+                    txtAddress.setText(addressString.toString());
+                }
+
+                txtLocation.setText(strLatitude + " / " + strLongitude);
+            }
+        }
+        mGoogleApiClient.disconnect();
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        GPSTracker.showSettingsAlert(getApplicationContext());
     }
 }
