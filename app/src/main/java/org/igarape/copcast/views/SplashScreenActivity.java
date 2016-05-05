@@ -11,6 +11,7 @@ import org.igarape.copcast.R;
 import org.igarape.copcast.service.sign.SigningService;
 import org.igarape.copcast.service.sign.SigningServiceException;
 import org.igarape.copcast.state.State;
+import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.StateManager;
@@ -24,6 +25,13 @@ public class SplashScreenActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_splash_screen);
+
+        Globals.sessionInit();
+        Globals.initStateManager(this);
+        FileUtils.init(getApplicationContext());
+        Globals.setAccessToken(this, null);
+        Globals.setDirectorySize(getApplicationContext(), FileUtils.getDirectorySize());
+
 
         View decorView = getWindow().getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
