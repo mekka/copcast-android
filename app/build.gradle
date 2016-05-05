@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 //apply plugin: 'com.google.gms.google-services'
+
 android {
 
     packagingOptions {
@@ -52,6 +53,13 @@ android {
 
         capeTown {
             resValue "string", "SERVER_URL_DEFAULT", "\"https://docs-api.mycopcast.com\""
+            resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "false"
+            buildConfigField "boolean", "HAS_INCIDENT_FORM", "true"
+            buildConfigField "boolean", "HAS_VIDEO_PLAYBACK", "true"
+        }
+
+        dev {
+            resValue "string", "SERVER_URL_DEFAULT", "\"https://dev-api.mycopcast.com\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "false"
             buildConfigField "boolean", "HAS_INCIDENT_FORM", "true"
             buildConfigField "boolean", "HAS_VIDEO_PLAYBACK", "true"
