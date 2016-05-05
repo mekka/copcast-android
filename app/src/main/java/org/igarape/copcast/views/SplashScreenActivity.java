@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Toast;
-import com.splunk.mint.Mint;
+//import com.splunk.mint.Mint;
 import org.igarape.copcast.R;
 import org.igarape.copcast.service.sign.SigningService;
 import org.igarape.copcast.service.sign.SigningServiceException;
@@ -39,7 +39,7 @@ public class SplashScreenActivity extends Activity {
         decorView.setSystemUiVisibility(uiOptions);
 
         //splunk initialization
-        Mint.initAndStartSession(SplashScreenActivity.this, "0c1e5146");
+//        Mint.initAndStartSession(SplashScreenActivity.this, "0c1e5146");
         PreferenceManager.setDefaultValues(getApplicationContext(), R.xml.preferences, false);
 
         // verify if we already have the signing mechanism initialized.
