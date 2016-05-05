@@ -11,4 +11,13 @@
         android:summary="@string/pref_upload_wifi_only_desc"
         android:defaultValue="@string/REQUIRE_WIFI_UPLOAD_DEFAULT" />
 
+    <PreferenceCategory
+        android:title="@string/about">
+        <PreferenceScreen
+            android:title="@string/version_name"
+            android:key="version_name"
+            android:summary="@string/VERSION_NAME">
+        </PreferenceScreen>
+    </PreferenceCategory>
+
 </PreferenceScreen>

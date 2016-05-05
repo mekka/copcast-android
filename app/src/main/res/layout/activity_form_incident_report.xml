@@ -363,27 +363,24 @@
             </LinearLayout>
 
 
+
+        <Button
+            android:layout_below="@id/scrollView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/send"
+            android:id="@+id/btnFormSend"
+            android:layout_gravity="center_horizontal"
+            android:layout_centerHorizontal="true"
+            android:onClick="SendIncidForm"
+            android:textAlignment="center"
+            android:singleLine="true"
+            android:drawableLeft="@drawable/notification_template_icon_bg"
+            style="?android:attr/borderlessButtonStyle"
+            android:background="@drawable/button_blue"
+            android:textColor="@color/text_dark_block"
+            />
         </LinearLayout>
-
     </ScrollView>
-
-
-    <Button
-        android:layout_below="@id/scrollView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/send"
-        android:id="@+id/btnFormSend"
-        android:layout_gravity="center_horizontal"
-        android:layout_centerHorizontal="true"
-        android:onClick="SendIncidForm"
-        android:textAlignment="center"
-        android:singleLine="true"
-        android:drawableLeft="@drawable/notification_template_icon_bg"
-        style="?android:attr/borderlessButtonStyle"
-        android:background="@drawable/button_blue"
-        android:textColor="@color/text_dark_block"
-        />
-
 
 </RelativeLayout>

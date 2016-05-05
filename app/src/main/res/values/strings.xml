@@ -118,4 +118,6 @@
     <string name="not_supported">Talk - Feature not supported in your device</string>
     <string name="internal_error">Internal application error</string>
     <string name="incomplete_registration">Missing registration parameters. Please try restarting the application.</string>
+    <string name="about">About</string>
+    <string name="version_name">Version</string>
 </resources>
