@@ -105,9 +105,14 @@ public class LoginActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Intent i;
         switch (item.getItemId()) {
             case R.id.action_settings:
-                Intent i = new Intent(this, SettingsActivity.class);
+                i = new Intent(this, SettingsActivity.class);
+                startActivity(i);
+                break;
+            case R.id.device_registration:
+                i = new Intent(this, RegistrationActivity.class);
                 startActivity(i);
                 break;
         }

@@ -27,9 +27,5 @@ public class SettingsActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
-        Intent intent = new Intent(this, RegistrationActivity.class);
-        startActivity(intent);
     }
-
 }

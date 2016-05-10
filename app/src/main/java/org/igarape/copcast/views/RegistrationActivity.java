@@ -2,6 +2,7 @@ package org.igarape.copcast.views;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -10,6 +11,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import org.igarape.copcast.R;
@@ -40,6 +42,7 @@ public class RegistrationActivity extends Activity {
         Log.e(TAG, "simid >>"+Globals.getSimid());
 
         register_url = (TextView) findViewById(R.id.txtRegisterUrl);
+        register_url.setText(Globals.getServerUrl(this));
         register_username = (TextView) findViewById(R.id.txtRegisterUsername);
         register_password = (TextView) findViewById(R.id.txtRegisterPassword);
         doRegister = (Button) findViewById(R.id.btnDoRegister);
@@ -54,7 +57,6 @@ public class RegistrationActivity extends Activity {
                 doRegister();
             }
         });
-
     }
 
     private void doRegister() {

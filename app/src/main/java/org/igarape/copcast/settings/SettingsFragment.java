@@ -18,10 +18,5 @@ public class SettingsFragment extends PreferenceFragment {
         // Load the preferences from an XML resource
         addPreferencesFromResource(R.xml.preferences);
 
-        EditTextPreference serverUrlText = (EditTextPreference) findPreference("server_url");
-        if (Globals.getAccessToken(getActivity().getApplicationContext()) != null){
-            serverUrlText.setEnabled(false);
-            serverUrlText.setSummary(getText(R.string.serverurl_disabled_logged));
-        }
     }
 }

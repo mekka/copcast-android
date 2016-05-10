@@ -66,6 +66,7 @@ android {
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "false"
             buildConfigField "boolean", "HAS_INCIDENT_FORM", "true"
             buildConfigField "boolean", "HAS_VIDEO_PLAYBACK", "true"
+            resValue "string", "VERSION_NAME", android.defaultConfig.versionName
         }
     }
 
