@@ -75,6 +75,7 @@ public class MainActivity extends Activity {
     private Button mEndMissionButton;
     private Button mPauseRecordingButton;
     private Button mResumeMissionButton;
+    private Button uploadButton;
     private TextView mPauseCounter;
     private CountDownPausedTimer mCountDownThirtyPaused;
     private CountDownPausedTimer mCountDownTenPaused;
@@ -132,6 +133,7 @@ public class MainActivity extends Activity {
         FileUtils.init(getApplicationContext());
 
         mStreamSwitch = (Switch) findViewById(R.id.streamSwitch);
+        uploadButton = (Button) findViewById(R.id.uploadButton);
         mStartMissionButton = (Button) findViewById(R.id.startMissionButton);
         mEndMissionButton = (Button) findViewById(R.id.endMissionButton);
         mPauseRecordingButton = (Button) findViewById(R.id.pauseRecordingButton);
@@ -161,13 +163,34 @@ public class MainActivity extends Activity {
         broadcastReceiver
                 = new BroadcastReceiver() {
             @Override
-            public void onReceive(Context context, Intent intent) {
+            public void onReceive(Context context, final Intent intent) {
                 ILog.d(TAG, "received generic");
+
                 if (intent.getAction().equals(BatteryReceiver.BATTERY_LOW_MESSAGE)) {
                     stopUploading();
-                } else if (intent.getAction().equals(BatteryReceiver.BATTERY_OKAY_MESSAGE)) {
+                } else if (intent.getAction().equals(BatteryReceiver.POWER_UNPLUGGED)) {
+
+                    if (Globals.getStateManager().isState(State.UPLOADING)) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(MainActivity.this, getString(R.string.power_unplugged_upload_aborted), Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        stopUploading();
+                    }
+                } else if (intent.getAction().equals(BatteryReceiver.POWER_PLUGGED)) {
+                    if (Globals.isAutomaticUpload(context)) {
+                        Log.d(TAG, "power plugged. Starting upload!");
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(MainActivity.this, getString(R.string.start_automatic_upload), Toast.LENGTH_LONG).show();
+                                uploadButton.performClick();
+                            }
+                        });
+                    }
                 } else if (intent.getAction().equals(VideoRecorderService.STARTED_STREAMING)) {
-                    Log.e(TAG, "EVENTOO!!");
                     mStreamSwitch.setChecked(true);
                 } else if (intent.getAction().equals(VideoRecorderService.STOPPED_STREAMING)) {
                     mStreamSwitch.setChecked(false);
@@ -224,6 +247,8 @@ public class MainActivity extends Activity {
         IntentFilter broadcastFilter = new IntentFilter();
         broadcastFilter.addAction(BatteryReceiver.BATTERY_LOW_MESSAGE);
         broadcastFilter.addAction(BatteryReceiver.BATTERY_OKAY_MESSAGE);
+        broadcastFilter.addAction(BatteryReceiver.POWER_PLUGGED);
+        broadcastFilter.addAction(BatteryReceiver.POWER_UNPLUGGED);
         broadcastFilter.addAction(VideoRecorderService.STARTED_STREAMING);
         broadcastFilter.addAction(VideoRecorderService.STOPPED_STREAMING);
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, broadcastFilter);
@@ -357,7 +382,7 @@ public class MainActivity extends Activity {
 
         );
 
-        findViewById(R.id.uploadButton).setOnClickListener(new View.OnClickListener() {
+        uploadButton.setOnClickListener(new View.OnClickListener() {
 
                                                                @Override
                                                                public void onClick(View view) {
@@ -393,8 +418,16 @@ public class MainActivity extends Activity {
                                                                        }
                                                                        if (msgid == -1)
                                                                            Log.e(TAG, "Unexpected network state: " + networkState.name());
-                                                                       else
-                                                                           Toast.makeText(getApplicationContext(), getString(msgid), Toast.LENGTH_LONG).show();
+                                                                       else {
+                                                                           final int msg = msgid;
+                                                                           runOnUiThread(new Runnable() {
+                                                                               @Override
+                                                                               public void run() {
+                                                                                   Toast.makeText(MainActivity.this, getString(msg), Toast.LENGTH_LONG).show();
+                                                                               }
+                                                                           });
+
+                                                                       }
                                                                    }
                                                                }
                                                            }
@@ -545,7 +578,6 @@ public class MainActivity extends Activity {
     private void stopUploading() {
         findViewById(R.id.uploadCancelButton).setVisibility(View.INVISIBLE);
         UploadService.stop(getApplicationContext());
-        StateManager.setStateOrDie(MainActivity.this, State.IDLE);
     }
 
     /*

@@ -40,6 +40,7 @@ public class Globals {
     private static final String PROPERTY_APP_VERSION = "appVersion";
     public static final String SERVER_URL = "server_url";
     private static final String REQUIRE_WIFI_ONLY = "upload_wifi_only";
+    private static final String AUTOMATIC_UPLOAD = "automatic_upload";
     private static String accessToken = null;
     private static String userLogin = null;
     private static String serverIpAddress = null;
@@ -341,6 +342,11 @@ public class Globals {
     public static Boolean isWifiOnly(Context context){
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         return sharedPref.getBoolean(REQUIRE_WIFI_ONLY, true);
+    }
+
+    public static Boolean isAutomaticUpload(Context context){
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPref.getBoolean(AUTOMATIC_UPLOAD, true);
     }
 
     public static String getCurrentVideoPath() {

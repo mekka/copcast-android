@@ -77,6 +77,8 @@
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_BATTERY_LOW" />
                 <action android:name="android.intent.action.ACTION_BATTERY_OKAY" />
+                <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
+                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
             </intent-filter>
         </receiver>
 

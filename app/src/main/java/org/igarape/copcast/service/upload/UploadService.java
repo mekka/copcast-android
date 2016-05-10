@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.UUID;
 
 
@@ -132,6 +133,7 @@ public class UploadService extends Service {
         }
 
         if (filesToUpload.isEmpty()) {
+            Log.d(TAG, "upload FINISHED");
             feedback(context, UploadServiceEvent.FINISHED, null);
             return START_NOT_STICKY;
         }
@@ -171,10 +173,13 @@ public class UploadService extends Service {
         @Override
         protected void onPostExecute(Void aVoid) {
 
-            if (errorOccured)
+            if (errorOccured) {
+                Log.d(TAG, "upload FAILED");
                 feedback(UploadService.this, UploadServiceEvent.FAILED, null);
-            else
+            } else {
+                Log.d(TAG, "upload FINISHED 2");
                 feedback(UploadService.this, UploadServiceEvent.FINISHED, null);
+            }
 
             stopSelf();
 
@@ -182,6 +187,7 @@ public class UploadService extends Service {
 
         @Override
         protected void onCancelled(Void aVoid) {
+            Log.d(TAG, "upload ABORTED");
             feedback(UploadService.this, UploadServiceEvent.ABORTED_USER, null);
             stopSelf();
 
@@ -189,9 +195,8 @@ public class UploadService extends Service {
 
         @Override
         protected Void doInBackground(Void... flags) {
-            int num_files = this.uploadRequest.getFilesToUpload().size();
-            long totalSize;
 
+            long totalSize;
             uploadedBytes = 0L;
             totalSize = 0L;
 
@@ -205,10 +210,21 @@ public class UploadService extends Service {
             feedback(context, UploadServiceEvent.RUNNING, uploadedBytes, totalSize);
 
             boolean res;
-            for (int i=0; i<num_files; i++) {
-                FileToUpload fileToUpload = this.uploadRequest.getFilesToUpload().get(i);
+
+            LinkedList<FileToUpload> fileToUploadLinkedList = new LinkedList<>(this.uploadRequest.getFilesToUpload());
+
+            // WARNING: INFINITE UPLOAD.
+            // We loop through the linked list. If the upload fails for a file, it will be queued
+            // again, thus retrying continuously. If the server rejects a file, it WILL NOT
+            // be queued again.
+
+            while(fileToUploadLinkedList.size() > 0) {
+
+                if (isCancelled()) break;
+
+                FileToUpload fileToUpload = fileToUploadLinkedList.pollLast();
                 try {
-                    res = VideoUploader.uploadSingleFile(this.uploadRequest.getMethod(), fileToUpload, this.uploadRequest.getHeaders(), (num_files == i + 1), this.uploadRequest.getCustomUserAgent(), this);
+                    res = VideoUploader.uploadSingleFile(this.uploadRequest.getMethod(), fileToUpload, this.uploadRequest.getHeaders(), true, this.uploadRequest.getCustomUserAgent(), this);
                     if (res) {
                         try {
                             fileToUpload.getFile().delete();
@@ -220,9 +236,15 @@ public class UploadService extends Service {
                         ILog.w(TAG, "Error ocurred with "+fileToUpload.getFileName());
                     }
                     errorOccured = !res || errorOccured;
-                    if (isCancelled()) break;
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "Failed to upload file "+fileToUpload.getFileName()+". Will try again", e);
+                    // this was not a server error response, so we should try again.
+                    fileToUploadLinkedList.push(fileToUpload);
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e1) {
+                        Log.w(TAG, "upload sleep interrupted");
+                    }
                 }
             }
 

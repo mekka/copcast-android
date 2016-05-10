@@ -120,4 +120,8 @@
     <string name="incomplete_registration">Missing registration parameters. Please try restarting the application.</string>
     <string name="about">About</string>
     <string name="version_name">Version</string>
+    <string name="power_unplugged_upload_aborted">Power disconnected. Aborting upload.</string>
+    <string name="automatic_upload">Automatic upload</string>
+    <string name="automatic_upload_desc">Automatically start uploading while connected to the power supply.</string>
+    <string name="start_automatic_upload">Starting automatic upload</string>
 </resources>

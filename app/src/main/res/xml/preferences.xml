@@ -7,6 +7,12 @@
         android:summary="@string/pref_upload_wifi_only_desc"
         android:defaultValue="@string/REQUIRE_WIFI_UPLOAD_DEFAULT" />
 
+    <CheckBoxPreference
+        android:key="automatic_upload"
+        android:title="@string/automatic_upload"
+        android:summary="@string/automatic_upload_desc"
+        android:defaultValue="@string/AUTOMATIC_UPLOAD_DEFAULT" />
+
     <PreferenceCategory
         android:title="@string/about">
         <PreferenceScreen

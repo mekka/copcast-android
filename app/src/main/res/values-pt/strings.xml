@@ -115,4 +115,8 @@
     <string name="incomplete_registration">Parâmetros de registro faltante. Reinicie a aplicação.</string>
     <string name="about">Sobre</string>
     <string name="version_name">Versão</string>
+    <string name="power_unplugged_upload_aborted">Carregador desconectado. Interrompendo upload.</string>
+    <string name="automatic_upload">Upload automático</string>
+    <string name="automatic_upload_desc">Iniciar automaticamente o upload quando conectado ao carregador.</string>
+    <string name="start_automatic_upload">Iniciando upload automático</string>
 </resources>

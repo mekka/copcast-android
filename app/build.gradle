@@ -47,6 +47,7 @@ android {
         stock {
             resValue "string", "SERVER_URL_DEFAULT", "\"https://api.mycopcast.com\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "true"
+            resValue "string", "AUTOMATIC_UPLOAD_DEFAULT", "true"
             buildConfigField "boolean", "HAS_INCIDENT_FORM", "false"
             buildConfigField "boolean", "HAS_VIDEO_PLAYBACK", "false"
             resValue "string", "VERSION_NAME", android.defaultConfig.versionName
@@ -56,6 +57,7 @@ android {
         capeTown {
             resValue "string", "SERVER_URL_DEFAULT", "\"https://docs-api.mycopcast.com\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "false"
+            resValue "string", "AUTOMATIC_UPLOAD_DEFAULT", "true"
             buildConfigField "boolean", "HAS_INCIDENT_FORM", "true"
             buildConfigField "boolean", "HAS_VIDEO_PLAYBACK", "true"
             resValue "string", "VERSION_NAME", android.defaultConfig.versionName
@@ -64,6 +66,7 @@ android {
         dev {
             resValue "string", "SERVER_URL_DEFAULT", "\"https://dev-api.mycopcast.com\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "false"
+            resValue "string", "AUTOMATIC_UPLOAD_DEFAULT", "true"
             buildConfigField "boolean", "HAS_INCIDENT_FORM", "true"
             buildConfigField "boolean", "HAS_VIDEO_PLAYBACK", "true"
             resValue "string", "VERSION_NAME", android.defaultConfig.versionName
