@@ -63,6 +63,15 @@ android {
             resValue "string", "VERSION_NAME", android.defaultConfig.versionName
         }
 
+        rwanda {
+            resValue "string", "SERVER_URL_DEFAULT", "\"https://rwanda-api.mycopcast.com\""
+            resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "false"
+            resValue "string", "AUTOMATIC_UPLOAD_DEFAULT", "true"
+            buildConfigField "boolean", "HAS_INCIDENT_FORM", "true"
+            buildConfigField "boolean", "HAS_VIDEO_PLAYBACK", "false"
+            resValue "string", "VERSION_NAME", android.defaultConfig.versionName
+        }
+
         dev {
             resValue "string", "SERVER_URL_DEFAULT", "\"https://dev-api.mycopcast.com\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "false"
