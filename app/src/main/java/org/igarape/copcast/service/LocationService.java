@@ -109,7 +109,7 @@ public class LocationService extends Service implements LocationListener, Google
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API).build();
+                .addApiIfAvailable(LocationServices.API).build();
         mGoogleApiClient.connect();
 
         Log.d(TAG, "Location service started");
