@@ -125,6 +125,8 @@ public class LocationService extends Service implements LocationListener, Google
             sendHeartbeat(LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient));
         } catch(JSONException ex) {
             Log.e(TAG, "Tried to send initial location, but got null instead.");
+        } catch(Exception ex) {
+            Log.e(TAG, "No location information to send.");
         }
 
         LocationRequest mLocationRequest = new LocationRequest();
