@@ -30,7 +30,7 @@ public class WebRecorder {
     public static final int BYTES_PER_SAMPLE = 2;
     public static final int AUDIO_BIT_RATE = 12000;
     public static final int SAMPLE_RATE = 22050;
-    public static final int BUFFER_IN_MS = 50;
+    public static final int BUFFER_IN_MS = 200;
     public static final int WINDOW_IN_MS = 2000;
     public static final int BUFFER_SIZE = BUFFER_IN_MS*BYTES_PER_SAMPLE*SAMPLE_RATE/1000;
     public static final int WINDOW_SIZE = WINDOW_IN_MS*BYTES_PER_SAMPLE*SAMPLE_RATE/1000;

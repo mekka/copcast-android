@@ -103,10 +103,10 @@ class VideoProducer implements Camera.PreviewCallback {
 
     @Override
     public void onPreviewFrame(byte[] data, android.hardware.Camera camera) {
+        long now = System.nanoTime()/1000;
 
         bi = new MediaCodec.BufferInfo();
         inputBuffers = videoCodec.getInputBuffers();
-        long now = System.nanoTime()/1000;
 
         // simple frame rate control
         tmpCapture = now * videoFrameRate / 1000000;
