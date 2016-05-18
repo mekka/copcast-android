@@ -92,6 +92,7 @@ public class MainActivity extends Activity {
     boolean videoServiceBound = false;
     private AudioManager audioManager;
     private Timer mCheckForHighAccuracyLocationTimer;
+    private AlertDialog mWifiAlertDialog;
 
     private ServiceConnection mConnection = new ServiceConnection() {
 
@@ -776,26 +777,28 @@ public class MainActivity extends Activity {
     }
 
     public void showSettingsAlert(){
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
+        if (mWifiAlertDialog != null && mWifiAlertDialog.isShowing()) {
+            return;     // Dialog already showing.
+        }
 
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
         Resources res = getResources();
-        alertDialog.setTitle(res.getString(R.string.wifi_dialog_title));
-        alertDialog.setMessage(res.getString(R.string.wifi_dialog_msg));
-
-        alertDialog.setPositiveButton(res.getText(R.string.settings_button), new DialogInterface.OnClickListener() {
+        builder.setTitle(res.getString(R.string.wifi_dialog_title));
+        builder.setMessage(res.getString(R.string.wifi_dialog_msg));
+        builder.setPositiveButton(res.getText(R.string.settings_button), new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog,int which) {
                 Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
                 startActivity(intent);
             }
         });
-
-        alertDialog.setNegativeButton(res.getText(R.string.cancel_button), new DialogInterface.OnClickListener() {
+        builder.setNegativeButton(res.getText(R.string.cancel_button), new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 dialog.cancel();
             }
         });
 
-        alertDialog.show();
+        mWifiAlertDialog = builder.create();
+        mWifiAlertDialog.show();
 }
 
     private class CountDownPausedTimer extends CountDownTimer {
