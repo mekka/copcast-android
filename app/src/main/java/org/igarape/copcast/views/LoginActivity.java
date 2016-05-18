@@ -26,6 +26,7 @@ import org.igarape.copcast.R;
 import org.igarape.copcast.promises.HttpPromiseError;
 import org.igarape.copcast.promises.PromiseError;
 import org.igarape.copcast.state.State;
+import org.igarape.copcast.utils.EditTextUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.promises.PromisePayload;
@@ -57,27 +58,9 @@ public class LoginActivity extends Activity {
         txtId = (EditText) findViewById(R.id.txtLoginUser);
         txtPwd = (EditText) findViewById(R.id.txtLoginPassword);
         Button btnLoginOk = (Button) findViewById(R.id.btn_login_ok);
-        /**
-         * Appears a hack
-         * On login_activity I added
-         * android:focusable="true"
-         * android:focusableInTouchMode="true"
-         */
-        txtId.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    txtId.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            InputMethodManager keyboard = (InputMethodManager)
-                                    getSystemService(Context.INPUT_METHOD_SERVICE);
-                            keyboard.showSoftInput(txtId, 0);
-                        }
-                    }, 200);
-                }
-            }
-        });
+
+        EditTextUtils.showKeyboard(this, txtId);
+        EditTextUtils.showKeyboardOnFocusAndClick(this, txtId);
 
         btnLoginOk.setOnClickListener(new View.OnClickListener() {
             @Override

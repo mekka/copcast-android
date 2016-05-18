@@ -17,6 +17,7 @@ import android.widget.TextView;
 import org.igarape.copcast.R;
 import org.igarape.copcast.service.sign.SigningService;
 import org.igarape.copcast.service.sign.SigningServiceException;
+import org.igarape.copcast.utils.EditTextUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.OkDialog;
 import org.igarape.copcast.promises.Promise;
@@ -57,6 +58,10 @@ public class RegistrationActivity extends Activity {
                 doRegister();
             }
         });
+
+        EditTextUtils.showKeyboard(this, register_url);
+        EditTextUtils.showKeyboardOnFocusAndClick(this, register_url);
+        EditTextUtils.showKeyboardOnFocusAndClick(this, register_username);
     }
 
     private void doRegister() {
