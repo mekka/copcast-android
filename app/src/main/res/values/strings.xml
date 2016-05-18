@@ -124,4 +124,6 @@
     <string name="automatic_upload">Automatic upload</string>
     <string name="automatic_upload_desc">Automatically start uploading while connected to the power supply.</string>
     <string name="start_automatic_upload">Starting automatic upload</string>
+    <string name="high_accuracy_location_dialog_msg">You must enable high accuracy location services to use Copcast</string>
+    <string name="enable">Enable</string>
 </resources>
