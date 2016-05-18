@@ -52,6 +52,7 @@ import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.IncidentUtils;
+import org.igarape.copcast.utils.LocationUtils;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.utils.StateManager;
@@ -59,6 +60,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import static org.igarape.copcast.utils.FileUtils.formatMegaBytes;
@@ -88,6 +91,7 @@ public class MainActivity extends Activity {
     private VideoRecorderService videoRecorderService;
     boolean videoServiceBound = false;
     private AudioManager audioManager;
+    private Timer mCheckForHighAccuracyLocationTimer;
 
     private ServiceConnection mConnection = new ServiceConnection() {
 
@@ -280,6 +284,8 @@ public class MainActivity extends Activity {
                     // Create the AlertDialog object and return it
                     AlertDialog alertDialog = builder.create();
                     alertDialog.show();
+                } else if (!LocationUtils.isHighAccuracyLocationEnabled(MainActivity.this)) {
+                    LocationUtils.showHighAccuracyLocationDisabledAlert(MainActivity.this);
                 } else {
                     startMission();
                 }
@@ -309,6 +315,8 @@ public class MainActivity extends Activity {
                 startService(intent);
 
                 startAlarmBatteryReceiver();
+
+                startCheckingForHighAccuracyLocation();
 
                 StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
             }
@@ -360,6 +368,8 @@ public class MainActivity extends Activity {
                                                                      mCountDownTenPaused.cancel();
                                                                      mCountDownThirtyPaused.cancel();
                                                                      mPauseCounter.setText("");
+
+                                                                     stopCheckingForHighAccuracyLocation();
 
                                                                      //reset upload values
                                                                      resetStatusUpload();
@@ -490,6 +500,24 @@ public class MainActivity extends Activity {
         );
 
         mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+
+    }
+
+    private void startCheckingForHighAccuracyLocation() {
+        mCheckForHighAccuracyLocationTimer = new Timer();
+        mCheckForHighAccuracyLocationTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run(){
+                if (!LocationUtils.isHighAccuracyLocationEnabled(MainActivity.this)) {
+                    vibrate(200);
+                    LocationUtils.showHighAccuracyLocationDisabledAlert(MainActivity.this);
+                }
+            }
+        }, 0, 5000);
+    }
+
+    private void stopCheckingForHighAccuracyLocation() {
+        mCheckForHighAccuracyLocationTimer.cancel();
     }
 
     private void resetStatusUpload() {
@@ -768,7 +796,7 @@ public class MainActivity extends Activity {
         });
 
         alertDialog.show();
-    }
+}
 
     private class CountDownPausedTimer extends CountDownTimer {
         public CountDownPausedTimer(int millisInFuture, int countDownInterval) {
@@ -883,6 +911,4 @@ public class MainActivity extends Activity {
         findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
         findViewById(R.id.streamLayout).setVisibility(View.GONE);
     }
-
-
 }

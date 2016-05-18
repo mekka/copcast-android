@@ -1,9 +1,12 @@
 package org.igarape.copcast.views;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -30,6 +33,7 @@ import org.igarape.copcast.utils.EditTextUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.promises.PromisePayload;
+import org.igarape.copcast.utils.LocationUtils;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.OkDialog;
 import org.igarape.copcast.utils.StateManager;
@@ -104,6 +108,10 @@ public class LoginActivity extends Activity {
     }
 
     public void makeLoginRequest(View view) {
+        if (!LocationUtils.isHighAccuracyLocationEnabled(this)) {
+            LocationUtils.showHighAccuracyLocationDisabledAlert(this);
+            return;
+        }
 
         pDialog = new ProgressDialog(this);
         pDialog.setTitle(getString(R.string.login_in));
@@ -203,25 +211,5 @@ public class LoginActivity extends Activity {
             }
 
         }.execute(null, null, null);
-    }
-
-    private boolean hasErrors() {
-        final String login = txtId.getText().toString();
-        final String password = txtPwd.getText().toString();
-        if (login.isEmpty()) {
-            Log.d(TAG, "login required");
-            Toast toast = Toast.makeText(getApplicationContext(), R.string.login_required, Toast.LENGTH_LONG);
-            toast.setGravity(Gravity.TOP, 0, 100);
-            toast.show();
-            return true;
-        }
-        if (password.isEmpty()) {
-            Log.d(TAG, "password required");
-            Toast toast = Toast.makeText(getApplicationContext(), R.string.password_required, Toast.LENGTH_LONG);
-            toast.setGravity(Gravity.TOP, 0, 100);
-            toast.show();
-            return true;
-        }
-        return false;
     }
 }
