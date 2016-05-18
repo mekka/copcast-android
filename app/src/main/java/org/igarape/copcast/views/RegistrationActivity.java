@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -57,6 +58,10 @@ public class RegistrationActivity extends Activity {
                 doRegister();
             }
         });
+
+        showKeyboard(register_url);
+        showKeyboardOnFocusAndClick(register_url);
+        showKeyboardOnFocusAndClick(register_username);
     }
 
     private void doRegister() {
@@ -103,5 +108,36 @@ public class RegistrationActivity extends Activity {
                 return null;
             }
         }.execute();
+    }
+
+    private void showKeyboard(final TextView tv) {
+        tv.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                InputMethodManager keyboard = (InputMethodManager)
+                        getSystemService(Context.INPUT_METHOD_SERVICE);
+                keyboard.showSoftInput(tv, 0);
+            }
+        }, 200);
+    }
+
+    private void showKeyboardOnFocusAndClick(final TextView tv) {
+        // Show the keyboard when the user first focuses in the field.
+        tv.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    showKeyboard(tv);
+                }
+            }
+        });
+        // Show keyboard on click, in case the user has closed the keyboard.
+        // Click does not fire when the user first focuses in the field.
+        tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showKeyboard(tv);
+            }
+        });
     }
 }
