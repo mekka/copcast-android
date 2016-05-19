@@ -6,12 +6,8 @@ import android.media.MediaRecorder;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
-import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.promises.WebRecorderPromiseError;
 import org.igarape.copcast.promises.Promise;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import io.socket.client.Socket;
 
@@ -43,17 +39,22 @@ public class WebRecorder {
     //    private AudioRecord audioRecord;
     private AudioCodec audioCodec;
     private VideoCodec videoCodec;
+    private VideoCodec liveVideoCodec;
     private AudioProducer audioProducerThread;
-    private VideoProducer videoProducerThread;
+    private VideoProducer videoProducer;
     private AudioConsumer audioConsumerThread;
     private VideoConsumer videoConsumerThread;
+    private LiveVideoConsumer liveVideoConsumerThread;
     private Mp4Muxer muxerThread;
     private WebsocketThread websocketThread;
 
     private int videoHeight;
     private int videoWidth;
-    public static int videoBitRate;
+    public int videoBitRate;
     private int videoFrameRate;
+    public int liveVideoBitRate;
+    private int liveVideoFrameRate;
+    private int liveVideoScale;
     private int iFrameInterval;
     private final String outputPath;
     private Socket websocket;
@@ -64,11 +65,15 @@ public class WebRecorder {
         private int videoHeight;
         private Integer videoBitrate;
         private Integer videoFramerate;
+        private Integer liveVideoScale;
+        private Integer liveVideoBitrate;
+        private Integer liveVideoFramerate;
         private Integer videoIFrameInterval;
         private Socket websocket;
         private String outputPath;
 
-        public Builder(String outputPath, final int videoWidth, final int videoHeight) {
+        public
+        Builder(String outputPath, final int videoWidth, final int videoHeight) {
             this.videoHeight = videoHeight;
             this.videoWidth = videoWidth;
             this.outputPath = outputPath;
@@ -82,6 +87,11 @@ public class WebRecorder {
             this.outputPath = outputPath;
         }
 
+        public Builder setLiveVideoScale(int video_scale) {
+            this.liveVideoScale = video_scale;
+            return this;
+        }
+
         public Builder setVideoBitRate(int video_bitrate) {
             this.videoBitrate = video_bitrate;
             return this;
@@ -89,6 +99,16 @@ public class WebRecorder {
 
         public Builder setVideoFrameRate(int video_framerate) {
             this.videoFramerate = video_framerate;
+            return this;
+        }
+
+        public Builder setLiveVideoBitRate(int live_video_bitrate) {
+            this.liveVideoBitrate = live_video_bitrate;
+            return this;
+        }
+
+        public Builder setLiveVideoFrameRate(int live_video_framerate) {
+            this.liveVideoFramerate = live_video_framerate;
             return this;
         }
 
@@ -118,8 +138,17 @@ public class WebRecorder {
             if (this.videoIFrameInterval == null)
                 this.videoIFrameInterval = WebRecorder.DEFAULT_KEY_I_FRAME_INTERVAL;
 
+            // fallback cases where the live video equals the recording video:
+            if (this.liveVideoScale == null)
+                this.liveVideoScale = 1;
+            if (this.liveVideoBitrate == null)
+                this.liveVideoBitrate = this.videoBitrate;
+            if (this.liveVideoFramerate == null)
+                this.liveVideoFramerate = this.videoFramerate;
+
             return new WebRecorder(outputPath, videoWidth, videoHeight,
-                    videoBitrate, videoFramerate, videoIFrameInterval, websocket);
+                    videoBitrate, videoFramerate, liveVideoScale, liveVideoBitrate,
+                    liveVideoFramerate, videoIFrameInterval, websocket);
         }
     }
 
@@ -130,6 +159,9 @@ public class WebRecorder {
                         Integer videoBitrate,
                         Integer videoFramerate,
                         Integer iFrameInterval,
+                        Integer liveVideoScale,
+                        Integer liveVideoBitRate,
+                        Integer liveVideoFrameRate,
                         Socket websocket
     ) {
         this.outputPath = outputPath;
@@ -137,38 +169,31 @@ public class WebRecorder {
         this.videoHeight = videoHeight;
         this.videoFrameRate = videoFramerate;
         this.videoBitRate = videoBitrate;
+        this.liveVideoBitRate = liveVideoBitRate;
+        this.liveVideoScale = liveVideoScale;
+        this.liveVideoFrameRate = liveVideoFrameRate;
         this.iFrameInterval = iFrameInterval;
         this.websocket = websocket;
-    }
-
-    private long getTimestamp() {
-        return System.nanoTime() / 1000;
     }
 
     public boolean isRunning() {
         return isRunning;
     }
 
-    public int getVideoFrameRate() {
-        return videoFrameRate;
-    }
-
     public void stopBroadcasting() {
-        if (videoConsumerThread != null)
-            videoConsumerThread.setStreaming(false);
+        if (videoProducer != null)
+            videoProducer.setStreaming(false);
     }
 
     public void startBroadcasting() {
-        if (videoConsumerThread != null)
-            videoConsumerThread.setStreaming(true);
+        if (videoProducer != null)
+            videoProducer.setStreaming(true);
     }
 
     public void prepare(SurfaceHolder surfaceHolder) throws WebRecorderException {
 
-        if (websocket != null)
-            websocketThread = new WebsocketThread(websocket, videoFrameRate);
-
         videoCodec = new VideoCodec(videoWidth, videoHeight, videoBitRate, videoFrameRate, iFrameInterval);
+        
         audioCodec = new AudioCodec();
 
         audioProducerThread = new AudioProducer();
@@ -182,21 +207,39 @@ public class WebRecorder {
 
         videoConsumerThread = new VideoConsumer();
         videoConsumerThread.setCodec(videoCodec.getCodec());
-        if (websocket != null)
-            videoConsumerThread.setWebsocketThread(websocketThread);
         videoConsumerThread.setMuxer(muxerThread);
+        videoProducer = new VideoProducer(surfaceHolder, videoWidth, videoHeight);
+        videoProducer.setVideoCodec(videoCodec.getCodec());
+        videoProducer.setVideoFrameRate(videoFrameRate);
 
-        videoProducerThread = new VideoProducer(surfaceHolder, videoWidth, videoHeight);
-        videoProducerThread.setVideoCodec(videoCodec.getCodec());
-        videoProducerThread.setVideoFrameRate(videoFrameRate);
+        if (websocket != null) {
+
+            int liveVideoWidth = videoWidth; // / liveVideoScale;
+            int liveVideoHeight = videoHeight; // / liveVideoScale;
+            try {
+                //codec
+                liveVideoCodec = new VideoCodec(liveVideoWidth, liveVideoHeight, videoBitRate, videoFrameRate, iFrameInterval);
+
+                //videoConsumer
+                liveVideoConsumerThread = new LiveVideoConsumer();
+                liveVideoConsumerThread.setCodec(liveVideoCodec.getCodec());
+                liveVideoConsumerThread.setFrameIntervalCount(videoFrameRate * iFrameInterval);
+                liveVideoConsumerThread.setWebsocket(websocket);
+
+                //integrate with videoProducer
+                videoProducer.setLiveVideoCodec(liveVideoCodec.getCodec(), liveVideoScale);
+                videoProducer.setLiveVideoFrameRate(liveVideoFrameRate);
+                Log.d(TAG, "Livestreaming threads prepared");
+            } catch (Exception ex) {
+                Log.e(TAG, "Unabled to create livestream codec.");
+                Log.d(TAG, "Livestream codec error:", ex);
+            }
+        }
     }
 
     public void start() {
 
         isRunning = true;
-
-        if (websocket != null)
-            websocketThread.start();
 
         videoCodec.start();
         audioCodec.start();
@@ -204,9 +247,14 @@ public class WebRecorder {
         muxerThread.start();
 
         videoConsumerThread.start();
+
+        if (websocket != null) {
+            liveVideoCodec.start();
+            liveVideoConsumerThread.start();
+        }
         audioConsumerThread.start();
 
-        videoProducerThread.start();
+        videoProducer.start();
         audioProducerThread.start();
 
         Log.d(TAG, "ALL STARTED");
@@ -217,8 +265,8 @@ public class WebRecorder {
             @Override
             public void run() {
 
-                if (videoProducerThread != null)
-                    videoProducerThread.end();
+                if (videoProducer != null)
+                    videoProducer.end();
 
                 if (audioProducerThread != null)
                     audioProducerThread.end();
@@ -232,17 +280,22 @@ public class WebRecorder {
                 if (videoConsumerThread != null)
                     videoConsumerThread.end();
 
-                if (websocketThread != null)
-                    websocketThread.end();
+                if (liveVideoConsumerThread != null)
+                    liveVideoConsumerThread.end();
 
                 try {
                     audioProducerThread.join();
                     audioConsumerThread.join();
                     videoConsumerThread.join();
 
-                    if (websocketThread != null) {
-                        websocketThread.join();
+                    if (websocket != null) {
+                        liveVideoConsumerThread.join();
                     }
+
+                    videoCodec.end();
+                    audioCodec.end();
+                    if (liveVideoCodec != null)
+                        liveVideoCodec.end();
 
                     muxerThread.join();
 

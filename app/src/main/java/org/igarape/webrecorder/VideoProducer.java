@@ -17,13 +17,19 @@ class VideoProducer implements Camera.PreviewCallback {
     private final static String TAG = VideoProducer.class.getCanonicalName();
     Camera camera;
     MediaCodec.BufferInfo bi;
+    MediaCodec.BufferInfo lbi;
     ByteBuffer[] inputBuffers;
+    ByteBuffer[] liveInputBuffers;
     long lastCapture = 0, tmpCapture;
+    long lastLiveCapture = 0, liveTmpCapture;
     private MediaCodec videoCodec;
+    private MediaCodec liveVideoCodec;
     private int videoFrameRate = -1;
+    private int liveVideoFrameRate = -1;
     private int videoWidth;
     private int videoHeight;
-    private boolean isRunning = false;
+    private boolean isStreaming = false;
+    private int scale = 1;
 
     public VideoProducer(SurfaceHolder surfaceHolder, int videoWidth, int videoHeight) throws WebRecorderException {
 
@@ -62,10 +68,13 @@ class VideoProducer implements Camera.PreviewCallback {
         Log.d(TAG, "Created.");
     }
 
+    public void setStreaming(boolean streaming) {
+        this.isStreaming = streaming;
+    }
+
     public void start() {
 
         Log.d(TAG, "Start requested.");
-        isRunning = true;
 
         if (videoCodec == null) {
             Log.e(TAG, "Video codec not defined. Thread aborting.");
@@ -89,7 +98,6 @@ class VideoProducer implements Camera.PreviewCallback {
             camera.release();
         }
         camera = null;
-        isRunning = false;
         Log.d(TAG, "Stopped.");
     }
 
@@ -97,13 +105,32 @@ class VideoProducer implements Camera.PreviewCallback {
         this.videoCodec = videoCodec;
     }
 
+    public void setLiveVideoCodec(MediaCodec liveVideoCodec, int scale) {
+        this.liveVideoCodec = liveVideoCodec;
+        this.scale = scale;
+    }
+
     public void setVideoFrameRate(int videoFrameRate) {
         this.videoFrameRate = videoFrameRate;
+
+    }
+
+    public void setLiveVideoFrameRate(int liveVideoFrameRate) {
+        this.liveVideoFrameRate = liveVideoFrameRate;
     }
 
     @Override
     public void onPreviewFrame(byte[] data, android.hardware.Camera camera) {
+
+        byte[] new_data = new byte[data.length];
+        transpose(data, new_data, videoWidth, videoHeight);
         long now = System.nanoTime()/1000;
+
+        consumeFrame(new_data, now);
+        liveConsumeFrame(new_data, now);
+    }
+
+    public void consumeFrame (byte[] data, long now) {
 
         bi = new MediaCodec.BufferInfo();
         inputBuffers = videoCodec.getInputBuffers();
@@ -114,13 +141,30 @@ class VideoProducer implements Camera.PreviewCallback {
             return;
         lastCapture = tmpCapture;
 
-        byte[] new_data = new byte[data.length];
 
         int inputBufferId = videoCodec.dequeueInputBuffer(500000);
         if (inputBufferId >= 0) {
-            transpose(data, new_data, videoWidth, videoHeight);
-            inputBuffers[inputBufferId].put(new_data);
+            inputBuffers[inputBufferId].put(data);
             videoCodec.queueInputBuffer(inputBufferId, 0, data.length, now, 0);
+        }
+    }
+
+    public void liveConsumeFrame(byte[] data, long now) {
+
+        lbi = new MediaCodec.BufferInfo();
+        liveInputBuffers = liveVideoCodec.getInputBuffers();
+
+        // simple frame rate control
+//        liveTmpCapture = now * liveVideoFrameRate / 1000000;
+//        if (liveTmpCapture <= lastLiveCapture)
+//            return;
+//        lastLiveCapture = liveTmpCapture;
+        Log.e(TAG, "frame live captured");
+
+        int liveInputBufferId = liveVideoCodec.dequeueInputBuffer(500000);
+        if (liveInputBufferId >= 0) {
+            liveInputBuffers[liveInputBufferId].put(data);
+            liveVideoCodec.queueInputBuffer(liveInputBufferId, 0, data.length, now, 0);
         }
     }
 

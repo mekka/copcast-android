@@ -17,29 +17,16 @@ class VideoConsumer extends Thread {
     private MediaCodec.BufferInfo bi;
     private MediaCodec videoCodec;
     private boolean isRunning = false;
-    private boolean isStreaming = false;
     private Mp4Muxer muxerThread;
-    private WebsocketThread websocketThread;
 
     public void setCodec(MediaCodec videoCodec) {
         this.videoCodec = videoCodec;
-    }
-
-
-    public void setWebsocketThread(WebsocketThread websocketThread) throws WebRecorderException {
-        this.websocketThread = websocketThread;
     }
 
     public void setMuxer(Mp4Muxer muxerThread) throws WebRecorderException {
         if (muxerThread == null)
             throw new WebRecorderException("Muxer thread not initialialized");
         this.muxerThread = muxerThread;
-    }
-
-    public void setStreaming(boolean isStreaming) {
-        Log.d(TAG, "streaming set to "+isStreaming);
-        this.isStreaming = isStreaming;
-        websocketThread.setStreaming(isStreaming);
     }
 
     @Override
@@ -61,35 +48,24 @@ class VideoConsumer extends Thread {
                 buf.position(bi.offset);
                 buf.limit(bi.offset + bi.size);
 
-                if (isStreaming && websocketThread != null) {
-
-                    byte[] bpack = new byte[bi.size];
-                    buf.get(bpack, 0, bi.size);
-//                    Log.d(TAG, "streaming " + bpack.length+" bytes");
-                    websocketThread.push(bpack);
-                }
-
                 buf.position(bi.offset);
                 buf.limit(bi.offset + bi.size);
 
                 if ((bi.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) == 0) {
-                    muxerThread.push(MediaType.VIDEO_FRAME, buf, bi);
-                } else {
-                    if (websocketThread != null) {
-                        byte[] sps = new byte[bi.size];
-                        buf.get(sps, 0, bi.size);
-                        websocketThread.setSps(sps);
-                        Log.d(TAG, "SPS Set: "+sps.length);
-                    }
+                    if (muxerThread != null)
+                        muxerThread.push(MediaType.VIDEO_FRAME, buf, bi);
                 }
+
                 videoCodec.releaseOutputBuffer(outputBufferId, false);
 
             } else if (outputBufferId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
 
-                try {
-                    muxerThread.setVideoFormat(videoCodec.getOutputFormat());
-                } catch (WebRecorderException e) {
-                    Log.e(TAG, "Could not set video format on muxer", e);
+                if (muxerThread != null) {
+                    try {
+                        muxerThread.setVideoFormat(videoCodec.getOutputFormat());
+                    } catch (WebRecorderException e) {
+                        Log.e(TAG, "Could not set video format on muxer", e);
+                    }
                 }
             }
         }
