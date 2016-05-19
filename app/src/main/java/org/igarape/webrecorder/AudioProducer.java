@@ -52,7 +52,10 @@ class AudioProducer extends Thread {
             bytes_read = audioRecord.read(buf, 0, buf.length);
             inputBufferId = audioCodec.dequeueInputBuffer(500000);
             inputBuffers = audioCodec.getInputBuffers();
-            now = System.nanoTime()/1000;
+
+            // sound started BUFFER_IN_MS milliseconds ago, thus the adjustment.
+            // "now" is in microseconds units.
+            now = (System.nanoTime()/1000)-(WebRecorder.BUFFER_IN_MS*1000);
 
             if (inputBufferId >= 0) {
                 inputBuffers[inputBufferId].put(buf);

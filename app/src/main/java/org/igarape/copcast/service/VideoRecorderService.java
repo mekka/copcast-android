@@ -6,6 +6,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
+import android.media.CamcorderProfile;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
@@ -19,6 +20,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
 
+import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
 import org.igarape.copcast.promises.PromiseError;
 import org.igarape.copcast.state.IncidentFlagState;
@@ -304,10 +306,10 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         lock.lock();
         Log.d(TAG, "> prepare locked");
 
-        webRecorder = new WebRecorder.Builder(baseDir, 320, 240)
-                .setVideoBitRate(200000)
-                .setVideoFrameRate(10)
-                .setVideoIFrameInterval(2)
+        webRecorder = new WebRecorder.Builder(baseDir, BuildConfig.RECORDING_QUALITY)
+                .setVideoBitRate(BuildConfig.RECORDING_BITRATE)
+                .setVideoFrameRate(BuildConfig.RECORDING_FRAMERATE)
+                .setVideoIFrameInterval(1)
                 .setWebsocket(VideoRecorderService.this.ws)
                 .build();
 

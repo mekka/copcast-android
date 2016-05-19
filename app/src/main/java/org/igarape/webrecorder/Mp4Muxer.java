@@ -130,10 +130,7 @@ class Mp4Muxer extends Thread {
 
                     trackIndex = frame.getMediaType() == MediaType.AUDIO_FRAME ? audioTrackIndex : videoTrackIndex;
 
-                    if (frame.getBufferInfo().presentationTimeUs > videoLastTS) {
-                        mediaMuxer.writeSampleData(trackIndex, frame.getBuffer(), frame.getBufferInfo());
-                        videoLastTS = frame.getBufferInfo().presentationTimeUs;
-                    }
+                    mediaMuxer.writeSampleData(trackIndex, frame.getBuffer(), frame.getBufferInfo());
                 }
             } catch (InterruptedException e) {
                 Log.e(TAG, "Error writing data to muxer", e);
@@ -145,7 +142,7 @@ class Mp4Muxer extends Thread {
         if (muxerStarted)
             mediaMuxer.release();
         mediaMuxer = null;
-        Log.d(TAG, "Thread finished.");
+        Log.d(TAG, "Thread finished without lost frames.");
     }
 
     public void end() {

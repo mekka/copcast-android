@@ -1,10 +1,12 @@
 package org.igarape.webrecorder;
 
 import android.media.AudioFormat;
+import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
+import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.promises.WebRecorderPromiseError;
 import org.igarape.copcast.promises.Promise;
 
@@ -28,7 +30,7 @@ public class WebRecorder {
     public static final int BYTES_PER_SAMPLE = 2;
     public static final int AUDIO_BIT_RATE = 12000;
     public static final int SAMPLE_RATE = 22050;
-    public static final int BUFFER_IN_MS = 50;
+    public static final int BUFFER_IN_MS = 200;
     public static final int WINDOW_IN_MS = 2000;
     public static final int BUFFER_SIZE = BUFFER_IN_MS*BYTES_PER_SAMPLE*SAMPLE_RATE/1000;
     public static final int WINDOW_SIZE = WINDOW_IN_MS*BYTES_PER_SAMPLE*SAMPLE_RATE/1000;
@@ -69,6 +71,14 @@ public class WebRecorder {
         public Builder(String outputPath, final int videoWidth, final int videoHeight) {
             this.videoHeight = videoHeight;
             this.videoWidth = videoWidth;
+            this.outputPath = outputPath;
+        }
+
+        public Builder(String outputPath, final int videoQuality) {
+            CamcorderProfile profile = CamcorderProfile.get(videoQuality);
+
+            this.videoHeight = profile.videoFrameHeight;
+            this.videoWidth = profile.videoFrameWidth;
             this.outputPath = outputPath;
         }
 
