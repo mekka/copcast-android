@@ -14,6 +14,8 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -38,10 +40,9 @@
 
         <activity
             android:name=".views.SplashScreenActivity"
-            android:theme="@android:style/Theme.Holo.NoActionBar.Fullscreen" >
+            android:theme="@style/AppTheme.NoActionBar" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -52,6 +53,9 @@
         <activity
             android:screenOrientation="portrait"
             android:name=".views.PlayerActivity"/>
+        <activity
+            android:screenOrientation="portrait"
+            android:name=".views.RegistrationActivity"/>
         <activity
             android:screenOrientation="portrait"
             android:name=".views.LoginActivity"/>
@@ -68,46 +72,16 @@
         <service android:name=".service.VideoRecorderService" />
         <service android:name=".service.LocationService" />
 
-        <service android:name=".service.StreamService" />
-        <service
-            android:name="com.alexbbb.uploadservice.UploadService"
-            android:enabled="true"
-            android:exported="false"
-            tools:replace="android:exported" >
-            <intent-filter>
-                <action android:name="org.igarape.copcast.uploadservice.action.upload" />
-            </intent-filter>
-        </service>
-
-        <receiver
-            android:name="com.google.android.gms.gcm.GcmReceiver"
-            android:exported="true"
-            android:permission="com.google.android.c2dm.permission.SEND" >
-            <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-                <category android:name="org.igarape.copcast" />
-            </intent-filter>
-        </receiver>
+        <service android:name=".service.upload.UploadService" />
         <receiver android:name=".receiver.BatteryReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_BATTERY_LOW" />
                 <action android:name="android.intent.action.ACTION_BATTERY_OKAY" />
+                <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
+                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
             </intent-filter>
         </receiver>
-        <service
-            android:name=".service.CopcastGcmListenerService"
-            android:exported="false" >
-            <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-            </intent-filter>
-        </service>
-        <service
-            android:name=".service.CopcastIDListenerService"
-            android:exported="false" >
-            <intent-filter>
-                <action android:name="com.google.android.gms.iid.InstanceID" />
-            </intent-filter>
-        </service>
+
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />

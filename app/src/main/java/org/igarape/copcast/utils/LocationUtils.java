@@ -1,12 +1,19 @@
 package org.igarape.copcast.utils;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.location.Location;
+import android.location.LocationManager;
+import android.provider.Settings;
 import android.util.Log;
 
+import org.igarape.copcast.R;
+import org.igarape.copcast.promises.Promise;
+import org.igarape.copcast.promises.PromiseError;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -16,15 +23,11 @@ import java.util.TimeZone;
  * Created by bruno on 11/5/14.
  */
 public class LocationUtils {
+    private static String TAG = LocationUtils.class.getCanonicalName();
     /*
   * Define a request code to send to Google Play services
   * This code is returned in Activity.onActivityResult
   */
-    public final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
-
-    /*
-     * Constants for location update parameters
-     */
     // Milliseconds per second
     public static final int MILLISECONDS_PER_SECOND = 1000;
 
@@ -41,48 +44,20 @@ public class LocationUtils {
     // A fast ceiling of update intervals, used when the app is visible
     public static final long FAST_INTERVAL_CEILING_IN_MILLISECONDS =
             MILLISECONDS_PER_SECOND * FAST_CEILING_IN_SECONDS;
-    private static final String TAG = LocationUtils.class.getName();
     public static final float SMALLEST_DISPLACEMENT = 0;
 
+    private static AlertDialog mHighAccuracyLocationDisabledAlertDialog;
+
     public static void sendLocation(Context context, final String login, final Location location) {
-        HttpResponseCallback callback = new HttpResponseCallback() {
+        Promise callback = new Promise() {
+
             @Override
-            public void failure(int statusCode) {
+            public void error(PromiseError exception) {
                 FileUtils.logLocation(login, location);
             }
 
             @Override
-            public void unauthorized() {
-                FileUtils.logLocation(login, location);
-            }
-
-            @Override
-            public void noConnection() {
-                FileUtils.logLocation(login, location);
-            }
-
-            @Override
-            public void forbidden() {
-                FileUtils.logLocation(login, location);
-            }
-
-            @Override
-            public void badConnection() {
-                FileUtils.logLocation(login, location);
-            }
-
-            @Override
-            public void badRequest() {
-                FileUtils.logLocation(login, location);
-            }
-
-            @Override
-            public void badResponse() {
-                FileUtils.logLocation(login, location);
-            }
-
-            @Override
-            public void success(JSONObject response) {
+            public void success() {
                 Log.i(TAG, "location sent successfully");
             }
         };
@@ -127,5 +102,36 @@ public class LocationUtils {
             json.put("speed", speed);
         }
         return json;
+    }
+
+    public static boolean isHighAccuracyLocationEnabled(android.app.Activity activity) {
+        final LocationManager location_manager =
+                (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
+        return location_manager.isProviderEnabled(LocationManager.GPS_PROVIDER) &&
+                location_manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+    }
+
+    public static void showHighAccuracyLocationDisabledAlert(final android.app.Activity activity) {
+        if (mHighAccuracyLocationDisabledAlertDialog != null &&
+                mHighAccuracyLocationDisabledAlertDialog.isShowing()) {
+            // Dialog is already showing, don't show again.
+            return;
+        }
+
+        activity.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+                builder.setMessage(R.string.high_accuracy_location_dialog_msg)
+                        .setCancelable(true)
+                        .setPositiveButton(R.string.enable, new DialogInterface.OnClickListener() {
+                            public void onClick(final DialogInterface dialog, final int id) {
+                                activity.startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                            }
+                        });
+                mHighAccuracyLocationDisabledAlertDialog = builder.create();
+                mHighAccuracyLocationDisabledAlertDialog.show();
+            }
+        });
     }
 }

@@ -1,12 +1,16 @@
 package org.igarape.copcast.views;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,10 +26,17 @@ import com.google.android.gms.iid.InstanceID;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.igarape.copcast.R;
+import org.igarape.copcast.promises.HttpPromiseError;
+import org.igarape.copcast.promises.PromiseError;
 import org.igarape.copcast.state.State;
+import org.igarape.copcast.utils.EditTextUtils;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.utils.HistoryUtils;
-import org.igarape.copcast.utils.HttpResponseCallback;
+import org.igarape.copcast.promises.Promise;
+import org.igarape.copcast.promises.PromisePayload;
+import org.igarape.copcast.utils.LocationUtils;
+import org.igarape.copcast.utils.NetworkUtils;
+import org.igarape.copcast.utils.OkDialog;
+import org.igarape.copcast.utils.StateManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -34,7 +45,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.view.Gravity.CENTER_HORIZONTAL;
-import static org.igarape.copcast.utils.NetworkUtils.post;
 
 public class LoginActivity extends Activity {
 
@@ -42,6 +52,7 @@ public class LoginActivity extends Activity {
     EditText txtId;
     EditText txtPwd;
     ProgressDialog pDialog;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,27 +62,9 @@ public class LoginActivity extends Activity {
         txtId = (EditText) findViewById(R.id.txtLoginUser);
         txtPwd = (EditText) findViewById(R.id.txtLoginPassword);
         Button btnLoginOk = (Button) findViewById(R.id.btn_login_ok);
-        /**
-         * Appears a hack
-         * On login_activity I added
-         * android:focusable="true"
-         * android:focusableInTouchMode="true"
-         */
-        txtId.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    txtId.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            InputMethodManager keyboard = (InputMethodManager)
-                                    getSystemService(Context.INPUT_METHOD_SERVICE);
-                            keyboard.showSoftInput(txtId, 0);
-                        }
-                    }, 200);
-                }
-            }
-        });
+
+        EditTextUtils.showKeyboard(this, txtId);
+        EditTextUtils.showKeyboardOnFocusAndClick(this, txtId);
 
         btnLoginOk.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -82,7 +75,7 @@ public class LoginActivity extends Activity {
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            String msg =extras.getString("reason");
+            String msg = extras.getString("reason");
             if (msg != null && msg.length() > 0) {
                 Toast toast = Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG);
                 toast.setGravity(Gravity.TOP | CENTER_HORIZONTAL, 0, 100);
@@ -99,9 +92,14 @@ public class LoginActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Intent i;
         switch (item.getItemId()) {
             case R.id.action_settings:
-                Intent i = new Intent(this, SettingsActivity.class);
+                i = new Intent(this, SettingsActivity.class);
+                startActivity(i);
+                break;
+            case R.id.device_registration:
+                i = new Intent(this, RegistrationActivity.class);
                 startActivity(i);
                 break;
         }
@@ -110,8 +108,12 @@ public class LoginActivity extends Activity {
     }
 
     public void makeLoginRequest(View view) {
+        if (!LocationUtils.isHighAccuracyLocationEnabled(this)) {
+            LocationUtils.showHighAccuracyLocationDisabledAlert(this);
+            return;
+        }
 
-        pDialog = new ProgressDialog(this, android.R.style.Theme_Holo_Dialog);
+        pDialog = new ProgressDialog(this);
         pDialog.setTitle(getString(R.string.login_in));
         pDialog.setMessage(getString(R.string.please_hold));
         pDialog.setIndeterminate(true);
@@ -123,46 +125,26 @@ public class LoginActivity extends Activity {
         new AsyncTask() {
             @Override
             protected Object doInBackground(Object[] args) {
-                List<NameValuePair> params = new ArrayList<NameValuePair>();
+                final List<Pair<String, String>> params = new ArrayList();
 
-                params.add(new BasicNameValuePair("username", loginField));
+                params.add(new Pair("username", loginField));
+                params.add(new Pair("password", passwordField));
+                params.add(new Pair("scope", "client"));
 
-                params.add(new BasicNameValuePair("password", passwordField));
-                params.add(new BasicNameValuePair("scope", "client"));
-
-                InstanceID instanceID = InstanceID.getInstance(getApplicationContext());
-                String regId = null;
-
-                try {
-                    Bundle bundle = new Bundle();
-                    bundle.putString("login", loginField);
-                    regId = instanceID.getToken(getString(R.string.gcm_defaultSenderId),
-                            GoogleCloudMessaging.INSTANCE_ID_SCOPE, bundle);
-                    Globals.storeRegistrationId(getApplicationContext(), regId);
-                } catch (IOException e) {
-                    Log.e(TAG, "error getting gcm code ", e);
-                }
-                params.add(new BasicNameValuePair("gcm_registration", regId));
-
-                post(getApplicationContext(), "/token", params, new HttpResponseCallback() {
+                NetworkUtils.post(getApplicationContext(), "/token", params, new Promise() {
                     @Override
-                    public void success(JSONObject response) {
+                    public void success(PromisePayload payload) {
+                        JSONObject response = (JSONObject) payload.get("response");
                         Log.d(TAG, "@JSONRESPONSE=[" + response + "]");
                         String token = null;
                         try {
                             token = (String) response.get("token");
-                            if (response.get("streamingPort") instanceof Integer){
-                                Globals.setStreamingPort(getApplicationContext(), (Integer) response.get("streamingPort"));
-                            } else {
-                                Globals.setStreamingPort(getApplicationContext(), Integer.parseInt(response.getString("streamingPort")));
-                            }
-                            Globals.setServerIpAddress(getApplicationContext(), response.getString("ipAddress"));
-                            Globals.setStreamingUser(getApplicationContext(), response.getString("streamingUser"));
-                            Globals.setStreamingPassword(getApplicationContext(), response.getString("streamingPassword"));
-                            Globals.setStreamingPath(getApplicationContext(), response.getString("streamingPath"));
                             Globals.setUserName(getApplicationContext(), response.getString("userName"));
+                            Globals.setUserId(getApplicationContext(), response.getInt("userId"));
                         } catch (JSONException e) {
+                            OkDialog.displayAndTerminate(LoginActivity.this, getString(R.string.warning), getString(R.string.internal_error));
                             Log.e(TAG, "error on login", e);
+                            return;
                         }
                         runOnUiThread(new Runnable() {
                             @Override
@@ -176,7 +158,7 @@ public class LoginActivity extends Activity {
                         Globals.setAccessToken(getBaseContext(), token);
                         Globals.setUserLogin(getBaseContext(), loginField);
 
-                        HistoryUtils.registerHistory(getApplicationContext(), State.NOT_LOGGED, State.LOGGED, Globals.getUserLogin(LoginActivity.this), null);
+                        StateManager.setStateOrDie(LoginActivity.this, State.IDLE);
 
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                         startActivity(intent);
@@ -184,13 +166,28 @@ public class LoginActivity extends Activity {
                     }
 
                     @Override
-                    public void unauthorized() {
-                        showToast(R.string.unauthorized_login);
-                    }
-
-                    @Override
-                    public void forbidden() {
-                        showToast(R.string.forbidden_login);
+                    public void error(PromiseError error) {
+                        switch((HttpPromiseError) error) {
+                            case NOT_AUTHORIZED:
+                                showToast(R.string.unauthorized_login);
+                                break;
+                            case FORBIDDEN:
+                                showToast(R.string.forbidden_login);
+                                break;
+                            case NO_CONNECTION:
+                                showToast(R.string.network_required);
+                                break;
+                            case BAD_CONNECTION:
+                                showToast(R.string.connection_error);
+                                break;
+                            case BAD_REQUEST:
+                            case BAD_RESPONSE:
+                                showToast(R.string.bad_request_error);
+                                break;
+                            case FAILURE:
+                                showToast(R.string.server_error);
+                                break;
+                        }
                     }
 
                     private void showToast(final int message) {
@@ -209,56 +206,10 @@ public class LoginActivity extends Activity {
                             }
                         });
                     }
-
-                    @Override
-                    public void failure(int statusCode) {
-                        showToast(R.string.server_error);
-                    }
-
-                    @Override
-                    public void noConnection() {
-                        showToast(R.string.network_required);
-                    }
-
-                    @Override
-                    public void badConnection() {
-                        showToast(R.string.connection_error);
-                    }
-
-                    @Override
-                    public void badRequest() {
-                        showToast(R.string.bad_request_error);
-                    }
-
-                    @Override
-                    public void badResponse() {
-                        showToast(R.string.bad_request_error);
-                    }
                 });
                 return null;
             }
 
         }.execute(null, null, null);
     }
-
-    private boolean hasErrors() {
-        final String login = txtId.getText().toString();
-        final String password = txtPwd.getText().toString();
-        if (login.isEmpty()) {
-            Log.d(TAG, "login required");
-            Toast toast = Toast.makeText(getApplicationContext(), R.string.login_required, Toast.LENGTH_LONG);
-            toast.setGravity(Gravity.TOP, 0, 100);
-            toast.show();
-            return true;
-        }
-        if (password.isEmpty()) {
-            Log.d(TAG, "password required");
-            Toast toast = Toast.makeText(getApplicationContext(), R.string.password_required, Toast.LENGTH_LONG);
-            toast.setGravity(Gravity.TOP, 0, 100);
-            toast.show();
-            return true;
-        }
-        return false;
-    }
-
 }

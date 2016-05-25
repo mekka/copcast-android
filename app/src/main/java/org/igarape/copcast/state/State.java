@@ -5,12 +5,14 @@ package org.igarape.copcast.state;
  */
 public enum State {
 
-    NOT_LOGGED,
+    LOGGED_OFF,
+    IDLE,
     PAUSED,
-    RECORDING_OFFLINE,
-    RECORDING_ONLINE,
+    RECORDING,
     STREAMING,
-    UPLOADING, LOGGED,
-    SEEN_VIDEO;
+    UPLOADING,
+
+    //events
+    SEEN_VIDEO
 
 }

@@ -30,8 +30,6 @@ import org.igarape.copcast.bo.IncidentForm;
 import org.igarape.copcast.fragments.DatePickerFragment;
 import org.igarape.copcast.fragments.TimePickerFragment;
 import org.igarape.copcast.utils.GPSTracker;
-import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.utils.IncidentFormCallback;
 import org.igarape.copcast.utils.IncidentFormUtils;
 
 import java.text.DateFormat;
@@ -309,18 +307,7 @@ public class FormIncidentReportActivity extends Activity implements GoogleApiCli
 
         Log.d(TAG, "writeJSONtoFile...");
 
-        IncidentFormUtils.sendForm(getApplicationContext(),
-                Globals.getUserLogin(getApplicationContext()),
-                incidentForm, new IncidentFormCallback() {
-                    @Override
-                    public void failure() {
-                        Toast.makeText(context, getString(R.string.error_sending_form), Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void success() {
-                    }
-                });
+        IncidentFormUtils.sendForm(getApplicationContext(), incidentForm);
     }
 
     private IncidentForm getIncidentForm() {

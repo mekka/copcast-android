@@ -12,11 +12,14 @@ import android.util.Log;
 
 import org.igarape.copcast.state.IncidentFlagState;
 
+import java.util.UUID;
+
 /**
  * Created by fcavalcanti on 28/10/2014.
  */
 public class Globals {
 
+    public static final String APP_REGISTERED = "APP_REGISTERED";
     public static final String AUTH = "AUTH";
     public static final String DATA = "DATA";
     public static final String STREAMING_PORT = "STREAMING_PORT";
@@ -25,6 +28,7 @@ public class Globals {
     public static final String STREAMING_PASSWORD = "STREAMING_PASSWORD";
     public static final String STREAMING_PATH = "STREAMING_PATH";
     public static final String USER_NAME = "USER_NAME";
+    public static final String USER_ID = "USER_ID";
     public static final String DIRECTORY_SIZE = "DIRECTORY_SIZE";
     public static final String DIRECTORY_UPLOADED_SIZE = "DIRECTORY_UPLOADED_SIZE";
     public static final long BATTERY_REPEAT_TIME =  1000 * 600; // 10 minutes;
@@ -34,9 +38,9 @@ public class Globals {
     private static final String PREF_USER_LOGIN = "PREF_USER_LOGIN";
     public static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
-    private static final String SERVER_URL = "server_url";
+    public static final String SERVER_URL = "server_url";
     private static final String REQUIRE_WIFI_ONLY = "upload_wifi_only";
-    private static final String STREAM_LIMIT_TIME = "limit_streaming_time";
+    private static final String AUTOMATIC_UPLOAD = "automatic_upload";
     private static String accessToken = null;
     private static String userLogin = null;
     private static String serverIpAddress = null;
@@ -48,13 +52,17 @@ public class Globals {
     private static Bitmap userImage = null;
     private static Long directorySize;
     private static Long directoryUploadedSize;
-    private static Boolean toggling = false;
+    private static Boolean livestreamToggle = false;
     private static Location lastKnownLocation = null;
     private static int rotation;
     private static IncidentFlagState incidentFlag = IncidentFlagState.NOT_FLAGGED;
     private static String currentVideoPath;
     public static int appCamcoderProfile = CamcorderProfile.QUALITY_QVGA;
-
+    private static String imei;
+    private static String simid;
+    private static UUID sessionId;
+    private static StateManager stateManager;
+    private static Integer userId;
 
     public synchronized static String getAccessToken(Context context) {
         if (accessToken == null) {
@@ -64,7 +72,7 @@ public class Globals {
         return accessToken != null ? "Bearer " + accessToken : null;
     }
 
-    public synchronized static String getAccessTokenStraight(Context context) {
+    public synchronized static String getPlainToken(Context context) {
         if (accessToken == null) {
             SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
             accessToken = sharedPrefs.getString(PREF_ACCESS_TOKEN, null);
@@ -212,7 +220,6 @@ public class Globals {
         return userName;
     }
 
-
     public static void clear(Context context) {
         SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
@@ -226,7 +233,7 @@ public class Globals {
         userLogin = null;
         userName = null;
         userImage = null;
-        toggling = false;
+        livestreamToggle = false;
         serverIpAddress = null;
         streamingPort = 1935;
         streamingUser = null;
@@ -265,7 +272,7 @@ public class Globals {
             SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
             directorySize = sharedPrefs.getLong(DIRECTORY_SIZE, 0);
         }
-        return directorySize;
+        return directorySize/1024;
     }
 
     public static String getServerIpAddress(Context context) {
@@ -307,12 +314,12 @@ public class Globals {
         }
         return streamingPath;
     }
-    public static void setToggling(boolean value) {
-        toggling = value;
+    public static void setLivestreamToggle(boolean value) {
+        livestreamToggle = value;
     }
 
-    public static Boolean isToggling(){
-        return toggling;
+    public static Boolean getLivestreamToggle(){
+        return livestreamToggle;
     }
     public static void setRotation(int rotation) {
         Globals.rotation = rotation;
@@ -327,14 +334,19 @@ public class Globals {
         return sharedPref.getString(SERVER_URL, "");
     }
 
+    public static String getAppRegistered(Context context){
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPref.getString(APP_REGISTERED, "");
+    }
+
     public static Boolean isWifiOnly(Context context){
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         return sharedPref.getBoolean(REQUIRE_WIFI_ONLY, true);
     }
 
-    public static Boolean hasStreamTimeLimit(Context context){
+    public static Boolean isAutomaticUpload(Context context){
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
-        return sharedPref.getBoolean(STREAM_LIMIT_TIME, true);
+        return sharedPref.getBoolean(AUTOMATIC_UPLOAD, true);
     }
 
     public static String getCurrentVideoPath() {
@@ -353,5 +365,52 @@ public class Globals {
         Globals.incidentFlag = incidentFlag;
     }
 
+    public static String getSimid() {
+        return simid;
+    }
+
+    public static void setSimid(String simid) {
+        Globals.simid = simid;
+    }
+
+    public static String getImei() {
+        return imei;
+    }
+
+    public static void setImei(String imei) {
+        Globals.imei = imei;
+    }
+
+    public static void sessionInit() {
+        sessionId = UUID.randomUUID();
+    }
+
+    public static UUID getSessionID() {
+        return sessionId;
+    }
+
+    public static void initStateManager(Context context) {
+        stateManager = new StateManager(context);
+    }
+
+    public static StateManager getStateManager() {
+        return stateManager;
+    }
+
+    public static void setUserId(Context context,int userId) {
+        SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.putString(USER_ID, String.valueOf(new Integer(userId)));
+        editor.apply();
+        Globals.userId = userId;
+    }
+
+    public static Integer getUserId(Context context) {
+        if (userId == null) {
+            SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
+            userId = Integer.parseInt(sharedPrefs.getString(USER_ID, null));
+        }
+        return userId;
+    }
 
 }

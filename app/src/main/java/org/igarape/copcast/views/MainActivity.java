@@ -7,19 +7,20 @@ import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.IBinder;
 import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
@@ -30,47 +31,54 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.alexbbb.uploadservice.UploadService;
-
+import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
+import org.igarape.copcast.promises.HttpPromiseError;
+import org.igarape.copcast.promises.PromiseError;
+import org.igarape.copcast.promises.WebRecorderPromiseError;
 import org.igarape.copcast.receiver.BatteryReceiver;
-import org.igarape.copcast.service.CopcastGcmListenerService;
 import org.igarape.copcast.service.LocationService;
-import org.igarape.copcast.service.StreamService;
 import org.igarape.copcast.service.VideoRecorderService;
+import org.igarape.copcast.service.upload.UploadService;
 import org.igarape.copcast.state.IncidentFlagState;
+import org.igarape.copcast.state.NetworkState;
 import org.igarape.copcast.state.State;
+import org.igarape.copcast.state.UploadServiceEvent;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.utils.HistoryUtils;
-import org.igarape.copcast.utils.HttpResponseCallback;
+import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.IncidentUtils;
+import org.igarape.copcast.utils.LocationUtils;
 import org.igarape.copcast.utils.NetworkUtils;
-import org.igarape.copcast.utils.UploadManager;
+import org.igarape.copcast.promises.Promise;
+import org.igarape.copcast.utils.StateManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import static org.igarape.copcast.utils.FileUtils.formatMegaBytes;
 import static org.igarape.copcast.utils.Globals.getDirectorySize;
 
-
 public class MainActivity extends Activity {
 
     private static final String TAG = MainActivity.class.getName();
+    private static int MINUTES_30 = 1800000;
+    private static int MINUTES_10 = 600000;
     private BroadcastReceiver broadcastReceiver;
-    private Button mStarMissionButton;
+    private BroadcastReceiver uploadFeedbackReceiver;
+    private Button mStartMissionButton;
     private Button mEndMissionButton;
     private Button mPauseRecordingButton;
     private Button mResumeMissionButton;
+    private Button uploadButton;
     private TextView mPauseCounter;
     private CountDownPausedTimer mCountDownThirtyPaused;
     private CountDownPausedTimer mCountDownTenPaused;
@@ -78,125 +86,188 @@ public class MainActivity extends Activity {
     private CompoundButton.OnCheckedChangeListener mStreamListener;
 
     private MediaPlayer mySongclick;
-    private UploadManager uploadManager;
-    private Long first_keydown;
-    private final int FLAG_TRIGGER_WAIT_TIME = 1000;
+    private boolean longPress = false;
     private ProgressDialog pDialog;
-    private CountDownStreamTimer mCountDownStreamTimer = null;
+    private VideoRecorderService videoRecorderService;
+    boolean videoServiceBound = false;
+    private AudioManager audioManager;
+    private Timer mCheckForHighAccuracyLocationTimer;
+    private AlertDialog mWifiAlertDialog;
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            VideoRecorderService.LocalBinder binder = (VideoRecorderService.LocalBinder) service;
+            videoRecorderService = binder.getService();
+            videoServiceBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            videoServiceBound = false;
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        NetworkUtils.get(getApplicationContext(), "/users/me", new Promise() {
 
-        mStreamSwitch = (Switch) findViewById(R.id.streamSwitch);
-        mStarMissionButton = (Button) findViewById(R.id.startMissionButton);
-        mEndMissionButton = (Button) findViewById(R.id.endMissionButton);
-        mPauseRecordingButton = (Button) findViewById(R.id.pauseRecordingButton);
-        mResumeMissionButton = (Button) findViewById(R.id.resumeMissionButton);
-        mPauseCounter = (TextView) findViewById(R.id.pauseCounter);
-
-        mCountDownThirtyPaused = new CountDownPausedTimer(1800000, 1000);
-        mCountDownTenPaused = new CountDownPausedTimer(600000, 1000);
-        mCountDownStreamTimer = new CountDownStreamTimer(1200000, 1200000);
-
-        mStreamListener = new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Globals.setToggling(true);
-                //When toogling, the stopped service will start the other one
-                if (isChecked) {
-                    HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.STREAMING, Globals.getUserLogin(MainActivity.this), null);
-
-                    Intent intentAux = new Intent(MainActivity.this, VideoRecorderService.class);
-                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    stopService(intentAux);
-                    if (Globals.hasStreamTimeLimit(getApplicationContext())) {
-                        mCountDownStreamTimer.start();
-                        msgBox(R.string.stream_limit);
-                    }
+            public void error(PromiseError error) {
+                if (error.equals(HttpPromiseError.NOT_AUTHORIZED)) {
+                    logout(getString(R.string.token_expired));
                 } else {
-                    HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this), null);
-
-                    Intent intentAux = new Intent(MainActivity.this, StreamService.class);
-                    intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    stopService(intentAux);
-                    mCountDownStreamTimer.cancel();
+                    logout(getString(R.string.server_error));
 
                 }
             }
-        };
+        });
 
-        ActionBar ab = getActionBar(); //needs  import android.app.ActionBar;
+        audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
+
+        ActionBar ab = getActionBar();
         if (ab != null) {
             ab.setTitle(Globals.getUserName(getApplicationContext()));
             ab.setSubtitle(Globals.getUserLogin(this));
         }
         FileUtils.init(getApplicationContext());
 
+        mStreamSwitch = (Switch) findViewById(R.id.streamSwitch);
+        uploadButton = (Button) findViewById(R.id.uploadButton);
+        mStartMissionButton = (Button) findViewById(R.id.startMissionButton);
+        mEndMissionButton = (Button) findViewById(R.id.endMissionButton);
+        mPauseRecordingButton = (Button) findViewById(R.id.pauseRecordingButton);
+        mResumeMissionButton = (Button) findViewById(R.id.resumeMissionButton);
+        mPauseCounter = (TextView) findViewById(R.id.pauseCounter);
 
+        mCountDownThirtyPaused = new CountDownPausedTimer(MINUTES_30, 1000);
+        mCountDownTenPaused = new CountDownPausedTimer(MINUTES_10, 1000);
 
-        registerMyReceiver();
-
-        NetworkUtils.get(getApplicationContext(), "/pictures/icon/show", NetworkUtils.Response.BYTEARRAY, new HttpResponseCallback() {
+        mStreamListener = new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void unauthorized() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Globals.setLivestreamToggle(true);
+                //When toogling, the stopped service will start the other one
+                if (isChecked) {
+                    StateManager.setStateOrDie(MainActivity.this, State.STREAMING);
+                    videoRecorderService.startStreaming();
+                } else {
+                    StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
+                    videoRecorderService.stopStreaming();
 
+
+                }
             }
+        };
 
+        broadcastReceiver
+                = new BroadcastReceiver() {
             @Override
-            public void failure(int statusCode) {
+            public void onReceive(Context context, final Intent intent) {
+                ILog.d(TAG, "received generic");
 
+                if (intent.getAction().equals(BatteryReceiver.BATTERY_LOW_MESSAGE)) {
+                    stopUploading();
+                } else if (intent.getAction().equals(BatteryReceiver.POWER_UNPLUGGED)) {
+
+                    if (Globals.getStateManager().isState(State.UPLOADING)) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(MainActivity.this, getString(R.string.power_unplugged_upload_aborted), Toast.LENGTH_LONG).show();
+                            }
+                        });
+                        stopUploading();
+                    }
+                } else if (intent.getAction().equals(BatteryReceiver.POWER_PLUGGED)) {
+                    if (Globals.isAutomaticUpload(context)) {
+                        Log.d(TAG, "power plugged. Starting upload!");
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(MainActivity.this, getString(R.string.start_automatic_upload), Toast.LENGTH_LONG).show();
+                                uploadButton.performClick();
+                            }
+                        });
+                    }
+                } else if (intent.getAction().equals(VideoRecorderService.STARTED_STREAMING)) {
+                    mStreamSwitch.setChecked(true);
+                } else if (intent.getAction().equals(VideoRecorderService.STOPPED_STREAMING)) {
+                    mStreamSwitch.setChecked(false);
+                }
             }
+        };
 
+        uploadFeedbackReceiver = new BroadcastReceiver() {
             @Override
-            public void noConnection() {
+            public void onReceive(Context context, Intent intent) {
+                if (intent.getAction().equals(UploadService.UPLOAD_FEEDBACK_ACTION)) {
+                    if (intent.getExtras() != null && intent.getExtras().get("event")!=null) {
+                        UploadServiceEvent use = (UploadServiceEvent) intent.getExtras().get("event");
 
-            }
-            @Override
-            public void forbidden() {
+                        Log.d(TAG, "Received upload event: "+use);
 
-            }
+                        if (!use.isRunning()) {
+                            resetStatusUpload();
+                            StateManager.setStateOrDie(MainActivity.this, State.IDLE);
+                        } else
+                            displayUploadBar();
 
-            @Override
-            public void badConnection() {
-
-            }
-
-            @Override
-            public void badRequest() {
-
-            }
-
-            @Override
-            public void badResponse() {
-
-            }
-
-            @Override
-            public void success(byte[] response) {
-                final byte[] responseBody = response;
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        Bitmap bm = BitmapFactory.decodeByteArray(responseBody, 0, responseBody.length);
-                        Globals.setUserImage(bm);
-                        ActionBar actionBar = getActionBar();
-                        if (actionBar != null) {
-                            actionBar.setIcon(new BitmapDrawable(MainActivity.this.getResources(), bm));
+                        switch (use) {
+                            case STARTED:
+                                break;
+                            case RUNNING:
+                                ProgressBar p = (ProgressBar) findViewById(R.id.progressBar);
+                                int prog = (int) intent.getExtras().getLong("uploadedBytes");
+                                p.setProgress(prog);
+                                ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes((long) prog), formatMegaBytes((long)p.getMax())));
+                                break;
+                            case ABORTED_NO_NETWORK:
+                                Toast.makeText(getApplicationContext(), getString(R.string.network_state_no_network), Toast.LENGTH_LONG).show();
+                                ILog.d(TAG, "No network available");
+                                break;
+                            case FAILED:
+                                Toast.makeText(getApplicationContext(), getString(R.string.upload_error), Toast.LENGTH_LONG).show();
+                                break;
+                            case FINISHED:
+                                Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
+                                break;
+                            case ABORTED_USER:
+                                ILog.d(TAG, "user aborted upload");
+                                break;
+                            default:
+                                ILog.e(TAG, "Unexpected upload feedback status: "+use);
                         }
                     }
-                });
+                }
             }
-        });
+        };
+
+        //generic broadcast filter (battery and videoservice statuses)
+        IntentFilter broadcastFilter = new IntentFilter();
+        broadcastFilter.addAction(BatteryReceiver.BATTERY_LOW_MESSAGE);
+        broadcastFilter.addAction(BatteryReceiver.BATTERY_OKAY_MESSAGE);
+        broadcastFilter.addAction(BatteryReceiver.POWER_PLUGGED);
+        broadcastFilter.addAction(BatteryReceiver.POWER_UNPLUGGED);
+        broadcastFilter.addAction(VideoRecorderService.STARTED_STREAMING);
+        broadcastFilter.addAction(VideoRecorderService.STOPPED_STREAMING);
+        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, broadcastFilter);
+
+        //upload specific broadcast filter
+        IntentFilter filterUploadFeedback = new IntentFilter(UploadService.UPLOAD_FEEDBACK_ACTION);
+        LocalBroadcastManager.getInstance(this).registerReceiver(uploadFeedbackReceiver, filterUploadFeedback);
 
         resetStatusUpload();
 
-        mStarMissionButton.setOnClickListener(new View.OnClickListener() {
+        mStartMissionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (isUploading()) {
+                if (Globals.getStateManager().isState(State.UPLOADING)) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
                     builder.setMessage(R.string.stop_uploading)
@@ -204,7 +275,6 @@ public class MainActivity extends Activity {
                                 public void onClick(DialogInterface dialog, int id) {
                                     stopUploading();
                                     startMission();
-
                                 }
                             })
                             .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -215,17 +285,18 @@ public class MainActivity extends Activity {
                     // Create the AlertDialog object and return it
                     AlertDialog alertDialog = builder.create();
                     alertDialog.show();
+                } else if (!LocationUtils.isHighAccuracyLocationEnabled(MainActivity.this)) {
+                    LocationUtils.showHighAccuracyLocationDisabledAlert(MainActivity.this);
                 } else {
                     startMission();
                 }
             }
 
             private void startMission() {
-                mStarMissionButton.setVisibility(View.GONE);
+                mStartMissionButton.setVisibility(View.GONE);
 
-                vibrate(200); //vibrate when touch a button
+                vibrate(200);
                 talk("mission_started");
-                // Log.d("talk","mission started");
 
                 findViewById(R.id.settingsLayout).setVisibility(View.VISIBLE);
                 ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.mission_start));
@@ -236,6 +307,7 @@ public class MainActivity extends Activity {
                 findViewById(R.id.recBall).setVisibility(View.VISIBLE);
 
                 Intent intent = new Intent(MainActivity.this, VideoRecorderService.class);
+                bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startService(intent);
 
@@ -243,12 +315,12 @@ public class MainActivity extends Activity {
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startService(intent);
 
-                HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.RECORDING_ONLINE, Globals.getUserLogin(MainActivity.this), null);
-
                 startAlarmBatteryReceiver();
+
+                startCheckingForHighAccuracyLocation();
+
+                StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
             }
-
-
         });
 
         mEndMissionButton.setOnClickListener(new View.OnClickListener()
@@ -257,100 +329,128 @@ public class MainActivity extends Activity {
                                                  @Override
                                                  public void onClick(View view) {
 
-                                                     if (isStreaming()) {
-                                                         HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.LOGGED, Globals.getUserLogin(MainActivity.this), null);
-                                                     } else if (isRecording()){
-                                                         HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.LOGGED, Globals.getUserLogin(MainActivity.this), null);
-                                                     } else if (isPaused()){
-                                                         HistoryUtils.registerHistory(getApplicationContext(), State.PAUSED, State.LOGGED, Globals.getUserLogin(MainActivity.this), null);
-                                                     }
+                                                     final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
+                                                     progressDialog.setTitle(getString(R.string.please_hold));
+                                                     progressDialog.setMessage(getString(R.string.storing_video));
+                                                     progressDialog.show();
+                                                     vibrate(100);
 
-                                                     missionCompleted();
+                                                     videoRecorderService.stop(new Promise<WebRecorderPromiseError>() {
+                                                         @Override
+                                                         public void success() {
 
-                                                     mStarMissionButton.setVisibility(View.VISIBLE);
-                                                     mPauseCounter.setVisibility(View.GONE);
-                                                     findViewById(R.id.pauseRecordingButton).setVisibility(View.VISIBLE);
-                                                     findViewById(R.id.pausedLayout).setVisibility(View.GONE);
-                                                     findViewById(R.id.resumeMissionButton).setVisibility(View.GONE);
-                                                     findViewById(R.id.settingsLayout).setVisibility(View.GONE);
-                                                     ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.welcome));
-                                                     ((TextView) findViewById(R.id.welcomeDesc)).setText(getString(R.string.welcome_desc));
+                                                             runOnUiThread(new Runnable() {
+                                                                 @Override
+                                                                 public void run() {
 
-                                                     findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
-                                                     findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
-                                                     findViewById(R.id.streamLayout).setVisibility(View.GONE);
-                                                     findViewById(R.id.recBall).setVisibility(View.INVISIBLE);
+                                                                     StateManager.setStateOrDie(MainActivity.this, State.IDLE);
 
-                                                     mStreamSwitch.setOnCheckedChangeListener(null);
-                                                     mStreamSwitch.setChecked(false);
-                                                     mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+                                                                     mStartMissionButton.setVisibility(View.VISIBLE);
+                                                                     mPauseCounter.setVisibility(View.GONE);
+                                                                     findViewById(R.id.pauseRecordingButton).setVisibility(View.VISIBLE);
+                                                                     findViewById(R.id.pausedLayout).setVisibility(View.GONE);
+                                                                     findViewById(R.id.resumeMissionButton).setVisibility(View.GONE);
+                                                                     findViewById(R.id.settingsLayout).setVisibility(View.GONE);
+                                                                     ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.welcome));
+                                                                     ((TextView) findViewById(R.id.welcomeDesc)).setText(getString(R.string.welcome_desc));
 
+                                                                     findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
+                                                                     findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
+                                                                     findViewById(R.id.streamLayout).setVisibility(View.GONE);
+                                                                     findViewById(R.id.recBall).setVisibility(View.INVISIBLE);
 
-                                                     Intent intent = new Intent(MainActivity.this, StreamService.class);
-                                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                     stopService(intent);
+                                                                     mStreamSwitch.setOnCheckedChangeListener(null);
+                                                                     mStreamSwitch.setChecked(false);
+                                                                     mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
 
-                                                     intent = new Intent(MainActivity.this, VideoRecorderService.class);
-                                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                     stopService(intent);
+                                                                     Intent intent = new Intent(MainActivity.this, LocationService.class);
+                                                                     stopService(intent);
 
+                                                                     mCountDownTenPaused.cancel();
+                                                                     mCountDownThirtyPaused.cancel();
+                                                                     mPauseCounter.setText("");
 
-                                                     intent = new Intent(MainActivity.this, LocationService.class);
-                                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                     stopService(intent);
+                                                                     stopCheckingForHighAccuracyLocation();
 
-                                                     mCountDownTenPaused.cancel();
-                                                     mCountDownThirtyPaused.cancel();
-                                                     mCountDownStreamTimer.cancel();
+                                                                     //reset upload values
+                                                                     resetStatusUpload();
+                                                                     missionCompleted();
+                                                                     progressDialog.dismiss();
+//                                                                     MainActivity.this.appState = IDLE;
+                                                                 }
+                                                             });
+                                                         }
 
-                                                     mPauseCounter.setText("");
-
-                                                     //reset upload values
-                                                     resetStatusUpload();
-
+                                                         @Override
+                                                         public void error(PromiseError exception) {
+                                                             Log.e(TAG, "webrecorder stop error: " + exception.toString());
+                                                             this.success();
+                                                         }
+                                                     });
                                                  }
-
-
                                              }
 
 
         );
 
+        uploadButton.setOnClickListener(new View.OnClickListener() {
 
-        findViewById(R.id.uploadButton).setOnClickListener(new View.OnClickListener() {
-                                                                          @Override
-                                                                          public void onClick(View view) {
-                                                                              if (NetworkUtils.canUpload(getApplicationContext(), getIntent())) {
-                                                                                  findViewById(R.id.uploadLayout).setVisibility(View.GONE);
-                                                                                  findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
-                                                                                  findViewById(R.id.streamLayout).setVisibility(View.GONE);
+                                                               @Override
+                                                               public void onClick(View view) {
+                                                                   NetworkState networkState = NetworkUtils.checkUploadState(getApplicationContext());
+                                                                   if (networkState == NetworkState.NETWORK_OK) {
+                                                                       resetStatusUpload(); // prevent ghost information from appearing
+                                                                       if (UploadService.doUpload(getApplicationContext())) {
+                                                                           JSONObject extra = new JSONObject();
+                                                                           try {
+                                                                               extra.put("connection", NetworkUtils.getConnectionType(getApplicationContext()));
+                                                                               extra.put("data", Globals.getDirectorySize(getApplicationContext()));
+                                                                           } catch (JSONException ex) {
+                                                                               Log.e(TAG, "error building json", ex);
+                                                                           }
+                                                                           StateManager.setStateOrDie(MainActivity.this, State.UPLOADING, extra);
+                                                                       } else {
+                                                                           Toast.makeText(getApplicationContext(), getString(R.string.upload_no_data), Toast.LENGTH_LONG).show();
+                                                                           Log.d(TAG, "Upload requested, but nothing to upload");
+                                                                       }
 
-                                                                                  uploadManager = new UploadManager(getApplicationContext());
-                                                                                  uploadManager.runUpload();
+                                                                   } else {
+                                                                       int msgid = -1;
+                                                                       switch (networkState) {
+                                                                           case NO_NETWORK:
+                                                                               msgid = R.string.network_state_no_network;
+                                                                               break;
+                                                                           case WIFI_REQUIRED:
+                                                                               msgid = R.string.network_state_wifi_required;
+                                                                               break;
+                                                                           case NOT_CHARGING:
+                                                                               msgid = R.string.network_state_not_charging;
+                                                                               break;
+                                                                       }
+                                                                       if (msgid == -1)
+                                                                           Log.e(TAG, "Unexpected network state: " + networkState.name());
+                                                                       else {
+                                                                           final int msg = msgid;
+                                                                           runOnUiThread(new Runnable() {
+                                                                               @Override
+                                                                               public void run() {
+                                                                                   Toast.makeText(MainActivity.this, getString(msg), Toast.LENGTH_LONG).show();
+                                                                               }
+                                                                           });
 
-                                                                                  JSONObject extra = new JSONObject();
-                                                                                  try {
-                                                                                      extra.put("connection", NetworkUtils.getConnectionType(getApplicationContext()));
-                                                                                      extra.put("data", Globals.getDirectorySize(getApplicationContext()));
-                                                                                  } catch (JSONException e) {
-                                                                                      Log.e(TAG, "error building json", e);
-                                                                                  }
+                                                                       }
+                                                                   }
+                                                               }
+                                                           }
 
-                                                                                  HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.UPLOADING, Globals.getUserLogin(MainActivity.this), extra.toString());
-                                                                                  updateProgressBar();
-                                                                              } else {
-                                                                                  Toast.makeText(getApplicationContext(), getString(R.string.upload_disabled), Toast.LENGTH_LONG).show();
-                                                                              }
-                                                                          }
-                                                                      }
         );
 
         findViewById(R.id.uploadCancelButton).setOnClickListener(new View.OnClickListener() {
-                                                                                   @Override
-                                                                                   public void onClick(View view) {
-                                                                                       stopUploading();
-                                                                                   }
-                                                                               }
+                                                                     @Override
+                                                                     public void onClick(View view) {
+                                                                         stopUploading();
+                                                                     }
+                                                                 }
         );
 
 
@@ -391,24 +491,46 @@ public class MainActivity extends Activity {
                                                 }
         );
         findViewById(R.id.pauseCancelButton).setOnClickListener(new View.OnClickListener() {
-                                                                               @Override
-                                                                               public void onClick(View view) {
-                                                                                   mPauseRecordingButton.setVisibility(View.VISIBLE);
-                                                                                   findViewById(R.id.pausedLayout).setVisibility(View.GONE);
-                                                                               }
-                                                                           }
+
+                                                                    @Override
+                                                                    public void onClick(View view) {
+                                                                        mPauseRecordingButton.setVisibility(View.VISIBLE);
+                                                                        findViewById(R.id.pausedLayout).setVisibility(View.GONE);
+                                                                    }
+                                                                }
         );
 
         mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+
+    }
+
+    private void startCheckingForHighAccuracyLocation() {
+        mCheckForHighAccuracyLocationTimer = new Timer();
+        mCheckForHighAccuracyLocationTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run(){
+                if (!LocationUtils.isHighAccuracyLocationEnabled(MainActivity.this)) {
+                    vibrate(200);
+                    LocationUtils.showHighAccuracyLocationDisabledAlert(MainActivity.this);
+                }
+            }
+        }, 0, 5000);
+    }
+
+    private void stopCheckingForHighAccuracyLocation() {
+        mCheckForHighAccuracyLocationTimer.cancel();
     }
 
     private void resetStatusUpload() {
         Globals.setDirectorySize(getApplicationContext(), FileUtils.getDirectorySize());
 
         ((ProgressBar) findViewById(R.id.progressBar)).setMax(getDirectorySize(getApplicationContext()).intValue());
+        ((ProgressBar) findViewById(R.id.progressBar)).setProgress(0);
 
-        ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, 0, formatMegaBytes(getDirectorySize(getApplicationContext()))));
+        ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes(0L), formatMegaBytes(getDirectorySize(getApplicationContext()))));
         ((TextView) findViewById(R.id.uploadData)).setText(getString(R.string.upload_data_size, formatMegaBytes(getDirectorySize(getApplicationContext()))));
+        //reset widgets to display amount and upload button
+        displayUploadButton();
     }
 
     private void startAlarmBatteryReceiver() {
@@ -426,35 +548,22 @@ public class MainActivity extends Activity {
         vibrate(200); //vibrate when touch a button
         talk("mission_completed");
         talk("wait");
-
-
-        // Log.d("talk","mission completed...!!");
-
     }
 
     private void startPausedCountdown() {
-        if (isStreaming()) {
-            HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.PAUSED, Globals.getUserLogin(getApplicationContext()));
-        } else {
-            HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.PAUSED, Globals.getUserLogin(getApplicationContext()));
-        }
+        StateManager.setStateOrDie(MainActivity.this, State.PAUSED);
+
+        unbindService(mConnection);
+        Intent intent = new Intent(this, VideoRecorderService.class);
+        stopService(intent);
 
         findViewById(R.id.pausedLayout).setVisibility(View.GONE);
         findViewById(R.id.resumeMissionButton).setVisibility(View.VISIBLE);
-
-        Intent intent = new Intent(this, VideoRecorderService.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        stopService(intent);
-
-        intent = new Intent(this, StreamService.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        stopService(intent);
 
         mStreamSwitch.setOnCheckedChangeListener(null);
         mStreamSwitch.setChecked(false);
         mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
         mStreamSwitch.setEnabled(false);
-        mCountDownStreamTimer.cancel();
 
         mPauseCounter.setVisibility(View.VISIBLE);
         findViewById(R.id.recBall).setVisibility(View.GONE);
@@ -462,11 +571,9 @@ public class MainActivity extends Activity {
         ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.pause_title));
     }
 
-    private boolean isStreaming() {
-        return mStreamSwitch.isChecked();
-    }
     private void resumeMission() {
-        HistoryUtils.registerHistory(getApplicationContext(), State.PAUSED, State.RECORDING_ONLINE, Globals.getUserLogin(getApplicationContext()), null);
+
+        StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
 
         mStreamSwitch.setEnabled(true);
         mResumeMissionButton.setVisibility(View.GONE);
@@ -481,10 +588,9 @@ public class MainActivity extends Activity {
         mPauseCounter.setText("");
 
         Intent intent = new Intent(MainActivity.this, VideoRecorderService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startService(intent);
-
-
 
         vibrate(200); //vibrate when touch a button
     }
@@ -498,31 +604,9 @@ public class MainActivity extends Activity {
                         TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)));
     }
 
-    private void updateProgressBar() {
-        ((ProgressBar) findViewById(R.id.progressBar)).setProgress(Globals.getDirectoryUploadedSize(getApplicationContext()).intValue());
-        ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes(Globals.getDirectoryUploadedSize(getApplicationContext())), formatMegaBytes(getDirectorySize(getApplicationContext()))));
-    }
-
     private void stopUploading() {
-        resetStatusUpload();
-
-        findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
-        findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
-        findViewById(R.id.streamLayout).setVisibility(View.GONE);
-        Intent intent = new Intent(MainActivity.this, UploadService.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        stopService(intent);
-        uploadManager = null;
-
-        HistoryUtils.registerHistory(getApplicationContext(), State.UPLOADING, State.LOGGED, Globals.getUserLogin(MainActivity.this), null);
-    }
-
-    private boolean isUploading() {
-        return findViewById(R.id.uploadingLayout).getVisibility() == View.VISIBLE;
-    }
-
-    private boolean isMissionStarted() {
-        return findViewById(R.id.startMissionButton).getVisibility() != View.VISIBLE;
+        findViewById(R.id.uploadCancelButton).setVisibility(View.INVISIBLE);
+        UploadService.stop(getApplicationContext());
     }
 
     /*
@@ -531,7 +615,6 @@ public class MainActivity extends Activity {
     private void vibrate(int mili)
     {
         Vibrator v = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
-        // Vibrate for (mili) milliseconds
         v.vibrate(mili);
 
     }
@@ -577,7 +660,9 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         killServices();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(uploadFeedbackReceiver);
         Globals.clear(MainActivity.this);
+        Log.d(TAG, "destroyed");
         super.onDestroy();
     }
 
@@ -585,6 +670,15 @@ public class MainActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+
+        MenuItem item_incident_form = menu.findItem(R.id.action_incident_form);
+        if (item_incident_form != null)
+            item_incident_form.setVisible (BuildConfig.HAS_INCIDENT_FORM);
+
+        MenuItem item_playback = menu.findItem(R.id.action_playback);
+        if (item_playback != null)
+            item_playback.setVisible(BuildConfig.HAS_VIDEO_PLAYBACK);
+
         return true;
     }
 
@@ -611,13 +705,11 @@ public class MainActivity extends Activity {
             }
             return true;
         } else if (id == R.id.action_incident_form) {
-            Log.d(TAG, "IncidentForm Open Menu!");
             pDialog = ProgressDialog.show(this, getString(R.string.loading), getString(R.string.please_hold), true);
 
             Intent i = new Intent(this, FormIncidentReportActivity.class);
             startActivity(i);
             return true;
-
         } else if (id == R.id.action_logout) {
             logout(null);
             return true;
@@ -626,19 +718,9 @@ public class MainActivity extends Activity {
     }
 
     private void logout(String reason) {
-        //TODO needs current state?
-        if (isStreaming()) {
-            HistoryUtils.registerHistory(getApplicationContext(), State.STREAMING, State.NOT_LOGGED, Globals.getUserLogin(MainActivity.this), null);
-        } else if (isRecording()){
-            HistoryUtils.registerHistory(getApplicationContext(), State.RECORDING_ONLINE, State.NOT_LOGGED, Globals.getUserLogin(MainActivity.this), null);
-        } else if (isPaused()){
-            HistoryUtils.registerHistory(getApplicationContext(), State.PAUSED, State.NOT_LOGGED, Globals.getUserLogin(MainActivity.this), null);
-        } else {
-            HistoryUtils.registerHistory(getApplicationContext(), State.LOGGED, State.NOT_LOGGED, Globals.getUserLogin(MainActivity.this), null);
-        }
+
+        StateManager.setStateOrDie(MainActivity.this, State.LOGGED_OFF);
         Globals.clear(MainActivity.this);
-        killServices();
-        mCountDownStreamTimer.cancel();
 
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         if (reason != null)
@@ -647,16 +729,11 @@ public class MainActivity extends Activity {
         MainActivity.this.finish();
     }
 
-    private boolean isPaused() {
-        return mResumeMissionButton.getVisibility() == View.VISIBLE;
-    }
-
-    private boolean isRecording() {
-        return !mStreamSwitch.isChecked() && mPauseRecordingButton.getVisibility() == View.VISIBLE;
-    }
-
     private void killServices() {
-        stopService(new Intent(MainActivity.this, StreamService.class));
+        if (videoServiceBound) {
+            Log.e(TAG, this.getClass().getCanonicalName()+"<<<");
+            this.unbindService(mConnection);
+        }
         stopService(new Intent(MainActivity.this, LocationService.class));
         stopService(new Intent(MainActivity.this, VideoRecorderService.class));
         stopService(new Intent(MainActivity.this, UploadService.class));
@@ -665,96 +742,12 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        NetworkUtils.get(getApplicationContext(), "/users/me", new HttpResponseCallback() {
-            @Override
-            public void unauthorized() {
-                logout(getString(R.string.token_expired));
-            }
-
-            @Override
-            public void failure(int statusCode) {}
-
-            @Override
-            public void noConnection() {}
-
-            @Override
-            public void badConnection() {}
-
-            @Override
-            public void forbidden() {}
-
-            @Override
-            public void badRequest() {}
-
-            @Override
-            public void badResponse() {}
-        });
-    }
-
-    private void registerMyReceiver() {
-        broadcastReceiver
-                = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if (intent.getAction().equals(BatteryReceiver.BATTERY_LOW_MESSAGE)) {
-                    stopUploading();
-                } else if (intent.getAction().equals(BatteryReceiver.BATTERY_OKAY_MESSAGE)) {
-                    //TODO check if it's already running. if not, start startAlarmBatteryReceiver()
-                }
-                else if (intent.getAction().equals(UploadManager.UPLOAD_FAILED_ACTION)) {
-                    if (uploadManager != null) {
-                        uploadManager.runUpload();
-                    }
-                }
-                else if (intent.getAction().equals(UploadManager.UPLOAD_PROGRESS_ACTION)) {
-                    updateProgressBar();
-                    if (uploadManager != null) {
-                        uploadManager.deleteVideoFile();
-                        uploadManager.runUpload();
-                    }
-
-                } else if (intent.getAction().equals(CopcastGcmListenerService.START_STREAMING_ACTION)) {
-                    if (isMissionStarted()) {
-                        mStreamSwitch.setChecked(true);
-                    }
-                } else if (intent.getAction().equals(CopcastGcmListenerService.STOP_STREAMING_ACTION)) {
-                    if (isMissionStarted()) {
-                        mStreamSwitch.setChecked(false);
-                    }
-                } else {
-                    findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
-                    findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
-                    findViewById(R.id.streamLayout).setVisibility(View.GONE);
-
-                    Intent intentAux = new Intent(MainActivity.this, UploadService.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    stopService(intentAux);
-                    uploadManager = null;
-                    if (intent.getAction().equals(UploadManager.CANCEL_UPLOAD_ACTION)) {
-                        Toast.makeText(getApplicationContext(), getString(R.string.upload_stopped), Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
-                    }
-                    resetStatusUpload();
-                }
-            }
-        };
-
-        IntentFilter filter = new IntentFilter(UploadManager.UPLOAD_PROGRESS_ACTION);
-        filter.addAction(UploadManager.CANCEL_UPLOAD_ACTION);
-        filter.addAction(UploadManager.UPLOAD_FAILED_ACTION);
-        filter.addAction(UploadManager.COMPLETED_UPLOAD_ACTION);
-        filter.addAction(CopcastGcmListenerService.START_STREAMING_ACTION);
-        filter.addAction(CopcastGcmListenerService.STOP_STREAMING_ACTION);
-        filter.addAction(BatteryReceiver.BATTERY_LOW_MESSAGE);
-        filter.addAction(BatteryReceiver.BATTERY_OKAY_MESSAGE);
-        LocalBroadcastManager.getInstance(this).registerReceiver((broadcastReceiver), filter);
     }
 
     @Override
     protected void onStop() {
+        Log.d(TAG, "Stopped");
         super.onStop();
-        //Log.d("state","onStop");
     }
 
 
@@ -770,42 +763,43 @@ public class MainActivity extends Activity {
         if (Globals.getAccessToken(getApplicationContext()) == null) {
             logout(getString(R.string.invalid_token));
         }
+
         if (pDialog != null){
             pDialog.dismiss();
             pDialog = null;
         }
 
         Globals.setRotation(getWindowManager().getDefaultDisplay().getRotation());
-        updateProgressBar();
         WifiManager wifi = (WifiManager)getSystemService(Context.WIFI_SERVICE);
         if (!wifi.isWifiEnabled()){
             showSettingsAlert();
         }
-        //Log.d("state","onResume");
     }
 
     public void showSettingsAlert(){
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
+        if (mWifiAlertDialog != null && mWifiAlertDialog.isShowing()) {
+            return;     // Dialog already showing.
+        }
 
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, AlertDialog.THEME_DEVICE_DEFAULT_DARK);
         Resources res = getResources();
-        alertDialog.setTitle(res.getString(R.string.wifi_dialog_title));
-        alertDialog.setMessage(res.getString(R.string.wifi_dialog_msg));
-
-        alertDialog.setPositiveButton(res.getText(R.string.settings_button), new DialogInterface.OnClickListener() {
+        builder.setTitle(res.getString(R.string.wifi_dialog_title));
+        builder.setMessage(res.getString(R.string.wifi_dialog_msg));
+        builder.setPositiveButton(res.getText(R.string.settings_button), new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog,int which) {
                 Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
                 startActivity(intent);
             }
         });
-
-        alertDialog.setNegativeButton(res.getText(R.string.cancel_button), new DialogInterface.OnClickListener() {
+        builder.setNegativeButton(res.getText(R.string.cancel_button), new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 dialog.cancel();
             }
         });
 
-        alertDialog.show();
-    }
+        mWifiAlertDialog = builder.create();
+        mWifiAlertDialog.show();
+}
 
     private class CountDownPausedTimer extends CountDownTimer {
         public CountDownPausedTimer(int millisInFuture, int countDownInterval) {
@@ -822,73 +816,69 @@ public class MainActivity extends Activity {
         }
     }
 
-    private class CountDownStreamTimer extends CountDownTimer {
-
-        /**
-         * @param millisInFuture    The number of millis in the future from the call
-         *                          to {@link #start()} until the countdown is done and {@link #onFinish()}
-         *                          is called.
-         * @param countDownInterval The interval along the way to receive
-         *                          {@link #onTick(long)} callbacks.
-         */
-        public CountDownStreamTimer(long millisInFuture, long countDownInterval) {
-            super(millisInFuture, countDownInterval);
-        }
-
-        @Override
-        public void onTick(long millisUntilFinished) {
-
-        }
-
-        @Override
-        public void onFinish() {
-            mStreamSwitch.setChecked(false);
-        }
-    }
-
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
+    public boolean onKeyLongPress(int keyCode, KeyEvent event) {
 
         switch(keyCode) {
             case KeyEvent.KEYCODE_VOLUME_DOWN:
             case KeyEvent.KEYCODE_VOLUME_UP:
 
-                if (first_keydown == null) {
-                    first_keydown = System.currentTimeMillis(); // first keydown sets start time
-                } else if (System.currentTimeMillis() - first_keydown > FLAG_TRIGGER_WAIT_TIME) {
-                    if (Globals.getIncidentFlag() == IncidentFlagState.NOT_FLAGGED) {
+                if (Globals.getIncidentFlag() == IncidentFlagState.NOT_FLAGGED) {
 
-                        //wait a bit
-                        first_keydown = null; //reset state
+                    if (!VideoRecorderService.serviceRunning) {
 
-                        if (!VideoRecorderService.serviceRunning) {
+                        Globals.setIncidentFlag(IncidentFlagState.FLAG_PENDING);
+                        Log.d(TAG, "Flag incident scheduled");
 
-                            Globals.setIncidentFlag(IncidentFlagState.FLAG_PENDING);
-                            Log.d(TAG, "Flag incident scheduled");
-
-                            if (((TextView) findViewById(R.id.welcome)).getText().equals(getString(R.string.pause_title))) {
-                                Log.d(TAG, "resuming mission by forced incident");
-                                mResumeMissionButton.performClick();
-                            } else {
-                                Log.d(TAG, "starting mission by forced incident");
-                                mStarMissionButton.performClick();
-                            }
+//                        if (((TextView) findViewById(R.id.welcome)).getText().equals(getString(R.string.pause_title))) {
+                        if (Globals.getStateManager().isState(State.PAUSED)) {
+                            Log.d(TAG, "resuming mission by forced incident");
+                            mResumeMissionButton.performClick();
                         } else {
-                            Globals.setIncidentFlag(IncidentFlagState.FLAGGED);
-                            Log.d(TAG, "Flag incident immediately");
-                            IncidentUtils.registerIncident(getApplicationContext(), Globals.getCurrentVideoPath());
-                            Toast.makeText(this, getResources().getString(R.string.registered_incident), Toast.LENGTH_LONG).show();
+                            Log.d(TAG, "starting mission by forced incident");
+                            mStartMissionButton.performClick();
                         }
                     } else {
-                        Log.d(TAG, "Incident already reported. Skipping");
+                        Globals.setIncidentFlag(IncidentFlagState.FLAGGED);
+                        Log.d(TAG, "Flag incident immediately");
+                        IncidentUtils.registerIncident(getApplicationContext());
+                        Toast.makeText(this, getResources().getString(R.string.registered_incident), Toast.LENGTH_LONG).show();
                     }
+                } else {
+                    Log.d(TAG, "Incident already reported. Skipping");
                 }
+                return true;
+        }
+        return super.onKeyLongPress(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        switch(keyCode) {
+            case KeyEvent.KEYCODE_VOLUME_DOWN:
+            case KeyEvent.KEYCODE_VOLUME_UP:
+                event.startTracking();
+                longPress = longPress || event.isLongPress();
                 return true;
             case KeyEvent.KEYCODE_BACK:
                 onBackPressed();
-                return true;
+                break;
         }
+
         return super.onKeyDown(keyCode, event);
+    }
+
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (!longPress) { //KEYCODE_VOLUME_{UP,DOWN} implied here
+            Log.d(TAG, "keydown revert");
+            if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
+                audioManager.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_PLAY_SOUND | AudioManager.FLAG_SHOW_UI);
+            else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP)
+                audioManager.adjustVolume(AudioManager.ADJUST_RAISE, AudioManager.FLAG_PLAY_SOUND | AudioManager.FLAG_SHOW_UI);
+        }
+
+        longPress = false;
+        return super.onKeyUp(keyCode, event);
     }
 
     @Override
@@ -912,5 +902,16 @@ public class MainActivity extends Activity {
         alertDialog.show();
     }
 
+    private void displayUploadButton() {
+        findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
+        findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
+        findViewById(R.id.streamLayout).setVisibility(View.GONE);
+    }
 
+    private void displayUploadBar() {
+        findViewById(R.id.uploadCancelButton).setVisibility(View.VISIBLE);
+        findViewById(R.id.uploadLayout).setVisibility(View.GONE);
+        findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
+        findViewById(R.id.streamLayout).setVisibility(View.GONE);
+    }
 }

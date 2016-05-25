@@ -8,9 +8,17 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Build;
+import android.text.TextUtils;
 import android.util.Log;
+import android.util.Pair;
 
 import org.apache.http.NameValuePair;
+import org.igarape.copcast.promises.HttpPromiseError;
+import org.igarape.copcast.promises.Promise;
+import org.igarape.copcast.promises.PromisePayload;
+import org.igarape.copcast.service.sign.SigningService;
+import org.igarape.copcast.service.sign.SigningServiceException;
+import org.igarape.copcast.state.NetworkState;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -30,33 +38,28 @@ import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by fcavalcanti on 31/10/2014.
  */
+
 public class NetworkUtils {
 
     private static final String TAG = NetworkUtils.class.getName();
     private static int CONNECTION_TIMEOUT = 15000;
     private static int DATA_RETRIEVAL_TIMEOUT = 5000;
 
-    private static String getQuery(List<NameValuePair> params) throws UnsupportedEncodingException {
-        StringBuilder result = new StringBuilder();
+    private static String getQuery(List<Pair<String, String>> params) throws UnsupportedEncodingException {
+        ArrayList<String> tokens = new ArrayList();
         boolean first = true;
 
-        for (NameValuePair pair : params) {
-            if (first)
-                first = false;
-            else
-                result.append("&");
-
-            result.append(URLEncoder.encode(pair.getName(), "UTF-8"));
-            result.append("=");
-            result.append(URLEncoder.encode(pair.getValue(), "UTF-8"));
+        for (Pair<String, String> pair : params) {
+            tokens.add(URLEncoder.encode(pair.first, "UTF-8") + "=" + URLEncoder.encode(pair.second, "UTF-8"));
         }
 
-        return result.toString();
+        return TextUtils.join("&", tokens);
     }
 
     /**
@@ -73,28 +76,33 @@ public class NetworkUtils {
         BufferedReader br = new BufferedReader(new InputStreamReader(inStream));
         StringBuilder sb = new StringBuilder();
         String line;
+        ArrayList<String> stringList = new ArrayList<>();
         while ((line = br.readLine()) != null) {
             sb.append(line).append("\n");
+            stringList.add(line);
         }
         br.close();
-        return sb.toString();
+        return TextUtils.join("\n", stringList);
+//        return sb.toString();
     }
 
-    public static void get(Context context, String url, HttpResponseCallback callback) {
-        get( context,  url,  Response.JSON,  callback);
+    public static void get(Context context, String url, Promise callback) {
+        get(context, url, Response.JSON, callback);
     }
 
-    public static void get(Context context, String url, Response type, HttpResponseCallback callback) {
-        executeRequest(Method.GET, context, null, null, url,type, callback);
+    public static void get(Context context, String url, Response type, Promise callback) {
+        _executeRequest(null, Method.GET, context, null, null, url, type, callback);
     }
 
-
-    public static void post(Context context, String url, List<NameValuePair> params, HttpResponseCallback callback) {
-        executeRequest(Method.POST, context, params, null, url, Response.JSON, callback);
+    public static void post(Context context, String url, List<Pair<String, String>> params, Promise callback) {
+        _executeRequest(null, Method.POST, context, params, null, url, Response.JSON, callback);
     }
 
-    public static void post(Context context, String url, Object jsonObject, HttpResponseCallback callback) {
-        executeRequest(Method.POST, context, null, jsonObject, url, Response.JSON, callback);
+    public static void post(Context context, String url, JSONObject jsonObject, Promise callback) {
+        _executeRequest(null, Method.POST, context, null, jsonObject, url, Response.JSON, callback);
+    }
+    public static void postToServer(Context context, String server, String url, JSONObject jsonObject, Promise callback) {
+        _executeRequest(server, Method.POST, context, null, jsonObject, url, Response.JSON, callback);
     }
 
     public static boolean hasConnection(Context context) {
@@ -103,77 +111,48 @@ public class NetworkUtils {
         return networkInfo != null && networkInfo.isConnected();
     }
 
-    public static boolean canUpload(Context context, Intent intent) {
+    public static NetworkState checkUploadState(Context context) {
         ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
-        if (networkInfo == null || !networkInfo.isConnectedOrConnecting() || intent == null) {
-            return false;
+        if (networkInfo == null || !networkInfo.isConnectedOrConnecting()) {
+            return NetworkState.NO_NETWORK;
         }
 
         boolean isWiFi = networkInfo.getType() == ConnectivityManager.TYPE_WIFI;
 
         IntentFilter iFilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        // intent is immediately returned, as ACTION_BATTERY_CHANGED is sticky.
         Intent batteryStatus = context.registerReceiver(null, iFilter);
         if (batteryStatus == null){
-            return false;
+            // in the case we don't receive any info, treat as worst case.
+            return NetworkState.NOT_CHARGING;
         }
         int status = batteryStatus.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
 
         boolean isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
                 status == BatteryManager.BATTERY_STATUS_FULL;
 
-        return isCharging && (isWiFi || !Globals.isWifiOnly(context));
+        if (!isCharging)
+            return NetworkState.NOT_CHARGING;
+
+        if (Globals.isWifiOnly(context) && !isWiFi)
+            return NetworkState.WIFI_REQUIRED;
+
+        return NetworkState.NETWORK_OK;
     }
 
-    public static void post(final Context context, boolean async, final String url, final List<NameValuePair> params, final File file, final HttpResponseCallback callback) {
-        if (async) {
-            new AsyncTask<Void, Void, Void>() {
-
-                @Override
-                protected Void doInBackground(Void... unused) {
-                    postMultipart(context, url, params, file, callback);
-                    return null;
-                }
-
-
-            }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR);
-        } else {
-            postMultipart(context, url, params, file, callback);
-        }
-    }
-
-    private static void postMultipart(Context context,  String url,  List<NameValuePair> params,  File file,  HttpResponseCallback callback) {
-        try {
-            MultipartUtility request = new MultipartUtility(Globals.getServerUrl(context) + url, "UTF-8", Globals.getAccessToken(context));
-            String token = Globals.getAccessToken(context);
-            if (token != null) {
-                request.addHeaderField("Authorization", token);
-            }
-            for (NameValuePair pair : params) {
-                request.addFormField(pair.getName(), pair.getValue());
-            }
-            request.addFilePart("video", file);
-
-            request.finish();  //send the video to the server
-
-            callback.success(new JSONObject());
-        } catch (IOException e) {
-            callback.failure(500);
-        }
-    }
-
-    public static void delete(final Context context, final String url, final HttpResponseCallback callback) {
-        executeRequest(Method.DELETE, context, null, null, url, Response.JSON, callback);
-    }
-
-    private static Void executeRequest(final Method method, final Context context, final List<NameValuePair> params, final Object jsonObject, final String url, final Response type, final HttpResponseCallback callback) {
+    private static void _executeRequest(final String serverUri, final Method method, final Context context, final List<Pair<String,String>> params, final JSONObject jsonObject, final String url, final Response type, final Promise callback) {
         if (!hasConnection(context)) {
             if (callback != null) {
-                callback.noConnection();
-                return null;
+                callback.error(HttpPromiseError.NO_CONNECTION);
+                return;
             }
         }
+
+        final String token = Globals.getAccessToken(context);
+        final String pServerUri = serverUri != null ? serverUri : Globals.getServerUrl(context);
+
         new AsyncTask<Void, Void, Void>() {
 
             private JSONObject response = null;
@@ -188,7 +167,8 @@ public class NetworkUtils {
                 HttpURLConnection urlConnection = null;
 
                 try {
-                    URL urlToRequest = new URL(Globals.getServerUrl(context) + url);
+                    URL urlToRequest = new URL(pServerUri + url);
+                    Log.d(TAG, urlToRequest.toString());
                     urlConnection = (HttpURLConnection) urlToRequest.openConnection();
 
                     if (method.equals(Method.POST)) {
@@ -199,20 +179,16 @@ public class NetworkUtils {
 
 
                     String charset = "UTF-8";
-                    String token = Globals.getAccessToken(context);
                     if (token != null) {
                         urlConnection.setRequestProperty("Authorization", token);
                     }
                     urlConnection.setRequestProperty("Accept-Charset", charset);
-
                     urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=" + charset);
-
                     urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
                     urlConnection.setReadTimeout(DATA_RETRIEVAL_TIMEOUT);
 
 
                     if (params != null) {
-                        Log.d("log1-app", "p1");
                         os = urlConnection.getOutputStream();
                         writer = new BufferedWriter(
                                 new OutputStreamWriter(os, "UTF-8"));
@@ -221,6 +197,12 @@ public class NetworkUtils {
                         writer.close();
                         os.close();
                     } else if (jsonObject != null) {
+                        jsonObject.put("imei", Globals.getImei());
+                        jsonObject.put("simid", Globals.getSimid());
+                        Log.d(TAG, jsonObject.toString());
+                        String signature = SigningService.signature(jsonObject);
+                        jsonObject.put("mac", signature);
+
                         urlConnection.setRequestProperty("Content-Type", "application/json;charset=" + charset);
                         os = urlConnection.getOutputStream();
                         writer = new BufferedWriter(
@@ -230,54 +212,61 @@ public class NetworkUtils {
                     }
                     // handle issues
 
-
                     urlConnection.connect();
                     statusCode = urlConnection.getResponseCode();
                     if (statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                        callback.unauthorized();
+                        callback.error(HttpPromiseError.NOT_AUTHORIZED);
                         return null;
                     } else if (statusCode == HttpURLConnection.HTTP_FORBIDDEN) {
-                        callback.forbidden();
+                        callback.error(HttpPromiseError.FORBIDDEN);
                         return null;
-                    } else if (statusCode != HttpURLConnection.HTTP_OK) {
-                        callback.failure(statusCode);
+                    } else if (statusCode == HttpURLConnection.HTTP_BAD_REQUEST) {
+                        callback.error(HttpPromiseError.BAD_REQUEST);
+                        return null;
+                    } else if (statusCode != HttpURLConnection.HTTP_OK && statusCode != HttpURLConnection.HTTP_CREATED) {
+//                        callback.failure(statusCode);
+                        callback.error(HttpPromiseError.FAILURE.put("statusCode", statusCode));
                         return null;
                     }
 
-                    if (type.equals(Response.JSON)){
-                        InputStream in = new BufferedInputStream(
-                                urlConnection.getInputStream());
-
-                        String responseText = getResponseText(in);
-                        try {
-                            JSONObject response = new JSONObject(responseText);
-                            callback.success(response);
-                        } catch (JSONException ex) {
-                            callback.success((JSONObject)null);
+                    if (statusCode == HttpURLConnection.HTTP_OK) {
+                        if (type.equals(Response.JSON)) {
+                            InputStream in = new BufferedInputStream(
+                                    urlConnection.getInputStream());
+                            String responseText = getResponseText(in);
+                            try {
+                                JSONObject response = new JSONObject(responseText);
+                                callback.success(new PromisePayload("response", response));
+                            } catch (JSONException ex) {
+                                callback.success();
+                            }
+                        } else if (type.equals(Response.BYTEARRAY)) {
+                            byte[] buffer = new byte[8192];
+                            int bytesRead;
+                            ByteArrayOutputStream output = new ByteArrayOutputStream();
+                            InputStream inputStream = urlConnection.getInputStream();
+                            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                                output.write(buffer, 0, bytesRead);
+                            }
+                            callback.success(new PromisePayload("response", output.toByteArray()));
                         }
                     } else {
-                        byte[] buffer = new byte[8192];
-                        int bytesRead;
-                        ByteArrayOutputStream output = new ByteArrayOutputStream();
-                        InputStream inputStream = urlConnection.getInputStream();
-                        while ((bytesRead = inputStream.read(buffer)) != -1)
-                        {
-                            output.write(buffer, 0, bytesRead);
-                        }
-
-                        callback.success( output.toByteArray());
+                        Log.d(TAG, "returning sucess");
+                        callback.success();
                     }
-
-
                 } catch (MalformedURLException e) {
-                    callback.badRequest();
+                    callback.error(HttpPromiseError.BAD_REQUEST);
                     Log.e(TAG, "Url error ", e);
                 } catch (SocketTimeoutException e) {
-                    callback.badConnection();
+                    callback.error(HttpPromiseError.BAD_CONNECTION);
                     Log.e(TAG, "Timeout error ", e);
                 } catch (IOException e) {
-                    callback.badResponse();
+                    callback.error(HttpPromiseError.BAD_RESPONSE);
                     Log.e(TAG, "Could not read response body ", e);
+                } catch (SigningServiceException e) {
+                    callback.error(HttpPromiseError.SIGNING_ERROR);
+                } catch (JSONException e) {
+                    callback.error(HttpPromiseError.JSON_ERROR);
                 } finally {
                     try {
                         if (writer != null) {
@@ -296,7 +285,6 @@ public class NetworkUtils {
                 return null;
             }
         }.execute();
-        return null;
     }
 
     public static String getConnectionType(Context context) {
@@ -314,8 +302,10 @@ public class NetworkUtils {
 
 
     enum Method {
-        POST, DELETE, GET;
+        POST, DELETE, GET
     }
 
-    public enum Response {BYTEARRAY, JSON}
+    public enum Response {
+        BYTEARRAY, JSON
+    }
 }

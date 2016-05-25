@@ -34,7 +34,6 @@ import org.json.JSONException;
 public class LocationService extends Service implements LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private static final String TAG = LocationService.class.getName();
     private int mId = 2;
-    private Handler handler;
     private GoogleApiClient mGoogleApiClient;
 
     @Override
@@ -56,14 +55,17 @@ public class LocationService extends Service implements LocationListener, Google
         return null;
     }
 
+    public void sendHeartbeat(Location location) throws JSONException {
+        Globals.setLastKnownLocation(location);
+        HeartBeatUtils.sendHeartBeat(getApplicationContext(), LocationUtils.buildJson(location), BatteryUtils.buildJson());
+    }
 
     @Override
     public void onLocationChanged(Location location) {
+        Log.d(TAG, "Location info received");
         if(null != location){
             try {
-                Globals.setLastKnownLocation(location);
-                HeartBeatUtils.sendHeartBeat(getApplicationContext(), Globals.getUserLogin(getApplicationContext()),
-                        LocationUtils.buildJson(location), BatteryUtils.buildJson());
+                sendHeartbeat(location);
             } catch (JSONException e) {
                 Log.e(TAG, "error parsing location.", e);
             }
@@ -107,15 +109,26 @@ public class LocationService extends Service implements LocationListener, Google
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API).build();
+                .addApiIfAvailable(LocationServices.API).build();
         mGoogleApiClient.connect();
 
+        Log.d(TAG, "Location service started");
 
         return START_STICKY;
     }
 
     @Override
     public void onConnected(Bundle bundle) {
+
+        // set and send last known location right before setting up request service.
+        try {
+            sendHeartbeat(LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient));
+        } catch(JSONException ex) {
+            Log.e(TAG, "Tried to send initial location, but got null instead.");
+        } catch(Exception ex) {
+            Log.e(TAG, "No location information to send.");
+        }
+
         LocationRequest mLocationRequest = new LocationRequest();
 
         /*
@@ -135,6 +148,7 @@ public class LocationService extends Service implements LocationListener, Google
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 mGoogleApiClient, mLocationRequest, this);
 
+        Log.d(TAG, "Location service connected");
     }
 
     @Override

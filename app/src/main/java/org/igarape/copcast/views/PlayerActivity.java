@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.VideoView;
 
 import org.igarape.copcast.R;
+import org.igarape.copcast.exceptions.HistoryException;
 import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
@@ -240,12 +241,16 @@ public class PlayerActivity extends Activity {
                 if (task != null)
                     task.cancel(true);
 
-                unsetPlay("I");
+                unsetPlay();
                 adap.setCurrentVideo(arg2);
                 adap.notifyDataSetChanged();
 
                 VideoEntry chapter = adap.getItem(arg2);
-                HistoryUtils.registerHistory(getApplicationContext(), State.SEEN_VIDEO, State.SEEN_VIDEO, userLogin, chapter.video);
+                try {
+                    HistoryUtils.registerHistoryEvent(getApplicationContext(), State.SEEN_VIDEO, chapter.video);
+                } catch (HistoryException e) {
+                    Log.e(TAG, "Error uploading SEEN VIDEO event", e);
+                }
                 videoView.setVideoPath(chapter.path);
                 videoView.start();
                 videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
@@ -292,8 +297,7 @@ public class PlayerActivity extends Activity {
         });
     }
 
-    private void unsetPlay(String a) {
-        Log.d(TAG, ">> "+a);
+    private void unsetPlay() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -340,7 +344,7 @@ public class PlayerActivity extends Activity {
                 try {
                     publishProgress((int) (current * 100 / duration));
                     if(mProgressBar.getProgress() >= 100){
-                        unsetPlay("100%");
+                        unsetPlay();
                         break;
                     }
                 } catch (Exception e) {

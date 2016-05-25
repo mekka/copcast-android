@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <EditTextPreference
-        android:key="server_url"
-        android:title="@string/pref_server_url"
-        android:defaultValue="@string/SERVER_URL_DEFAULT" />
 
     <CheckBoxPreference
         android:key="upload_wifi_only"
@@ -12,10 +8,10 @@
         android:defaultValue="@string/REQUIRE_WIFI_UPLOAD_DEFAULT" />
 
     <CheckBoxPreference
-        android:key="limit_streaming_time"
-        android:title="@string/limit_streaming_time"
-        android:summary="@string/stream_limit"
-        android:defaultValue="@string/LIMIT_STREAMING_TIME" />
+        android:key="automatic_upload"
+        android:title="@string/automatic_upload"
+        android:summary="@string/automatic_upload_desc"
+        android:defaultValue="@string/AUTOMATIC_UPLOAD_DEFAULT" />
 
     <PreferenceCategory
         android:title="@string/about">
@@ -25,5 +21,4 @@
             android:summary="@string/VERSION_NAME">
         </PreferenceScreen>
     </PreferenceCategory>
-
 </PreferenceScreen>
