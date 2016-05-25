@@ -46,10 +46,18 @@ class VideoEntry {
     }
 
     private String pathToTimestamp(String path) {
-        String[] tokens = path.split("/");
-        tokens = tokens[tokens.length-1].replace(".mp4", "").split("_");
-        return tokens[0].replace("-","/")+" "+tokens[1].replace("-",":");
-
+        String ret;
+        try {
+            String[] tokens = path.split("/");
+            tokens = tokens[tokens.length-1].replace(".mp4", "").split("T");
+            String[] timeTokens = tokens[1].split("\\.");
+            ret =  tokens[0].replace("-","/")+" "+timeTokens[0];
+        } catch (Exception e) {
+            String[] tokens = path.split("/");
+            tokens = tokens[tokens.length-1].replace(".mp4", "").split("_");
+            ret =  tokens[0].replace("-","/")+" "+tokens[1].replace("-",":");
+        }
+        return ret;
     }
 
     @Override
