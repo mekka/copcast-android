@@ -40,8 +40,6 @@
     <string name="live_stream_desc">Transmitindo para a central</string>
     <string name="uploading">Enviando</string>
     <string name="uploading_size">Enviando (%1$sMB of %2$sMB)</string>
-    <string name="notification_upload_title">Enviando dados.</string>
-    <string name="notification_upload_description">Enviando dados para o servidor ... </string>
     <string name="upload_disabled">Não é possível enviar neste momento. É necessário que o celular esteja carregando ou com bateria cheia.</string>
     <string name="upload_stopped">Envio cancelado devido a restrições de rede/bateria</string>
     <string name="upload_completed"> Envio concluído! </string>
