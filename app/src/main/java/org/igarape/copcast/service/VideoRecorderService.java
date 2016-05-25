@@ -327,19 +327,11 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     @Override
     public void onDestroy() {
 
-        serviceExiting = true;
-        if (webRecorder != null)
-            releaseMediaRecorder();
-
         if(null != windowManager && null != surfaceView){
             windowManager.removeView(surfaceView);
             Log.d(TAG, "onDestroy with windowManager=["+windowManager+" and surfaceView=["+surfaceView+"]");
         }
 
-        NotificationManager mNotificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-        mNotificationManager.cancel(mId);
     }
 
     @Override
@@ -370,18 +362,6 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     public void stopStreaming() {
         if (webRecorder != null)
             webRecorder.stopBroadcasting();
-    }
-
-    private void releaseMediaRecorder() {
-
-        Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
-
-        webRecorder.stop(new Promise() {
-            @Override
-            public void error(PromiseError exception) {
-                Log.e(TAG, "Failed to stop webrecorder: " + exception.toString());
-            }
-        });
     }
 
     class MediaPrepareTask extends AsyncTask<Void, Void, Boolean> {
@@ -424,6 +404,13 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         lock.lock();
         Log.d(TAG, "< stop locked");
         try {
+
+            Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
+
+            NotificationManager mNotificationManager =
+                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            mNotificationManager.cancel(mId);
+
             webRecorder.stop(promise);
             webRecorder = null;
             serviceRunning = false;
