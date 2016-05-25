@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationManager;
-import android.provider.Settings;
 import android.util.Log;
 
 import org.igarape.copcast.R;
@@ -14,6 +13,7 @@ import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.promises.PromiseError;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;

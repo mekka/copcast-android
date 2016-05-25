@@ -1,10 +1,7 @@
 package org.igarape.copcast.utils;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
-import android.widget.Toast;
 
 import org.igarape.copcast.bo.IncidentForm;
 import org.igarape.copcast.db.JsonDataType;
@@ -14,7 +11,6 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class IncidentFormUtils {

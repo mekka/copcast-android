@@ -1,19 +1,15 @@
 package org.igarape.webrecorder;
 
-import android.util.Base64;
 import android.util.Log;
 
-//import com.neovisionaries.ws.client.WebSocket;
-//import com.neovisionaries.ws.client.WebSocketFactory;
-
-import java.net.URISyntaxException;
-import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
+
+//import com.neovisionaries.ws.client.WebSocket;
+//import com.neovisionaries.ws.client.WebSocketFactory;
 
 /**
  * Created by martelli on 2/6/16.

@@ -1,6 +1,5 @@
 package org.igarape.copcast.service.upload;
 
-import android.os.AsyncTask;
 import android.util.Log;
 
 import org.igarape.copcast.utils.ILog;

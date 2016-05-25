@@ -8,7 +8,7 @@ import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Toast;
-//import com.splunk.mint.Mint;
+
 import org.igarape.copcast.R;
 import org.igarape.copcast.service.sign.SigningService;
 import org.igarape.copcast.service.sign.SigningServiceException;
@@ -17,6 +17,8 @@ import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.StateManager;
+
+//import com.splunk.mint.Mint;
 
 public class SplashScreenActivity extends Activity {
 

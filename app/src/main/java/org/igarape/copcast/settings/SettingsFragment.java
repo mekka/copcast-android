@@ -1,11 +1,9 @@
 package org.igarape.copcast.settings;
 
 import android.os.Bundle;
-import android.preference.EditTextPreference;
 import android.preference.PreferenceFragment;
 
 import org.igarape.copcast.R;
-import org.igarape.copcast.utils.Globals;
 
 /**
  * Created by brunosiqueira on 27/08/15.

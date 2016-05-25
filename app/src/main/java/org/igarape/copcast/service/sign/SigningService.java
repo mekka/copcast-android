@@ -17,12 +17,12 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
 import org.igarape.copcast.promises.HttpPromiseError;
+import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.promises.PromiseError;
+import org.igarape.copcast.promises.PromisePayload;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.NetworkUtils;
-import org.igarape.copcast.promises.Promise;
-import org.igarape.copcast.promises.PromisePayload;
 import org.json.JSONException;
 import org.json.JSONObject;
 

@@ -2,15 +2,10 @@ package org.igarape.copcast.utils;
 
 import android.content.Context;
 import android.location.Location;
-import android.os.Environment;
 import android.util.Log;
 
-import org.json.JSONObject;
-
 import java.io.File;
-import java.io.FileWriter;
 import java.io.FilenameFilter;
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;

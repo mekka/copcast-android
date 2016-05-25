@@ -6,7 +6,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
-import android.media.CamcorderProfile;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
@@ -22,18 +21,17 @@ import android.view.WindowManager;
 
 import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
+import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.promises.PromiseError;
 import org.igarape.copcast.state.IncidentFlagState;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.views.MainActivity;
 import org.igarape.webrecorder.WebRecorder;
 import org.igarape.webrecorder.WebRecorderException;
 
 import java.net.URISyntaxException;
-import java.util.Date;
 import java.util.concurrent.locks.ReentrantLock;
 
 import io.socket.client.IO;

@@ -7,7 +7,6 @@ import android.view.SurfaceHolder;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by martelli on 2/18/16.

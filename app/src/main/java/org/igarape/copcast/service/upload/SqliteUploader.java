@@ -4,10 +4,10 @@ import android.content.Context;
 
 import org.igarape.copcast.db.JsonDataType;
 import org.igarape.copcast.promises.HttpPromiseError;
+import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.promises.PromiseError;
 import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.NetworkUtils;
-import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.utils.SqliteUtils;
 import org.json.JSONArray;
 import org.json.JSONException;

@@ -6,12 +6,8 @@ import android.media.MediaRecorder;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
-import org.igarape.copcast.BuildConfig;
-import org.igarape.copcast.promises.WebRecorderPromiseError;
 import org.igarape.copcast.promises.Promise;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.igarape.copcast.promises.WebRecorderPromiseError;
 
 import io.socket.client.Socket;
 
