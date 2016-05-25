@@ -5,6 +5,8 @@ import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.util.Log;
 
+import org.igarape.copcast.utils.FileUtils;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
@@ -71,7 +73,7 @@ class Mp4Muxer extends Thread {
         if (audioFormat != null && videoFormat != null && (mediaMuxer == null || forcedRestart)) {
             try {
                 Date data = new Date();
-                SimpleDateFormat dataFmt = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+                SimpleDateFormat dataFmt = new SimpleDateFormat(FileUtils.DATE_FORMAT);
                 String file_name = this.outputDir+dataFmt.format(data)+".mp4";
                 Log.d(TAG, "Starting file: "+file_name);
                 mediaMuxer = new MediaMuxer(file_name, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
