@@ -195,8 +195,8 @@ public class NetworkUtils {
                         writer.close();
                         os.close();
                     } else if (jsonObject != null) {
-                        jsonObject.put("imei", Globals.getImei());
-                        jsonObject.put("simid", Globals.getSimid());
+                        jsonObject.put("imei", Globals.getImei(context));
+                        jsonObject.put("simid", Globals.getSimid(context));
                         Log.d(TAG, jsonObject.toString());
                         String signature = SigningService.signature(jsonObject);
                         jsonObject.put("mac", signature);

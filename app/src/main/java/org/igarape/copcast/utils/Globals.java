@@ -36,6 +36,8 @@ public class Globals {
     private static final String PREF_ACCESS_TOKEN = "PREF_ACCESS_TOKEN";
     private static final String PREF_TIME_LOGIN = "PREF_TIME_LOGIN";
     private static final String PREF_USER_LOGIN = "PREF_USER_LOGIN";
+    private static final String PREF_IMEI = "PREF_IMEI";
+    private static final String PREF_SIMID = "PREF_SIMID";
     public static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
     public static final String SERVER_URL = "server_url";
@@ -365,20 +367,34 @@ public class Globals {
         Globals.incidentFlag = incidentFlag;
     }
 
-    public static String getSimid() {
+    public static String getSimid(Context context) {
+        if (simid == null) {
+            SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
+            simid = sharedPrefs.getString(PREF_SIMID, null);
+        }
         return simid;
     }
 
-    public static void setSimid(String simid) {
-        Globals.simid = simid;
+    public static void setSimid(Context context, String simid) {
+        SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.putString(PREF_SIMID, simid);
+        editor.apply();
     }
 
-    public static String getImei() {
+    public static String getImei(Context context) {
+        if (imei == null) {
+            SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
+            imei = sharedPrefs.getString(PREF_IMEI, null);
+        }
         return imei;
     }
 
-    public static void setImei(String imei) {
-        Globals.imei = imei;
+    public static void setImei(Context context, String imei) {
+        SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.putString(PREF_IMEI, imei);
+        editor.apply();
     }
 
     public static void sessionInit() {

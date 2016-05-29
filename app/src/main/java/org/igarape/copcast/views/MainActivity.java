@@ -662,7 +662,6 @@ public class MainActivity extends Activity {
         killServices();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(uploadFeedbackReceiver);
-        Globals.clear(MainActivity.this);
         Log.d(TAG, "destroyed");
         super.onDestroy();
     }
