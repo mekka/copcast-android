@@ -12,7 +12,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 
-import org.apache.http.NameValuePair;
 import org.igarape.copcast.promises.HttpPromiseError;
 import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.promises.PromisePayload;
@@ -26,7 +25,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -197,8 +195,8 @@ public class NetworkUtils {
                         writer.close();
                         os.close();
                     } else if (jsonObject != null) {
-                        jsonObject.put("imei", Globals.getImei());
-                        jsonObject.put("simid", Globals.getSimid());
+                        jsonObject.put("imei", Globals.getImei(context));
+                        jsonObject.put("simid", Globals.getSimid(context));
                         Log.d(TAG, jsonObject.toString());
                         String signature = SigningService.signature(jsonObject);
                         jsonObject.put("mac", signature);

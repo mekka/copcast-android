@@ -17,12 +17,12 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
 import org.igarape.copcast.promises.HttpPromiseError;
+import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.promises.PromiseError;
+import org.igarape.copcast.promises.PromisePayload;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.NetworkUtils;
-import org.igarape.copcast.promises.Promise;
-import org.igarape.copcast.promises.PromisePayload;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -88,8 +88,8 @@ public class SigningService {
                throw new SigningServiceException("SimID is NULL");
         }
 
-        Globals.setImei(imei);
-        Globals.setSimid(simno);
+        Globals.setImei(ctx, imei);
+        Globals.setSimid(ctx, simno);
         ILog.d(TAG, "IMEI: "+imei);
         ILog.d(TAG, "SimID: "+simno);
     }
@@ -273,8 +273,8 @@ public class SigningService {
             register.put("public_key", pubkey);
             register.put("username", username);
             register.put("password", pwd);
-            register.put("imei", Globals.getImei());
-            register.put("simid", Globals.getSimid());
+            register.put("imei", Globals.getImei(ctx));
+            register.put("simid", Globals.getSimid(ctx));
         } catch (JSONException e) {
             ILog.e(TAG, "Could not write public key in JSON");
         }

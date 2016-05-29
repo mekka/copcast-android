@@ -2,7 +2,6 @@ package org.igarape.copcast.views;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -11,16 +10,15 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 
 import org.igarape.copcast.R;
+import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.service.sign.SigningService;
 import org.igarape.copcast.service.sign.SigningServiceException;
 import org.igarape.copcast.utils.EditTextUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.OkDialog;
-import org.igarape.copcast.promises.Promise;
 
 /**
  * Created by martelli on 2/2/16.
@@ -39,8 +37,8 @@ public class RegistrationActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registration);
 
-        Log.e(TAG, "imei >>"+Globals.getImei());
-        Log.e(TAG, "simid >>"+Globals.getSimid());
+        Log.e(TAG, "imei >>"+Globals.getImei(getApplicationContext()));
+        Log.e(TAG, "simid >>"+Globals.getSimid(getApplicationContext()));
 
         register_url = (TextView) findViewById(R.id.txtRegisterUrl);
         register_url.setText(Globals.getServerUrl(this));

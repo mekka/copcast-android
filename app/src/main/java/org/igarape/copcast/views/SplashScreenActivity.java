@@ -8,7 +8,7 @@ import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Toast;
-//import com.splunk.mint.Mint;
+
 import org.igarape.copcast.R;
 import org.igarape.copcast.service.sign.SigningService;
 import org.igarape.copcast.service.sign.SigningServiceException;
@@ -17,6 +17,8 @@ import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.StateManager;
+
+//import com.splunk.mint.Mint;
 
 public class SplashScreenActivity extends Activity {
 
@@ -37,7 +39,6 @@ public class SplashScreenActivity extends Activity {
         Globals.sessionInit();
         Globals.initStateManager(this);
         FileUtils.init(getApplicationContext());
-        Globals.setAccessToken(this, null);
         Globals.setDirectorySize(getApplicationContext(), FileUtils.getDirectorySize());
 
 
@@ -47,29 +48,32 @@ public class SplashScreenActivity extends Activity {
 
         // verify if we already have the signing mechanism initialized.
         // if not, prompt the user for server and credentials.
-        String server_url = Globals.getServerUrl(this);
-        String registered_server_url = Globals.getAppRegistered(this);
-        if (registered_server_url == null || registered_server_url.compareTo(server_url)!=0) {
-            Intent intent = new Intent(SplashScreenActivity.this, RegistrationActivity.class);
-            startActivity(intent);
-            SplashScreenActivity.this.finish();
-        }
+
 
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
                 try {
                     SigningService.loadIDs(SplashScreenActivity.this);
+                    String server_url = Globals.getServerUrl(getApplicationContext());
+                    String registered_server_url = Globals.getAppRegistered(getApplicationContext());
+                    if (registered_server_url == null || registered_server_url.compareTo(server_url)!=0 ||
+                            registered_server_url.trim().length() == 0) {
+                        Intent intent = new Intent(SplashScreenActivity.this, RegistrationActivity.class);
+                        startActivity(intent);
+                        SplashScreenActivity.this.finish();
+                        return;
+                    }
+                    if (Globals.getAccessToken(getApplicationContext()) instanceof String){
+                        Intent intent = new Intent(SplashScreenActivity.this, MainActivity.class);
+                        StateManager.setStateOrDie(SplashScreenActivity.this, State.IDLE);
+                        startActivity(intent);
+                        SplashScreenActivity.this.finish();
+                        return;
+                    }
                 } catch (SigningServiceException e) {
                     ILog.e(TAG, "Failed to load device ID parameters", e);
                     Toast.makeText(SplashScreenActivity.this, getString(R.string.error_keystore), Toast.LENGTH_LONG);
-                    SplashScreenActivity.this.finish();
-                }
-
-                if (Globals.getAccessToken(getApplicationContext()) instanceof String){
-                    Intent intent = new Intent(SplashScreenActivity.this, MainActivity.class);
-                    StateManager.setStateOrDie(SplashScreenActivity.this, State.IDLE);
-                    startActivity(intent);
                     SplashScreenActivity.this.finish();
                 }
 

@@ -35,9 +35,11 @@ import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
 import org.igarape.copcast.promises.HttpPromiseError;
+import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.promises.PromiseError;
 import org.igarape.copcast.promises.WebRecorderPromiseError;
 import org.igarape.copcast.receiver.BatteryReceiver;
@@ -54,7 +56,6 @@ import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.LocationUtils;
 import org.igarape.copcast.utils.NetworkUtils;
-import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.utils.StateManager;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -661,7 +662,6 @@ public class MainActivity extends Activity {
         killServices();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(uploadFeedbackReceiver);
-        Globals.clear(MainActivity.this);
         Log.d(TAG, "destroyed");
         super.onDestroy();
     }
