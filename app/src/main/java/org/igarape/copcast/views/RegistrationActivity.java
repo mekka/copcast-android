@@ -37,8 +37,8 @@ public class RegistrationActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registration);
 
-        Log.e(TAG, "imei >>"+Globals.getImei(getApplicationContext()));
-        Log.e(TAG, "simid >>"+Globals.getSimid(getApplicationContext()));
+        Log.d(TAG, "imei >>"+Globals.getImei(getApplicationContext()));
+        Log.d(TAG, "simid >>"+Globals.getSimid(getApplicationContext()));
 
         register_url = (TextView) findViewById(R.id.txtRegisterUrl);
         register_url.setText(Globals.getServerUrl(this));

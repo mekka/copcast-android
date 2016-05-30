@@ -26,11 +26,36 @@ public class StateManager {
 
         Log.d(TAG, "From "+currentState.toString()+" to "+newState.toString());
 
-        boolean isInvalid = false;
 
-        if (currentState == newState)
+        if (currentState == newState) {
             throw new StateTransitionException("Trying to switch to same state ["+currentState.toString()+"]");
+        }
 
+        boolean isInvalid = isChangeInvalid(newState);
+
+        if (isInvalid)
+            throw new StateTransitionException("Transition from ["+currentState.toString()+"] to ["+newState.toString()+"] forbidden.");
+
+        if (extras == null)
+            extras = new JSONObject();
+
+        try {
+            extras.put("sessionId", Globals.getSessionID());
+        } catch (JSONException e) {
+            throw new StateTransitionException("Error setting sessionId into JsonObject");
+        }
+
+        try {
+            HistoryUtils.registerHistory(context, currentState, newState, extras);
+        } catch (HistoryException e) {
+            Log.e(TAG, "Error uploading history event", e);
+        }
+
+        currentState = newState;
+    }
+
+    private boolean isChangeInvalid(State newState) {
+        boolean isInvalid = false;
         switch(newState) {
             case IDLE:
                 break;
@@ -54,26 +79,7 @@ public class StateManager {
                 isInvalid = (currentState != State.IDLE);
                 break;
         }
-
-        if (isInvalid)
-            throw new StateTransitionException("Transition from ["+currentState.toString()+"] to ["+newState.toString()+"] forbidden.");
-
-        if (extras == null)
-            extras = new JSONObject();
-
-        try {
-            extras.put("sessionId", Globals.getSessionID());
-        } catch (JSONException e) {
-            throw new StateTransitionException("Error setting sessionId into JsonObject");
-        }
-
-        try {
-            HistoryUtils.registerHistory(context, currentState, newState, extras);
-        } catch (HistoryException e) {
-            Log.e(TAG, "Error uploading history event", e);
-        }
-
-        currentState = newState;
+        return isInvalid;
     }
 
     public boolean isState(State state) {
@@ -91,5 +97,9 @@ public class StateManager {
         } catch (StateTransitionException e) {
             OkDialog.displayAndTerminate(activity, activity.getString(R.string.internal_error), e.getMessage());
         }
+    }
+
+    public boolean canChangeToState(State nextState) {
+        return !isChangeInvalid(nextState);
     }
 }

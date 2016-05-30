@@ -554,9 +554,7 @@ public class MainActivity extends Activity {
     private void startPausedCountdown() {
         StateManager.setStateOrDie(MainActivity.this, State.PAUSED);
 
-        unbindService(mConnection);
-        Intent intent = new Intent(this, VideoRecorderService.class);
-        stopService(intent);
+        videoRecorderService.pauseRecording();
 
         findViewById(R.id.pausedLayout).setVisibility(View.GONE);
         findViewById(R.id.resumeMissionButton).setVisibility(View.VISIBLE);
@@ -588,10 +586,7 @@ public class MainActivity extends Activity {
         mCountDownThirtyPaused.cancel();
         mPauseCounter.setText("");
 
-        Intent intent = new Intent(MainActivity.this, VideoRecorderService.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startService(intent);
+        videoRecorderService.resumeRecording();
 
         vibrate(200); //vibrate when touch a button
     }

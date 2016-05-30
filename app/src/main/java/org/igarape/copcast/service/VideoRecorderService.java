@@ -6,7 +6,6 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
-import android.media.CamcorderProfile;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
@@ -22,18 +21,17 @@ import android.view.WindowManager;
 
 import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
-import org.igarape.copcast.promises.PromiseError;
+import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.state.IncidentFlagState;
+import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.views.MainActivity;
 import org.igarape.webrecorder.WebRecorder;
 import org.igarape.webrecorder.WebRecorderException;
 
 import java.net.URISyntaxException;
-import java.util.Date;
 import java.util.concurrent.locks.ReentrantLock;
 
 import io.socket.client.IO;
@@ -60,6 +58,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     WebRecorder webRecorder;
     LocalBroadcastManager localBroadcastManager;
     private Socket ws;
+    private NotificationCompat.Builder mNotification;
 
 
     public class LocalBinder extends Binder {
@@ -100,10 +99,13 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         ws.on("startStreaming", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                VideoRecorderService.this.startStreaming();
-                VideoRecorderService.this.sendBroadcast(VideoRecorderService.STARTED_STREAMING);
-
-                Log.e(TAG, "Start Stream!!!");
+                if (Globals.getStateManager().canChangeToState(State.STREAMING)) {
+                    VideoRecorderService.this.startStreaming();
+                    VideoRecorderService.this.sendBroadcast(VideoRecorderService.STARTED_STREAMING);
+                    Log.e(TAG, "Start Stream!!!");
+                } else {
+                    ws.emit("streamDenied");
+                }
             }
         });
 
@@ -146,7 +148,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
         Intent resultIntent = new Intent(this, MainActivity.class);
         Context context = getApplicationContext();
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
+        mNotification = new NotificationCompat.Builder(context)
                 .setContentTitle(getString(R.string.notification_record_title))
                 .setContentText(getString(R.string.notification_record_description))
                 .setSmallIcon(R.drawable.ic_launcher)
@@ -161,11 +163,11 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                         0,
                         PendingIntent.FLAG_NO_CREATE
                 );
-        mBuilder.setContentIntent(resultPendingIntent);
+        mNotification.setContentIntent(resultPendingIntent);
         NotificationManager mNotificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         // mId allows you to update the notification later on.
-        mNotificationManager.notify(mId, mBuilder.build());
+        mNotificationManager.notify(mId, mNotification.build());
 
         // Create new SurfaceView, set its size to 1x1, move it to the top left corner and set this service as a callback
         windowManager = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
@@ -182,17 +184,6 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
         localBroadcastManager = LocalBroadcastManager.getInstance(context);
 
-//        try {
-//            IO.Options opts = new IO.Options();
-//            opts.forceNew = true;
-//            opts.query = "token=" + Globals.getAccessTokenStraight(getApplicationContext()) + "&clientType=android";
-//            opts.reconnection = true;
-//            mSocketClient = IO.socket(Globals.getServerUrl(getApplicationContext()), opts);
-//            mSocketClient.connect();
-//        } catch (URISyntaxException e) {
-//            Log.e(TAG, "error connecting socket", e);
-//        }
-//
 
         return START_STICKY;
     }
@@ -206,94 +197,6 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
     private boolean prepareMediaEncoder() {
 
-//        if (serviceExiting)
-//            return false;
-//
-//        lock.lock();
-//        Log.d(TAG, "> prepare locked");
-//        try {
-//            try {
-//                camera = Camera.open(); // attempt to get a Camera instance
-//            } catch (Exception e) {
-//                Log.e(TAG, "Failed to open camera.");
-//                return false;
-//            }
-//
-//            Camera.Parameters params = camera.getParameters();
-//            params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
-//            camera.setParameters(params);
-//            camera.unlock();
-//
-//            mediaRecorder = new MediaRecorder();
-//            mediaRecorder.setPreviewDisplay(this.surfaceHolder.getSurface());
-//            mediaRecorder.setCamera(camera);
-//            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
-//            mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-//
-//            //chain to identify available resolutions
-//            Globals.appCamcoderProfile = CamcorderProfile.QUALITY_LOW;
-//            CamcorderProfile profile = CamcorderProfile.get(Globals.appCamcoderProfile);
-//            try {
-//                Globals.appCamcoderProfile = CamcorderProfile.QUALITY_QVGA;
-//                profile = CamcorderProfile.get(Globals.appCamcoderProfile);
-//            } catch (RuntimeException ex) {
-//                Log.w(TAG, "Failed to set QVGA video profile. Trying CIF");
-//                try {
-//                    Globals.appCamcoderProfile = CamcorderProfile.QUALITY_CIF;
-//                    profile = CamcorderProfile.get(Globals.appCamcoderProfile);
-//                } catch (RuntimeException ex2) {
-//                    Log.w(TAG, "Failed to set CIF video profile. Falling back to LOW");
-//                    Globals.appCamcoderProfile = CamcorderProfile.QUALITY_LOW;
-//                }
-//            }
-//
-//            // tune video parameters to reduce size
-//            profile.videoBitRate = 156000;
-//            profile.videoFrameRate = 12;
-//            profile.audioBitRate = 24000;
-//            profile.audioChannels = 1;
-//
-//            // Apply to MediaRecorder
-//            mediaRecorder.setProfile(profile);
-//
-//            baseDir = FileUtils.getPath(Globals.getUserLogin(getBaseContext())) +
-//                    android.text.format.DateFormat.format("yyyy-MM-dd_kk-mm-ss", new Date().getTime()) +
-//                    ".mp4";
-//
-//            Globals.setCurrentVideoPath(baseDir);
-//            mediaRecorder.setOutputFile(baseDir);
-//
-//
-//            mediaRecorder.setOrientationHint(getScreenOrientation(Globals.getRotation()));
-//            mediaRecorder.setMaxDuration(MAX_DURATION_MS);
-//            mediaRecorder.setMaxFileSize(MAX_SIZE_BYTES);
-//            mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
-//                @Override
-//                public void onInfo(MediaRecorder mediaRecorder, int what, int extra) {
-//                    if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED ||
-//                            what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED) {
-//
-//                        releaseMediaRecorder();
-//                        new MediaPrepareTask().execute();
-//                    }
-//                }
-//            });
-//
-//            try {
-//                mediaRecorder.prepare();
-//            } catch (IOException e) {
-//                Log.e(TAG, "ioException on prepareMediaEncoder");
-//                return false;
-//            }
-//
-//            mediaRecorder.start();
-//
-//            return true;
-//
-//        } finally {
-//            lock.unlock();
-//            Log.d(TAG, "< prepare unlocked");
-//        }
 
         baseDir = FileUtils.getPath(Globals.getUserLogin(getBaseContext()));
 
@@ -342,19 +245,36 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-//        if (Globals.isToggling()){
-//            Globals.setLivestreamToggle(false);
-//
-//            Intent intentAux = new Intent(this, StreamService.class);
-//            intentAux.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//            startService(intentAux);
-//        }
-//        serviceRunning = false;
+
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
+    }
+
+    public void pauseRecording() {
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotification.setContentText(getString(R.string.notification_paused_description));
+        // mId allows you to update the notification later on.
+        mNotificationManager.notify(mId, mNotification.build());
+        if (webRecorder != null)
+            webRecorder.stop(null);
+    }
+
+    public void resumeRecording() {
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotification.setContentText(getString(R.string.notification_record_description));
+        // mId allows you to update the notification later on.
+        mNotificationManager.notify(mId, mNotification.build());
+        if (webRecorder != null) {
+            try {
+                webRecorder.prepare(this.surfaceHolder);
+                webRecorder.start();
+            } catch (WebRecorderException e) {
+                Log.e(TAG, "Error resuming recording", e);
+            }
+        }
     }
 
     public void startStreaming() {
