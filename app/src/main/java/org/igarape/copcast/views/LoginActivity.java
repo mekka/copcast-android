@@ -1,9 +1,12 @@
 package org.igarape.copcast.views;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -26,9 +29,11 @@ import org.igarape.copcast.R;
 import org.igarape.copcast.promises.HttpPromiseError;
 import org.igarape.copcast.promises.PromiseError;
 import org.igarape.copcast.state.State;
+import org.igarape.copcast.utils.EditTextUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.promises.PromisePayload;
+import org.igarape.copcast.utils.LocationUtils;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.OkDialog;
 import org.igarape.copcast.utils.StateManager;
@@ -57,27 +62,9 @@ public class LoginActivity extends Activity {
         txtId = (EditText) findViewById(R.id.txtLoginUser);
         txtPwd = (EditText) findViewById(R.id.txtLoginPassword);
         Button btnLoginOk = (Button) findViewById(R.id.btn_login_ok);
-        /**
-         * Appears a hack
-         * On login_activity I added
-         * android:focusable="true"
-         * android:focusableInTouchMode="true"
-         */
-        txtId.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if (hasFocus) {
-                    txtId.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            InputMethodManager keyboard = (InputMethodManager)
-                                    getSystemService(Context.INPUT_METHOD_SERVICE);
-                            keyboard.showSoftInput(txtId, 0);
-                        }
-                    }, 200);
-                }
-            }
-        });
+
+        EditTextUtils.showKeyboard(this, txtId);
+        EditTextUtils.showKeyboardOnFocusAndClick(this, txtId);
 
         btnLoginOk.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -121,6 +108,10 @@ public class LoginActivity extends Activity {
     }
 
     public void makeLoginRequest(View view) {
+        if (!LocationUtils.isHighAccuracyLocationEnabled(this)) {
+            LocationUtils.showHighAccuracyLocationDisabledAlert(this);
+            return;
+        }
 
         pDialog = new ProgressDialog(this);
         pDialog.setTitle(getString(R.string.login_in));
@@ -220,25 +211,5 @@ public class LoginActivity extends Activity {
             }
 
         }.execute(null, null, null);
-    }
-
-    private boolean hasErrors() {
-        final String login = txtId.getText().toString();
-        final String password = txtPwd.getText().toString();
-        if (login.isEmpty()) {
-            Log.d(TAG, "login required");
-            Toast toast = Toast.makeText(getApplicationContext(), R.string.login_required, Toast.LENGTH_LONG);
-            toast.setGravity(Gravity.TOP, 0, 100);
-            toast.show();
-            return true;
-        }
-        if (password.isEmpty()) {
-            Log.d(TAG, "password required");
-            Toast toast = Toast.makeText(getApplicationContext(), R.string.password_required, Toast.LENGTH_LONG);
-            toast.setGravity(Gravity.TOP, 0, 100);
-            toast.show();
-            return true;
-        }
-        return false;
     }
 }

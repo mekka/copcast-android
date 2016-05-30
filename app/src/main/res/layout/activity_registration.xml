@@ -34,11 +34,11 @@
         android:hint="@string/server_url_hint"
         android:layout_below="@+id/horizontalRule"
         android:layout_marginTop="16dp"
-        android:inputType="text"
         android:textColor="#FFFFFF"
         android:textColorHighlight="#FFFFFF"
         android:textColorLink="#FFFFFF"
-        android:textIsSelectable="true" />
+        android:textIsSelectable="true"
+        android:inputType="text" />
 
     <EditText
         android:layout_width="match_parent"
