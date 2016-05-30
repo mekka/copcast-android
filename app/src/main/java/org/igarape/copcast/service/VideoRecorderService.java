@@ -309,6 +309,9 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         webRecorder = new WebRecorder.Builder(baseDir, BuildConfig.RECORDING_QUALITY)
                 .setVideoBitRate(BuildConfig.RECORDING_BITRATE)
                 .setVideoFrameRate(BuildConfig.RECORDING_FRAMERATE)
+                .setLiveVideoBitRate(BuildConfig.STREAMING_BITRATE)
+                .setLiveVideoFrameRate(BuildConfig.STREAMING_FRAMERATE)
+                .setLiveVideoQuality(BuildConfig.STREAMING_QUALITY)
                 .setVideoIFrameInterval(1)
                 .setWebsocket(VideoRecorderService.this.ws)
                 .build();

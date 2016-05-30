@@ -185,7 +185,7 @@ public class MainActivity extends Activity {
                         stopUploading();
                     }
                 } else if (intent.getAction().equals(BatteryReceiver.POWER_PLUGGED)) {
-                    if (Globals.isAutomaticUpload(context)) {
+                    if (Globals.isAutomaticUpload(context) && Globals.getStateManager().isState(State.IDLE)) {
                         Log.d(TAG, "power plugged. Starting upload!");
                         runOnUiThread(new Runnable() {
                             @Override

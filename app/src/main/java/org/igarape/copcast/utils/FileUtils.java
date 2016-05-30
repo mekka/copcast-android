@@ -76,15 +76,6 @@ public class FileUtils {
             Log.e(TAG, "Directory '" + albumName + "' not created");
         }
 
-//        For testing with the external directory
-//        // Get the directory for the user's public pictures directory.
-//        file = new File(Environment.getExternalStoragePublicDirectory(
-//                Environment.DIRECTORY_DCIM), albumName);
-//        if (!file.mkdirs()) {
-//            Log.e(TAG, "Directory not created");
-//        }
-//
-
         return file;
     }
 

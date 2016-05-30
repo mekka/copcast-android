@@ -1,6 +1,7 @@
 package org.igarape.webrecorder;
 
 import android.media.MediaCodec;
+import android.media.MediaFormat;
 import android.util.Log;
 
 import java.nio.ByteBuffer;
@@ -59,6 +60,10 @@ class VideoConsumer extends Thread {
                 videoCodec.releaseOutputBuffer(outputBufferId, false);
 
             } else if (outputBufferId == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+
+                int w = videoCodec.getOutputFormat().getInteger(MediaFormat.KEY_WIDTH);
+                int h = videoCodec.getOutputFormat().getInteger(MediaFormat.KEY_HEIGHT);
+                Log.e(TAG, "Live resolution: -->> "+w+" / "+h);
 
                 if (muxerThread != null) {
                     try {

@@ -141,8 +141,13 @@ class Mp4Muxer extends Thread {
             }
         }
         Log.d(TAG, "Loop finished.");
-        if (muxerStarted)
-            mediaMuxer.release();
+        if (muxerStarted) {
+            try {
+                mediaMuxer.release();
+            } catch (Exception ex) {
+                Log.e(TAG, "Error releasing muxer", ex  );
+            }
+        }
         mediaMuxer = null;
         Log.d(TAG, "Thread finished without lost frames.");
     }
