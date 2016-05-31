@@ -127,4 +127,5 @@
     <string name="high_accuracy_location_dialog_msg">You must enable high accuracy location services to use Copcast</string>
     <string name="enable">Enable</string>
     <string name="notification_paused_description">Recording is paused</string>
+    <string name="no_connection">You do not have connection right now. All your data will be stored locally.</string>
 </resources>

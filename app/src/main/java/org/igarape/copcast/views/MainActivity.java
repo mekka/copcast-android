@@ -111,6 +111,13 @@ public class MainActivity extends Activity {
         }
     };
 
+    private void showToast(final String message){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+            }});
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -120,12 +127,27 @@ public class MainActivity extends Activity {
 
             @Override
             public void error(PromiseError error) {
-                if (error.equals(HttpPromiseError.NOT_AUTHORIZED)) {
+                switch ((HttpPromiseError)error){
+                case NOT_AUTHORIZED:
                     logout(getString(R.string.token_expired));
-                } else {
+                break;
+                case FORBIDDEN:
+                    logout(getString(R.string.forbidden_login));
+                break;
+                case NO_CONNECTION:
+                    showToast(getString(R.string.no_connection));
+                break;
+                case BAD_CONNECTION:
+                    showToast( getString(R.string.connection_error));
+                break;
+                case BAD_REQUEST:
+                    logout(getString(R.string.bad_request_error));
+                case BAD_RESPONSE:
+                    showToast(getString(R.string.bad_request_error));
+                case FAILURE:
                     logout(getString(R.string.server_error));
-
-                }
+                break;
+            }
             }
         });
 

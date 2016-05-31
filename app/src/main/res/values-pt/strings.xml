@@ -120,4 +120,5 @@
     <string name="high_accuracy_location_dialog_msg">Você deve habilitar a localização de alta precisão para utilizar o Copcast</string>
     <string name="enable">Habilitar</string>
     <string name="notification_paused_description">A gravação está interrompida</string>
+    <string name="no_connection">Você não possio conexão neste momento. Todas as informações serão mantidas localmente</string>
 </resources>
