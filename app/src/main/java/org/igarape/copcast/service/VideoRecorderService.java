@@ -333,8 +333,10 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                     (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             mNotificationManager.cancel(mId);
 
-            webRecorder.stop(promise);
-            webRecorder = null;
+            if (webRecorder != null) {
+                webRecorder.stop(promise);
+                webRecorder = null;
+            }
             serviceRunning = false;
             ws.disconnect();
             Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
