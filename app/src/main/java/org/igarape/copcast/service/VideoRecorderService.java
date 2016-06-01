@@ -220,7 +220,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             webRecorder.prepare(this.surfaceHolder);
             webRecorder.start();
         } catch (WebRecorderException e) {
-            e.printStackTrace();
+            e.printStackTrace();    
         } finally {
             lock.unlock();
             Log.d(TAG, "< prepare unlocked");
