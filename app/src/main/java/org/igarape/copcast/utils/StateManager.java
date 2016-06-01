@@ -102,4 +102,8 @@ public class StateManager {
     public boolean canChangeToState(State nextState) {
         return !isChangeInvalid(nextState);
     }
+
+    public boolean isCurrent(State nextState) {
+        return currentState == nextState;
+    }
 }

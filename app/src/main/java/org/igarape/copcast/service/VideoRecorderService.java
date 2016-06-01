@@ -27,6 +27,7 @@ import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.IncidentUtils;
+import org.igarape.copcast.utils.StateManager;
 import org.igarape.copcast.views.MainActivity;
 import org.igarape.webrecorder.WebRecorder;
 import org.igarape.webrecorder.WebRecorderException;
@@ -99,7 +100,8 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         ws.on("startStreaming", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                if (Globals.getStateManager().canChangeToState(State.STREAMING)) {
+                StateManager stateManager = Globals.getStateManager();
+                if (stateManager.canChangeToState(State.STREAMING) || stateManager.isCurrent(State.STREAMING)) {
                     VideoRecorderService.this.startStreaming();
                     VideoRecorderService.this.sendBroadcast(VideoRecorderService.STARTED_STREAMING);
                     Log.e(TAG, "Start Stream!!!");
