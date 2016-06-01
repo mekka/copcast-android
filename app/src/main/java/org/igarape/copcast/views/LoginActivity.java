@@ -63,7 +63,6 @@ public class LoginActivity extends Activity {
         txtPwd = (EditText) findViewById(R.id.txtLoginPassword);
         Button btnLoginOk = (Button) findViewById(R.id.btn_login_ok);
 
-        EditTextUtils.showKeyboard(this, txtId);
         EditTextUtils.showKeyboardOnFocusAndClick(this, txtId);
 
         btnLoginOk.setOnClickListener(new View.OnClickListener() {
@@ -81,6 +80,19 @@ public class LoginActivity extends Activity {
                 toast.setGravity(Gravity.TOP | CENTER_HORIZONTAL, 0, 100);
                 toast.show();
             }
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume");
+        if (txtId.isFocused()) {
+            Log.d(TAG, "focused on id");
+            EditTextUtils.showKeyboard(this, txtId);
+        } else if (txtPwd.isFocused()) {
+            Log.d(TAG, "focused on pwd");
+            EditTextUtils.showKeyboard(this, txtPwd);
         }
     }
 
