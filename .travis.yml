@@ -13,10 +13,11 @@ android:
   components:
     - platform-tools
     - tools
-    - build-tools-23.0.3
-    - android-23
+    - build-tools-$ANDROID_BUILD_TOOLS_VERSION
+    - android-$ANDROID_API_LEVEL
     - extra-google-m2repository
     - extra-android-m2repository
+    - sys-img-armeabi-v7a-android-$ANDROID_BUILD_TOOLS_VERSION
 
   licenses:
     - 'android-sdk-license-.+'
