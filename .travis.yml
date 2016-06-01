@@ -4,8 +4,8 @@ sudo: false
 
 env:
   global:
-    - ANDROID_API_LEVEL=21
-    - ANDROID_BUILD_TOOLS_VERSION=21.1.2
+    - ANDROID_API_LEVEL=23
+    - ANDROID_BUILD_TOOLS_VERSION=23.0.0
     - ANDROID_ABI=armeabi-v7a
     - ADB_INSTALL_TIMEOUT=8 # minutes (2 minutes by default)
 
@@ -17,10 +17,11 @@ android:
     #- tools
 
     # The BuildTools version used by your project
-    - build-tools-21.1.2
+    - build-tools-23.0.0
 
     # The SDK version used to compile your project
-    - android-21
+    - android-23
+    - android-L
 
     # Additional components
     - extra-google-google_play_services
