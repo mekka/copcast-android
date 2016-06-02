@@ -202,7 +202,7 @@ public class MainActivity extends Activity {
                     stopUploading();
                 } else if (intent.getAction().equals(BatteryReceiver.POWER_UNPLUGGED)) {
 
-                    if (Globals.isAutomaticUpload(context) && Globals.getStateManager().isState(State.IDLE)) {
+                    if (Globals.getStateManager().isState(State.UPLOADING)) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
