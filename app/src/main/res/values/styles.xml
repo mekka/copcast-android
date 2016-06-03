@@ -10,12 +10,17 @@
         <item name="android:editTextStyle">@style/Widget.EditText.White</item>
         <item name="android:popupMenuStyle">@style/MyPopupMenu</item>
         <item name="android:itemTextAppearance">@style/TextAppearance</item>
+        <item name="android:actionBarStyle">@style/MyActionBarTheme</item>
     </style>
 
     <style name="AppTheme.NoActionBar" parent="AppTheme">
         <item name="android:windowNoTitle">true</item>
     </style>
-
+    <style name="MyActionBarTheme" parent="@android:style/Widget.Holo.Light.ActionBar">
+        <item name="android:background">#222222</item>
+        <!--<item name="android:bottom">#1b1b1b</item>-->
+        <item name="android:layout_marginBottom">5dp</item>
+    </style>
     <style name="AppThemePreferences" parent="android:Theme.Holo">
         <!-- equals AppTheme, but with a dark parent to allow dark dialogs in preferences   -->
         <item name="android:windowBackground">@color/bg_dark_block</item>
