@@ -132,7 +132,10 @@ class Mp4Muxer extends Thread {
 
                     trackIndex = frame.getMediaType() == MediaType.AUDIO_FRAME ? audioTrackIndex : videoTrackIndex;
 
-                    mediaMuxer.writeSampleData(trackIndex, frame.getBuffer(), frame.getBufferInfo());
+                    if (frame.getBufferInfo().presentationTimeUs > videoLastTS) {
+                        mediaMuxer.writeSampleData(trackIndex, frame.getBuffer(), frame.getBufferInfo());
+                        videoLastTS = frame.getBufferInfo().presentationTimeUs;
+                    }
                 }
             } catch (InterruptedException e) {
                 Log.e(TAG, "Error writing data to muxer", e);

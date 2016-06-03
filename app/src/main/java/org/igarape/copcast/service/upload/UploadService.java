@@ -45,7 +45,7 @@ public class UploadService extends Service {
 
         NetworkState networkState = NetworkUtils.checkUploadState(context);
         if (networkState != NetworkState.NETWORK_OK) {
-            feedback(context, UploadServiceEvent.ABORTED_NO_NETWORK, null);
+            feedback(context, UploadServiceEvent.ABORTED_NO_NETWORK, null, null);
             return false;
         }
 
@@ -84,7 +84,7 @@ public class UploadService extends Service {
         UploadRequest request;
 
         ILog.d(TAG, "UPLOAD Service STARTED!");
-        feedback(context, UploadServiceEvent.STARTED, null);
+        feedback(context, UploadServiceEvent.STARTED, null, null);
 
         ArrayList<String> users = new ArrayList<>();
         ArrayList<String> dbUsers = SqliteUtils.getUsersInDb(context);
@@ -134,7 +134,7 @@ public class UploadService extends Service {
 
         if (filesToUpload.isEmpty()) {
             Log.d(TAG, "upload FINISHED");
-            feedback(context, UploadServiceEvent.FINISHED, null);
+            feedback(context, UploadServiceEvent.FINISHED, null, null);
             return START_NOT_STICKY;
         }
 
@@ -175,10 +175,10 @@ public class UploadService extends Service {
 
             if (errorOccured) {
                 Log.d(TAG, "upload FAILED");
-                feedback(UploadService.this, UploadServiceEvent.FAILED, null);
+                feedback(UploadService.this, UploadServiceEvent.FAILED, null, null);
             } else {
                 Log.d(TAG, "upload FINISHED 2");
-                feedback(UploadService.this, UploadServiceEvent.FINISHED, null);
+                feedback(UploadService.this, UploadServiceEvent.FINISHED, null, null);
             }
 
             stopSelf();
@@ -188,7 +188,7 @@ public class UploadService extends Service {
         @Override
         protected void onCancelled(Void aVoid) {
             Log.d(TAG, "upload ABORTED");
-            feedback(UploadService.this, UploadServiceEvent.ABORTED_USER, null);
+            feedback(UploadService.this, UploadServiceEvent.ABORTED_USER, null, null);
             stopSelf();
 
         }
@@ -261,7 +261,7 @@ public class UploadService extends Service {
         protected void onProgressUpdate(Long... values) {
             uploadedBytes += values[0];
             if (!isCancelled())
-                feedback(context, UploadServiceEvent.RUNNING, uploadedBytes);
+                feedback(context, UploadServiceEvent.RUNNING, uploadedBytes, null);
         }
 
         public void updateCounter(long val) {
@@ -270,16 +270,16 @@ public class UploadService extends Service {
     }
 
 
-    private static void feedback(Context context, final UploadServiceEvent event, final Long... uploadedBytes) {
+    private static void feedback(Context context, final UploadServiceEvent event, final Long uploadedBytes, final Long totalBytes) {
 
         Intent intent = new Intent(UPLOAD_FEEDBACK_ACTION);
         intent.putExtra("event", event);
 
         if (event.isRunning() && uploadedBytes != null) {
-            if (uploadedBytes.length>=1)
-                intent.putExtra("uploadedBytes", uploadedBytes[0]);
-            if (uploadedBytes.length==2)
-                intent.putExtra("totalBytes", uploadedBytes[1]);
+            if (uploadedBytes != null)
+                intent.putExtra("uploadedBytes", uploadedBytes);
+            if (totalBytes != null)
+                intent.putExtra("totalBytes", totalBytes);
         }
 
         LocalBroadcastManager b = LocalBroadcastManager.getInstance(context);

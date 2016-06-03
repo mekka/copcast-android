@@ -4,36 +4,20 @@ sudo: false
 
 env:
   global:
-    - ANDROID_API_LEVEL=21
-    - ANDROID_BUILD_TOOLS_VERSION=21.1.2
+    - ANDROID_API_LEVEL=23
+    - ANDROID_BUILD_TOOLS_VERSION=23.0.3
     - ANDROID_ABI=armeabi-v7a
-    - ADB_INSTALL_TIMEOUT=8 # minutes (2 minutes by default)
+    - ADB_INSTALL_TIMEOUT=15 # minutes (2 minutes by default)
 
 android:
   components:
-    # Uncomment the lines below if you want to
-    # use the latest revision of Android SDK Tools
-    #- platform-tools
-    #- tools
-
-    # The BuildTools version used by your project
-    - build-tools-21.1.2
-
-    # The SDK version used to compile your project
-    - android-21
-
-    # Additional components
-    - extra-google-google_play_services
+    - platform-tools
+    - tools
+    - build-tools-$ANDROID_BUILD_TOOLS_VERSION
+    - android-$ANDROID_API_LEVEL
     - extra-google-m2repository
     - extra-android-m2repository
-    # - addon-google_apis-google-19
-    # - add-on
-    # - extra
-
-    # Specify at least one system image,
-    # if you need to run emulator(s) during your tests
-    # - sys-img-armeabi-v7a-android-21
-    # - sys-img-x86-android-17
+    - sys-img-armeabi-v7a-android-$ANDROID_BUILD_TOOLS_VERSION
 
   licenses:
     - 'android-sdk-license-.+'

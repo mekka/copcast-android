@@ -111,6 +111,15 @@ public class MainActivity extends Activity {
         }
     };
 
+    private void showToast(final String message) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -120,11 +129,28 @@ public class MainActivity extends Activity {
 
             @Override
             public void error(PromiseError error) {
-                if (error.equals(HttpPromiseError.NOT_AUTHORIZED)) {
-                    logout(getString(R.string.token_expired));
-                } else {
-                    logout(getString(R.string.server_error));
-
+                switch ((HttpPromiseError) error) {
+                    case NOT_AUTHORIZED:
+                        logout(getString(R.string.token_expired));
+                        break;
+                    case FORBIDDEN:
+                        logout(getString(R.string.forbidden_login));
+                        break;
+                    case NO_CONNECTION:
+                        showToast(getString(R.string.no_connection));
+                        break;
+                    case BAD_CONNECTION:
+                        showToast(getString(R.string.connection_error));
+                        break;
+                    case BAD_REQUEST:
+                        logout(getString(R.string.bad_request_error));
+                        break;
+                    case BAD_RESPONSE:
+                        showToast(getString(R.string.bad_request_error));
+                        break;
+                    case FAILURE:
+                        logout(getString(R.string.server_error));
+                        break;
                 }
             }
         });
@@ -186,7 +212,7 @@ public class MainActivity extends Activity {
                         stopUploading();
                     }
                 } else if (intent.getAction().equals(BatteryReceiver.POWER_PLUGGED)) {
-                    if (Globals.isAutomaticUpload(context)) {
+                    if (Globals.isAutomaticUpload(context) && Globals.getStateManager().canChangeToState(State.UPLOADING)) {
                         Log.d(TAG, "power plugged. Starting upload!");
                         runOnUiThread(new Runnable() {
                             @Override
@@ -208,10 +234,10 @@ public class MainActivity extends Activity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(UploadService.UPLOAD_FEEDBACK_ACTION)) {
-                    if (intent.getExtras() != null && intent.getExtras().get("event")!=null) {
+                    if (intent.getExtras() != null && intent.getExtras().get("event") != null) {
                         UploadServiceEvent use = (UploadServiceEvent) intent.getExtras().get("event");
 
-                        Log.d(TAG, "Received upload event: "+use);
+                        Log.d(TAG, "Received upload event: " + use);
 
                         if (!use.isRunning()) {
                             resetStatusUpload();
@@ -226,7 +252,7 @@ public class MainActivity extends Activity {
                                 ProgressBar p = (ProgressBar) findViewById(R.id.progressBar);
                                 int prog = (int) intent.getExtras().getLong("uploadedBytes");
                                 p.setProgress(prog);
-                                ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes((long) prog), formatMegaBytes((long)p.getMax())));
+                                ((TextView) findViewById(R.id.uploadingLabel)).setText(getString(R.string.uploading_size, formatMegaBytes((long) prog), formatMegaBytes((long) p.getMax())));
                                 break;
                             case ABORTED_NO_NETWORK:
                                 Toast.makeText(getApplicationContext(), getString(R.string.network_state_no_network), Toast.LENGTH_LONG).show();
@@ -242,7 +268,7 @@ public class MainActivity extends Activity {
                                 ILog.d(TAG, "user aborted upload");
                                 break;
                             default:
-                                ILog.e(TAG, "Unexpected upload feedback status: "+use);
+                                ILog.e(TAG, "Unexpected upload feedback status: " + use);
                         }
                     }
                 }
@@ -396,53 +422,53 @@ public class MainActivity extends Activity {
 
         uploadButton.setOnClickListener(new View.OnClickListener() {
 
-                                                               @Override
-                                                               public void onClick(View view) {
-                                                                   NetworkState networkState = NetworkUtils.checkUploadState(getApplicationContext());
-                                                                   if (networkState == NetworkState.NETWORK_OK) {
-                                                                       resetStatusUpload(); // prevent ghost information from appearing
-                                                                       if (UploadService.doUpload(getApplicationContext())) {
-                                                                           JSONObject extra = new JSONObject();
-                                                                           try {
-                                                                               extra.put("connection", NetworkUtils.getConnectionType(getApplicationContext()));
-                                                                               extra.put("data", Globals.getDirectorySize(getApplicationContext()));
-                                                                           } catch (JSONException ex) {
-                                                                               Log.e(TAG, "error building json", ex);
-                                                                           }
-                                                                           StateManager.setStateOrDie(MainActivity.this, State.UPLOADING, extra);
-                                                                       } else {
-                                                                           Toast.makeText(getApplicationContext(), getString(R.string.upload_no_data), Toast.LENGTH_LONG).show();
-                                                                           Log.d(TAG, "Upload requested, but nothing to upload");
-                                                                       }
+                                            @Override
+                                            public void onClick(View view) {
+                                                NetworkState networkState = NetworkUtils.checkUploadState(getApplicationContext());
+                                                if (networkState == NetworkState.NETWORK_OK) {
+                                                    resetStatusUpload(); // prevent ghost information from appearing
+                                                    if (UploadService.doUpload(getApplicationContext())) {
+                                                        JSONObject extra = new JSONObject();
+                                                        try {
+                                                            extra.put("connection", NetworkUtils.getConnectionType(getApplicationContext()));
+                                                            extra.put("data", Globals.getDirectorySize(getApplicationContext()));
+                                                        } catch (JSONException ex) {
+                                                            Log.e(TAG, "error building json", ex);
+                                                        }
+                                                        StateManager.setStateOrDie(MainActivity.this, State.UPLOADING, extra);
+                                                    } else {
+                                                        Toast.makeText(getApplicationContext(), getString(R.string.upload_no_data), Toast.LENGTH_LONG).show();
+                                                        Log.d(TAG, "Upload requested, but nothing to upload");
+                                                    }
 
-                                                                   } else {
-                                                                       int msgid = -1;
-                                                                       switch (networkState) {
-                                                                           case NO_NETWORK:
-                                                                               msgid = R.string.network_state_no_network;
-                                                                               break;
-                                                                           case WIFI_REQUIRED:
-                                                                               msgid = R.string.network_state_wifi_required;
-                                                                               break;
-                                                                           case NOT_CHARGING:
-                                                                               msgid = R.string.network_state_not_charging;
-                                                                               break;
-                                                                       }
-                                                                       if (msgid == -1)
-                                                                           Log.e(TAG, "Unexpected network state: " + networkState.name());
-                                                                       else {
-                                                                           final int msg = msgid;
-                                                                           runOnUiThread(new Runnable() {
-                                                                               @Override
-                                                                               public void run() {
-                                                                                   Toast.makeText(MainActivity.this, getString(msg), Toast.LENGTH_LONG).show();
-                                                                               }
-                                                                           });
+                                                } else {
+                                                    int msgid = -1;
+                                                    switch (networkState) {
+                                                        case NO_NETWORK:
+                                                            msgid = R.string.network_state_no_network;
+                                                            break;
+                                                        case WIFI_REQUIRED:
+                                                            msgid = R.string.network_state_wifi_required;
+                                                            break;
+                                                        case NOT_CHARGING:
+                                                            msgid = R.string.network_state_not_charging;
+                                                            break;
+                                                    }
+                                                    if (msgid == -1)
+                                                        Log.e(TAG, "Unexpected network state: " + networkState.name());
+                                                    else {
+                                                        final int msg = msgid;
+                                                        runOnUiThread(new Runnable() {
+                                                            @Override
+                                                            public void run() {
+                                                                Toast.makeText(MainActivity.this, getString(msg), Toast.LENGTH_LONG).show();
+                                                            }
+                                                        });
 
-                                                                       }
-                                                                   }
-                                                               }
-                                                           }
+                                                    }
+                                                }
+                                            }
+                                        }
 
         );
 
@@ -509,7 +535,7 @@ public class MainActivity extends Activity {
         mCheckForHighAccuracyLocationTimer = new Timer();
         mCheckForHighAccuracyLocationTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
-            public void run(){
+            public void run() {
                 if (!LocationUtils.isHighAccuracyLocationEnabled(MainActivity.this)) {
                     vibrate(200);
                     LocationUtils.showHighAccuracyLocationDisabledAlert(MainActivity.this);
@@ -544,8 +570,7 @@ public class MainActivity extends Activity {
 
     }
 
-    public void missionCompleted()
-    {
+    public void missionCompleted() {
         vibrate(200); //vibrate when touch a button
         talk("mission_completed");
         talk("wait");
@@ -554,9 +579,7 @@ public class MainActivity extends Activity {
     private void startPausedCountdown() {
         StateManager.setStateOrDie(MainActivity.this, State.PAUSED);
 
-        unbindService(mConnection);
-        Intent intent = new Intent(this, VideoRecorderService.class);
-        stopService(intent);
+        videoRecorderService.pauseRecording();
 
         findViewById(R.id.pausedLayout).setVisibility(View.GONE);
         findViewById(R.id.resumeMissionButton).setVisibility(View.VISIBLE);
@@ -588,10 +611,7 @@ public class MainActivity extends Activity {
         mCountDownThirtyPaused.cancel();
         mPauseCounter.setText("");
 
-        Intent intent = new Intent(MainActivity.this, VideoRecorderService.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startService(intent);
+        videoRecorderService.resumeRecording();
 
         vibrate(200); //vibrate when touch a button
     }
@@ -613,23 +633,21 @@ public class MainActivity extends Activity {
     /*
         Create a function to vibrate the cell phone in milliseconds
      */
-    private void vibrate(int mili)
-    {
+    private void vibrate(int mili) {
         Vibrator v = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
         v.vibrate(mili);
 
     }
-    private void msgBox(int textId)
-    {
+
+    private void msgBox(int textId) {
         Toast.makeText(getApplicationContext(), textId, Toast.LENGTH_LONG).show();
     }
 
     /*
         Create a function to play mp3 songs to simulate voice response
      */
-    public void talk(String text)
-    {
-        try{
+    public void talk(String text) {
+        try {
 
             if (text.equals("mission_started")) {
                 mySongclick = MediaPlayer.create(this, R.raw.mission_started);
@@ -644,14 +662,11 @@ public class MainActivity extends Activity {
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
-            }
-            else
-            {
+            } else {
                 mySongclick.start();  //start song
             }
 
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             msgBox(R.string.not_supported);
         }
 
@@ -673,7 +688,7 @@ public class MainActivity extends Activity {
 
         MenuItem item_incident_form = menu.findItem(R.id.action_incident_form);
         if (item_incident_form != null)
-            item_incident_form.setVisible (BuildConfig.HAS_INCIDENT_FORM);
+            item_incident_form.setVisible(BuildConfig.HAS_INCIDENT_FORM);
 
         MenuItem item_playback = menu.findItem(R.id.action_playback);
         if (item_playback != null)
@@ -699,7 +714,7 @@ public class MainActivity extends Activity {
                 Log.w(TAG, "no video available for playback");
                 Toast.makeText(MainActivity.this, getResources().getString(R.string.no_video_message), Toast.LENGTH_LONG).show();
             } else {
-                Log.d(TAG, videos.size()+ " videos available for playback");
+                Log.d(TAG, videos.size() + " videos available for playback");
                 Intent i = new Intent(this, PlayerActivity.class);
                 startActivity(i);
             }
@@ -731,7 +746,7 @@ public class MainActivity extends Activity {
 
     private void killServices() {
         if (videoServiceBound) {
-            Log.e(TAG, this.getClass().getCanonicalName()+"<<<");
+            Log.e(TAG, this.getClass().getCanonicalName() + "<<<");
             this.unbindService(mConnection);
         }
         stopService(new Intent(MainActivity.this, LocationService.class));
@@ -764,19 +779,19 @@ public class MainActivity extends Activity {
             logout(getString(R.string.invalid_token));
         }
 
-        if (pDialog != null){
+        if (pDialog != null) {
             pDialog.dismiss();
             pDialog = null;
         }
 
         Globals.setRotation(getWindowManager().getDefaultDisplay().getRotation());
-        WifiManager wifi = (WifiManager)getSystemService(Context.WIFI_SERVICE);
-        if (!wifi.isWifiEnabled()){
+        WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        if (!wifi.isWifiEnabled()) {
             showSettingsAlert();
         }
     }
 
-    public void showSettingsAlert(){
+    public void showSettingsAlert() {
         if (mWifiAlertDialog != null && mWifiAlertDialog.isShowing()) {
             return;     // Dialog already showing.
         }
@@ -786,7 +801,7 @@ public class MainActivity extends Activity {
         builder.setTitle(res.getString(R.string.wifi_dialog_title));
         builder.setMessage(res.getString(R.string.wifi_dialog_msg));
         builder.setPositiveButton(res.getText(R.string.settings_button), new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog,int which) {
+            public void onClick(DialogInterface dialog, int which) {
                 Intent intent = new Intent(Settings.ACTION_WIFI_SETTINGS);
                 startActivity(intent);
             }
@@ -799,7 +814,7 @@ public class MainActivity extends Activity {
 
         mWifiAlertDialog = builder.create();
         mWifiAlertDialog.show();
-}
+    }
 
     private class CountDownPausedTimer extends CountDownTimer {
         public CountDownPausedTimer(int millisInFuture, int countDownInterval) {
@@ -819,7 +834,7 @@ public class MainActivity extends Activity {
     @Override
     public boolean onKeyLongPress(int keyCode, KeyEvent event) {
 
-        switch(keyCode) {
+        switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_DOWN:
             case KeyEvent.KEYCODE_VOLUME_UP:
 
@@ -854,7 +869,7 @@ public class MainActivity extends Activity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        switch(keyCode) {
+        switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_DOWN:
             case KeyEvent.KEYCODE_VOLUME_UP:
                 event.startTracking();
