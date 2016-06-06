@@ -692,7 +692,7 @@ public class MainActivity extends Activity {
 
         MenuItem item_playback = menu.findItem(R.id.action_playback);
         if (item_playback != null)
-            item_playback.setVisible(BuildConfig.HAS_VIDEO_PLAYBACK);
+            item_playback.setVisible(Globals.hasVideoPlayback(getApplicationContext()));
 
         return true;
     }
@@ -707,7 +707,7 @@ public class MainActivity extends Activity {
             Intent i = new Intent(this, SettingsActivity.class);
             startActivity(i);
             return true;
-        } else if (id == R.id.action_playback) {
+        } else if (id == R.id.action_playback && Globals.hasVideoPlayback(getApplicationContext())) {
             List<String> videos = FileUtils.getVideoPathList(Globals.getUserLogin(MainActivity.this));
 
             if (videos.size() == 0) {

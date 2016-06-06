@@ -22,11 +22,6 @@ public class Globals {
     public static final String APP_REGISTERED = "APP_REGISTERED";
     public static final String AUTH = "AUTH";
     public static final String DATA = "DATA";
-    public static final String STREAMING_PORT = "STREAMING_PORT";
-    public static final String STREAMING_USER = "STREAMING_USER";
-    public static final String SERVER_IP_ADDRESS = "SERVER_IP_ADDRESS";
-    public static final String STREAMING_PASSWORD = "STREAMING_PASSWORD";
-    public static final String STREAMING_PATH = "STREAMING_PATH";
     public static final String USER_NAME = "USER_NAME";
     public static final String USER_ID = "USER_ID";
     public static final String DIRECTORY_SIZE = "DIRECTORY_SIZE";
@@ -37,6 +32,7 @@ public class Globals {
     private static final String PREF_TIME_LOGIN = "PREF_TIME_LOGIN";
     private static final String PREF_USER_LOGIN = "PREF_USER_LOGIN";
     private static final String PREF_IMEI = "PREF_IMEI";
+    private static final String HAS_VIDEO_PLAYBACK = "HAS_VIDEO_PLAYBACK";
     private static final String PREF_SIMID = "PREF_SIMID";
     public static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
@@ -45,11 +41,6 @@ public class Globals {
     private static final String AUTOMATIC_UPLOAD = "automatic_upload";
     private static String accessToken = null;
     private static String userLogin = null;
-    private static String serverIpAddress = null;
-    private static Integer streamingPort = null;
-    private static String streamingUser = null;
-    private static String streamingPassword = null;
-    private static String streamingPath = null;
     private static String userName = null;
     private static Bitmap userImage = null;
     private static Long directorySize;
@@ -65,6 +56,7 @@ public class Globals {
     private static UUID sessionId;
     private static StateManager stateManager;
     private static Integer userId;
+    private static Boolean hasVideoPlayback;
 
     public synchronized static String getAccessToken(Context context) {
         if (accessToken == null) {
@@ -163,49 +155,6 @@ public class Globals {
         Globals.userImage = userImage;
     }
 
-    public static void setStreamingPort(Context context,Integer streamingPort) {
-        SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putInt(STREAMING_PORT, streamingPort);
-        editor.commit();
-        Globals.streamingPort = streamingPort;
-    }
-
-    public static void setStreamingUser(Context context,String streamingUser) {
-        SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putString(STREAMING_USER, streamingUser);
-        editor.commit();
-        Globals.streamingUser = streamingUser;
-    }
-
-    public static void setServerIpAddress(Context context,String serverIpAddress) {
-        SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putString(SERVER_IP_ADDRESS, serverIpAddress);
-        editor.commit();
-        Globals.serverIpAddress = serverIpAddress;
-    }
-
-    public static void setStreamingPassword(Context context,String streamingPassword) {
-        SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putString(STREAMING_PASSWORD, streamingPassword);
-        editor.commit();
-        Globals.streamingPassword = streamingPassword;
-    }
-
-    public static void setStreamingPath(Context context,String streamingPath) {
-        if (!streamingPath.startsWith("/")){
-            streamingPath = "/"+streamingPath;
-        }
-        SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putString(STREAMING_PATH, streamingPath);
-        editor.commit();
-        Globals.streamingPath = streamingPath;
-    }
-
     public static void setUserName(Context context,String userName) {
         SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
@@ -236,11 +185,7 @@ public class Globals {
         userName = null;
         userImage = null;
         livestreamToggle = false;
-        serverIpAddress = null;
-        streamingPort = 1935;
-        streamingUser = null;
-        streamingPassword = null;
-        streamingPath = null;
+        hasVideoPlayback = null;
     }
 
     public static void setDirectorySize(Context context,Long directorySize) {
@@ -275,46 +220,6 @@ public class Globals {
             directorySize = sharedPrefs.getLong(DIRECTORY_SIZE, 0);
         }
         return directorySize/1024;
-    }
-
-    public static String getServerIpAddress(Context context) {
-        if (serverIpAddress == null) {
-            SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
-            serverIpAddress = sharedPrefs.getString(SERVER_IP_ADDRESS, null);
-        }
-        return serverIpAddress;
-    }
-
-    public static Integer getStreamingPort(Context context) {
-        if (streamingPort == null) {
-            SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
-            streamingPort = sharedPrefs.getInt(STREAMING_PORT, 1935);
-        }
-        return streamingPort;
-    }
-
-    public static String getStreamingUser(Context context) {
-        if (streamingUser == null) {
-            SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
-            streamingUser = sharedPrefs.getString(STREAMING_USER, null);
-        }
-        return streamingUser;
-    }
-
-    public static String getStreamingPassword(Context context) {
-        if (streamingPassword == null) {
-            SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
-            streamingPassword = sharedPrefs.getString(STREAMING_PASSWORD, null);
-        }
-        return streamingPassword;
-    }
-
-    public static String getStreamingPath(Context context) {
-        if (streamingPath == null) {
-            SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
-            streamingPath = sharedPrefs.getString(STREAMING_PATH, null);
-        }
-        return streamingPath;
     }
     public static void setLivestreamToggle(boolean value) {
         livestreamToggle = value;
@@ -429,4 +334,19 @@ public class Globals {
         return userId;
     }
 
+
+    public static Boolean hasVideoPlayback(Context context) {
+        if (hasVideoPlayback == null) {
+            SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
+            hasVideoPlayback = sharedPrefs.getBoolean(HAS_VIDEO_PLAYBACK, false);
+        }
+        return hasVideoPlayback;
+    }
+
+    public static void setHasVideoPlayback(Context context, boolean showVideosScreen) {
+        SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.putBoolean(HAS_VIDEO_PLAYBACK, showVideosScreen);
+        editor.apply();
+    }
 }

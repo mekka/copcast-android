@@ -50,7 +50,6 @@ android {
             resValue "string", "AUTOMATIC_UPLOAD_DEFAULT", "true"
             resValue "string", "VERSION_NAME", android.defaultConfig.versionName
             buildConfigField "boolean", "HAS_INCIDENT_FORM", "false"
-            buildConfigField "boolean", "HAS_VIDEO_PLAYBACK", "false"
             buildConfigField "int", "RECORDING_QUALITY", "android.media.CamcorderProfile.QUALITY_QVGA"
             buildConfigField "int", "RECORDING_BITRATE", "250000"
             buildConfigField "int", "RECORDING_FRAMERATE", "10"
@@ -66,7 +65,6 @@ android {
             resValue "string", "AUTOMATIC_UPLOAD_DEFAULT", "true"
             resValue "string", "VERSION_NAME", android.defaultConfig.versionName
             buildConfigField "boolean", "HAS_INCIDENT_FORM", "true"
-            buildConfigField "boolean", "HAS_VIDEO_PLAYBACK", "true"
             buildConfigField "int", "RECORDING_QUALITY", "android.media.CamcorderProfile.QUALITY_QVGA"
             buildConfigField "int", "RECORDING_BITRATE", "250000"
             buildConfigField "int", "RECORDING_FRAMERATE", "10"
@@ -81,7 +79,6 @@ android {
             resValue "string", "AUTOMATIC_UPLOAD_DEFAULT", "true"
             resValue "string", "VERSION_NAME", android.defaultConfig.versionName
             buildConfigField "boolean", "HAS_INCIDENT_FORM", "true"
-            buildConfigField "boolean", "HAS_VIDEO_PLAYBACK", "false"
             buildConfigField "int", "RECORDING_QUALITY", "android.media.CamcorderProfile.QUALITY_QVGA"
             buildConfigField "int", "RECORDING_BITRATE", "4000000"
             buildConfigField "int", "RECORDING_FRAMERATE", "10"
@@ -96,7 +93,6 @@ android {
             resValue "string", "AUTOMATIC_UPLOAD_DEFAULT", "true"
             resValue "string", "VERSION_NAME", android.defaultConfig.versionName
             buildConfigField "boolean", "HAS_INCIDENT_FORM", "true"
-            buildConfigField "boolean", "HAS_VIDEO_PLAYBACK", "true"
             buildConfigField "int", "RECORDING_QUALITY", "android.media.CamcorderProfile.QUALITY_QVGA"
             buildConfigField "int", "RECORDING_BITRATE", "250000"
             buildConfigField "int", "RECORDING_FRAMERATE", "10"

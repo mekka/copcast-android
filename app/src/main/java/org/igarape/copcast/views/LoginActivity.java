@@ -1,12 +1,8 @@
 package org.igarape.copcast.views;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,24 +11,18 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-import com.google.android.gms.iid.InstanceID;
-
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 import org.igarape.copcast.R;
 import org.igarape.copcast.promises.HttpPromiseError;
+import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.promises.PromiseError;
+import org.igarape.copcast.promises.PromisePayload;
 import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.EditTextUtils;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.promises.Promise;
-import org.igarape.copcast.promises.PromisePayload;
 import org.igarape.copcast.utils.LocationUtils;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.OkDialog;
@@ -40,7 +30,6 @@ import org.igarape.copcast.utils.StateManager;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -153,6 +142,7 @@ public class LoginActivity extends Activity {
                             token = (String) response.get("token");
                             Globals.setUserName(getApplicationContext(), response.getString("userName"));
                             Globals.setUserId(getApplicationContext(), response.getInt("userId"));
+                            Globals.setHasVideoPlayback(getApplicationContext(), response.getBoolean("hasVideoPlayback"));
                         } catch (JSONException e) {
                             OkDialog.displayAndTerminate(LoginActivity.this, getString(R.string.warning), getString(R.string.internal_error));
                             Log.e(TAG, "error on login", e);
