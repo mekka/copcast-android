@@ -25,17 +25,9 @@ public class SplashScreenActivity extends Activity {
     public static String TAG = SplashScreenActivity.class.getName();
     private static final int SPLASH_SHOW_TIME = 2500;
 
-
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_splash_screen);
-        View decorView = getWindow().getDecorView();
-        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-        decorView.setSystemUiVisibility(uiOptions);
-
+    protected void onResume() {
+        super.onResume();
         Globals.sessionInit();
         Globals.initStateManager(this);
         FileUtils.init(getApplicationContext());
@@ -82,5 +74,16 @@ public class SplashScreenActivity extends Activity {
 
             }
         }, SPLASH_SHOW_TIME);
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.activity_splash_screen);
+        View decorView = getWindow().getDecorView();
+        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        decorView.setSystemUiVisibility(uiOptions);
     }
 }
