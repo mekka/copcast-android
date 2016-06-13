@@ -61,10 +61,10 @@ class VideoConsumer extends Thread {
                 buf.position(bi.offset);
                 buf.limit(bi.offset + bi.size);
 
-                if (isStreaming && websocketThread != null) {
+                byte[] bpack = new byte[bi.size];
+                buf.get(bpack, 0, bi.size);
 
-                    byte[] bpack = new byte[bi.size];
-                    buf.get(bpack, 0, bi.size);
+                if (isStreaming && websocketThread != null) {
 //                    Log.d(TAG, "streaming " + bpack.length+" bytes");
                     websocketThread.push(bpack);
                 }
@@ -73,7 +73,7 @@ class VideoConsumer extends Thread {
                 buf.limit(bi.offset + bi.size);
 
                 if ((bi.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) == 0) {
-                    muxerThread.push(MediaType.VIDEO_FRAME, buf, bi);
+                    muxerThread.push(MediaType.VIDEO_FRAME, ByteBuffer.wrap(bpack), bi);
                 } else {
                     if (websocketThread != null) {
                         byte[] sps = new byte[bi.size];
