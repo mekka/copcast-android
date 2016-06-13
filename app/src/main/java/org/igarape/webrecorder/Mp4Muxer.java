@@ -3,6 +3,7 @@ package org.igarape.webrecorder;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
+import android.util.Base64;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -77,7 +78,8 @@ class Mp4Muxer extends Thread {
             try {
                 Date data = new Date();
                 SimpleDateFormat dataFmt = new SimpleDateFormat(FileUtils.DATE_FORMAT);
-                String file_name = this.outputDir+dataFmt.format(data)+".mp4";
+                String b64name = Base64.encodeToString(dataFmt.format(data).getBytes(), Base64.NO_PADDING | Base64.NO_WRAP);
+                String file_name = this.outputDir+"/"+b64name+".mp4";
                 Log.d(TAG, "Starting file: "+file_name);
                 mediaMuxer = new MediaMuxer(file_name, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             } catch (IOException e) {

@@ -5,8 +5,10 @@ import android.media.CamcorderProfile;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -35,36 +37,41 @@ import java.util.List;
 
 class VideoEntry {
 
+    private String TAG = VideoEntry.class.getCanonicalName();
     public String path;
-    public String video;
+    public Pair<String, String> videoTimestamp;
     public boolean incident;
 
     public VideoEntry(String path, boolean incident) {
         this.path = path;
-        this.video = pathToTimestamp(path);
+        this.videoTimestamp = pathToTimestamp(path);
         this.incident = incident;
     }
 
-    private String pathToTimestamp(String path) {
-        String ret;
+    private Pair<String, String> pathToTimestamp(String b64path) {
+
+        String[] tokens = path.split("/");
+        String filename = new String(Base64.decode(tokens[tokens.length-1].replace(".mp4", ""), Base64.NO_PADDING | Base64.NO_WRAP));
+        String[] fileTokens;
+        String data, hora;
+
         try {
-            String[] tokens = path.split("/");
-            tokens = tokens[tokens.length-1].replace(".mp4", "").split("T");
-            String[] timeTokens = tokens[1].split("\\.");
-            ret =  tokens[0].replace("-","/")+" "+timeTokens[0];
+            fileTokens = filename.split("T");
+            data =  fileTokens[0].replace("-","/");
+            hora = fileTokens[1].split("\\.")[0];
+            return new Pair(data, hora);
         } catch (Exception e) {
-            String[] tokens = path.split("/");
-            tokens = tokens[tokens.length-1].replace(".mp4", "").split("_");
-            ret =  tokens[0].replace("-","/")+" "+tokens[1].replace("-",":");
+            fileTokens = filename.split("_");
+            data = fileTokens[0].replace("-","/");
+            hora = fileTokens[1].replace("-",":");
+            return new Pair(data, hora);
         }
-        return ret;
     }
 
     @Override
     public String toString() {
-        return this.video;
+        return this.videoTimestamp.first+" "+this.videoTimestamp.second;
     }
-
 }
 
 class VideoEntryAdapter extends BaseAdapter {
@@ -104,9 +111,8 @@ class VideoEntryAdapter extends BaseAdapter {
         TextView hora = (TextView) convertView.findViewById(R.id.listItemText);
         TextView dia = (TextView) convertView.findViewById(R.id.listItemText2);
         ImageView issue = (ImageView) convertView.findViewById(R.id.issue_icon);
-        String[] tokens = ve.video.split(" ");
-        dia.setText(tokens[0]);
-        hora.setText(tokens[1]);
+        dia.setText(ve.videoTimestamp.first);
+        hora.setText(ve.videoTimestamp.second);
 
         Log.d(">>", "Pos:"+position+" / selected:"+pos );
 
@@ -255,7 +261,7 @@ public class PlayerActivity extends Activity {
 
                 VideoEntry chapter = adap.getItem(arg2);
                 try {
-                    HistoryUtils.registerHistoryEvent(getApplicationContext(), State.SEEN_VIDEO, chapter.video);
+                    HistoryUtils.registerHistoryEvent(getApplicationContext(), State.SEEN_VIDEO, chapter.videoTimestamp.toString());
                 } catch (HistoryException e) {
                     Log.e(TAG, "Error uploading SEEN VIDEO event", e);
                 }
@@ -336,7 +342,6 @@ public class PlayerActivity extends Activity {
             }
 
             timemillis = System.currentTimeMillis();
-            Log.d(TAG, "CLICCCCKKK");
 
             duration = videoView.getDuration();
             mProgressBar.setProgress(0);
