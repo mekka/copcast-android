@@ -4,6 +4,7 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.util.Log;
+import android.util.SparseArray;
 
 import org.igarape.copcast.utils.FileUtils;
 
@@ -31,6 +32,8 @@ class Mp4Muxer extends Thread {
     private ArrayBlockingQueue<MediaFrame> queue;
     private Semaphore muxerLock = new Semaphore(1);
     private String outputDir;
+    private static int FRAME_BUFFER_SIZE = 20;
+    private SparseArray<MediaFrame> frames = new SparseArray<>(FRAME_BUFFER_SIZE);
 
     public Mp4Muxer(String outputDir) throws WebRecorderException {
         this.outputDir = outputDir;
@@ -99,9 +102,8 @@ class Mp4Muxer extends Thread {
         Log.d(TAG, "Thread started.");
         isRunning = true;
         MediaFrame frame;
-        int trackIndex;
-        long videoInitialTS = -1;
-        long videoLastTS = -1;
+        long videoInitialTS;
+        int frameCounter = 0;
         long MINUTES_5 = 5*60*1000000;
 
         try {
@@ -114,13 +116,16 @@ class Mp4Muxer extends Thread {
 
         Log.d(TAG, "Loop started.");
 
+        videoInitialTS = System.nanoTime()/1000;
+
         while(isRunning) {
             try {
                 frame = queue.poll(10, TimeUnit.MILLISECONDS);
-//                Log.d(TAG, "queue size: "+queue.size());
+
                 if (frame != null) {
 
-//                    Log.e(TAG, frame.getBufferInfo().presentationTimeUs+"/"+videoInitialTS);
+                    frameCounter++;
+
                     if ((frame.getBufferInfo().presentationTimeUs - videoInitialTS)>MINUTES_5) {
 
                         if (videoInitialTS > -1) {
@@ -130,20 +135,29 @@ class Mp4Muxer extends Thread {
                         videoInitialTS = frame.getBufferInfo().presentationTimeUs;
                     }
 
-                    trackIndex = frame.getMediaType() == MediaType.AUDIO_FRAME ? audioTrackIndex : videoTrackIndex;
-
-                    if (frame.getBufferInfo().presentationTimeUs > videoLastTS) {
-                        mediaMuxer.writeSampleData(trackIndex, frame.getBuffer(), frame.getBufferInfo());
-                        videoLastTS = frame.getBufferInfo().presentationTimeUs;
+                    // now we dump to file every 10 frames. We skip the flush on frame 10
+                    // to allow the array to be always between 10 and 20 elements, thus
+                    // resolving boundary issues.
+                    if (frameCounter > 15 && frameCounter % 10 == 0) {
+                        flush();
                     }
+
+                    // we use a sparse array to automatically sort by timestamp, thus
+                    // avoiding synchronization issues.
+                    int delta = (int) (frame.getBufferInfo().presentationTimeUs - videoInitialTS);
+                    frames.append(delta, frame);
+
                 }
             } catch (InterruptedException e) {
-                Log.e(TAG, "Error writing data to muxer", e);
-            } catch (WebRecorderException e) {
+//                Log.e(TAG, "Error writing data to muxer", e);
+//            } catch (WebRecorderException e) {
                 Log.e(TAG, "Error starting new muxer", e);
+            } catch (WebRecorderException e) {
+                e.printStackTrace();
             }
         }
         Log.d(TAG, "Loop finished.");
+
         if (muxerStarted)
             mediaMuxer.release();
         mediaMuxer = null;
@@ -155,5 +169,25 @@ class Mp4Muxer extends Thread {
         isRunning = false;
         muxerLock.release();
         Log.d(TAG, "Waiting for loop to finish.");
+    }
+
+    private void flush() {
+        for(int i = 0; i< FRAME_BUFFER_SIZE/2; i++) {
+
+            MediaFrame frame = frames.valueAt(i);
+
+//            try {
+//                Thread.sleep(5,0);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+
+            int trackIndex = frame.getMediaType() == MediaType.AUDIO_FRAME ? audioTrackIndex : videoTrackIndex;
+            mediaMuxer.writeSampleData(trackIndex, frame.getBuffer(), frame.getBufferInfo());
+        }
+
+        for(int i = 0; i< FRAME_BUFFER_SIZE/2; i++) {
+            frames.removeAt(i);
+        }
     }
 }
