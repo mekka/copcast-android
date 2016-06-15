@@ -21,7 +21,6 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.IBinder;
-import android.os.Vibrator;
 import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -57,6 +56,7 @@ import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.LocationUtils;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.StateManager;
+import org.igarape.copcast.utils.VibrateUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -634,9 +634,7 @@ public class MainActivity extends Activity {
         Create a function to vibrate the cell phone in milliseconds
      */
     private void vibrate(int mili) {
-        Vibrator v = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
-        v.vibrate(mili);
-
+        VibrateUtils.vibrate(getApplicationContext(), mili);
     }
 
     private void msgBox(int textId) {

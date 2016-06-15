@@ -28,6 +28,7 @@ import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.StateManager;
+import org.igarape.copcast.utils.VibrateUtils;
 import org.igarape.copcast.views.MainActivity;
 import org.igarape.webrecorder.WebRecorder;
 import org.igarape.webrecorder.WebRecorderException;
@@ -104,6 +105,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 if (stateManager.canChangeToState(State.STREAMING) || stateManager.isCurrent(State.STREAMING)) {
                     VideoRecorderService.this.startStreaming();
                     VideoRecorderService.this.sendBroadcast(VideoRecorderService.STARTED_STREAMING);
+                    VibrateUtils.vibrate(getApplicationContext(), 200);
                     Log.e(TAG, "Start Stream!!!");
                 } else {
                     ws.emit("streamDenied");
