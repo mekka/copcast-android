@@ -58,6 +58,7 @@ public class WebRecorder {
     private final String outputPath;
     private Socket websocket;
     private boolean isRunning;
+    private SurfaceHolder surfaceHolder;
 
     public static class Builder {
         private int videoWidth;
@@ -67,19 +68,15 @@ public class WebRecorder {
         private Integer videoIFrameInterval;
         private Socket websocket;
         private String outputPath;
+        private SurfaceHolder surfaceHolder;
 
-        public Builder(String outputPath, final int videoWidth, final int videoHeight) {
-            this.videoHeight = videoHeight;
-            this.videoWidth = videoWidth;
-            this.outputPath = outputPath;
-        }
-
-        public Builder(String outputPath, final int videoQuality) {
+        public Builder(String outputPath, final int videoQuality, SurfaceHolder surfaceHolder) {
             CamcorderProfile profile = CamcorderProfile.get(videoQuality);
 
             this.videoHeight = profile.videoFrameHeight;
             this.videoWidth = profile.videoFrameWidth;
             this.outputPath = outputPath;
+            this.surfaceHolder = surfaceHolder;
         }
 
         public Builder setVideoBitRate(int video_bitrate) {
@@ -119,7 +116,7 @@ public class WebRecorder {
                 this.videoIFrameInterval = WebRecorder.DEFAULT_KEY_I_FRAME_INTERVAL;
 
             return new WebRecorder(outputPath, videoWidth, videoHeight,
-                    videoBitrate, videoFramerate, videoIFrameInterval, websocket);
+                    videoBitrate, videoFramerate, videoIFrameInterval, websocket, surfaceHolder);
         }
     }
 
@@ -130,7 +127,8 @@ public class WebRecorder {
                         Integer videoBitrate,
                         Integer videoFramerate,
                         Integer iFrameInterval,
-                        Socket websocket
+                        Socket websocket,
+                        SurfaceHolder surfaceHolder
     ) {
         this.outputPath = outputPath;
         this.videoWidth = videoWidth;
@@ -139,12 +137,9 @@ public class WebRecorder {
         this.videoBitRate = videoBitrate;
         this.iFrameInterval = iFrameInterval;
         this.websocket = websocket;
+        this.surfaceHolder = surfaceHolder;
     }
-
-    private long getTimestamp() {
-        return System.nanoTime() / 1000;
-    }
-
+    
     public boolean isRunning() {
         return isRunning;
     }
@@ -163,7 +158,7 @@ public class WebRecorder {
             videoConsumerThread.setStreaming(true);
     }
 
-    public void prepare(SurfaceHolder surfaceHolder) throws WebRecorderException {
+    public void prepare() throws WebRecorderException {
 
         if (websocket != null)
             websocketThread = new WebsocketThread(websocket, videoFrameRate);

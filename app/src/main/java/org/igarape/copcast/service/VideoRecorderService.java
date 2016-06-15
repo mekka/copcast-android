@@ -3,8 +3,10 @@ package org.igarape.copcast.service;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.PixelFormat;
 import android.os.AsyncTask;
 import android.os.Binder;
@@ -22,15 +24,18 @@ import android.view.WindowManager;
 import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
 import org.igarape.copcast.promises.Promise;
+import org.igarape.copcast.receiver.BatteryReceiver;
 import org.igarape.copcast.state.IncidentFlagState;
 import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
+import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.StateManager;
 import org.igarape.copcast.views.MainActivity;
 import org.igarape.webrecorder.WebRecorder;
 import org.igarape.webrecorder.WebRecorderException;
+import org.igarape.webrecorder.enums.Orientation;
 
 import java.net.URISyntaxException;
 import java.util.concurrent.locks.ReentrantLock;
@@ -64,8 +69,6 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
     public class LocalBinder extends Binder {
         public VideoRecorderService getService() {
-
-            Log.d(TAG, ">>>>>>>> SERVIÇO!");
             return VideoRecorderService.this;
         }
     }
@@ -76,6 +79,28 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             stopSelf();
             return START_STICKY;
         }
+
+        BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, final Intent intent) {
+                Log.d(TAG, "Orientation changed: "+intent.getAction());
+                Orientation o = Orientation.valueOf(intent.getExtras().getString("ORIENTATION"));
+                Log.e(TAG, "Orientation received: "+o.name());
+//                webRecorder.restartOrientation(o);
+//                if (webRecorder != null)
+//                    try {
+//                        webRecorder.setVideoCodec90();
+//                    } catch (WebRecorderException e) {
+//                        Log.e(TAG, "Error rotating codec", e);
+//                    } catch (InterruptedException e) {
+//                        Log.e(TAG, "Error rotating codec", e);
+//                    }
+            }
+        };
+
+        IntentFilter broadcastFilter = new IntentFilter();
+        broadcastFilter.addAction("ROTATION");
+        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, broadcastFilter);
 
         String query = "token="+Globals.getPlainToken(this);
         query += "&userId="+Globals.getUserId(this);
@@ -211,7 +236,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         lock.lock();
         Log.d(TAG, "> prepare locked");
 
-        webRecorder = new WebRecorder.Builder(baseDir, BuildConfig.RECORDING_QUALITY)
+        webRecorder = new WebRecorder.Builder(baseDir, BuildConfig.RECORDING_QUALITY, surfaceHolder)
                 .setVideoBitRate(BuildConfig.RECORDING_BITRATE)
                 .setVideoFrameRate(BuildConfig.RECORDING_FRAMERATE)
                 .setVideoIFrameInterval(1)
@@ -219,7 +244,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 .build();
 
         try {
-            webRecorder.prepare(this.surfaceHolder);
+            webRecorder.prepare();
             webRecorder.start();
         } catch (WebRecorderException e) {
             e.printStackTrace();    
@@ -271,7 +296,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         mNotificationManager.notify(mId, mNotification.build());
         if (webRecorder != null) {
             try {
-                webRecorder.prepare(this.surfaceHolder);
+                webRecorder.prepare();
                 webRecorder.start();
             } catch (WebRecorderException e) {
                 Log.e(TAG, "Error resuming recording", e);
@@ -313,8 +338,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 orientation = 180;
                 break;
             default:
-                Log.e(TAG, "Unknown screen orientation. Defaulting to " +
-                        "portrait.");
+                Log.e(TAG, "Unknown screen orientation. Defaulting to portrait.");
                 orientation = 0;
                 break;
         }

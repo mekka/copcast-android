@@ -11,6 +11,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import org.igarape.copcast.state.IncidentFlagState;
+import org.igarape.webrecorder.enums.Orientation;
 
 import java.util.UUID;
 
@@ -57,6 +58,7 @@ public class Globals {
     private static StateManager stateManager;
     private static Integer userId;
     private static Boolean hasVideoPlayback;
+    public static Orientation orientation;
 
     public synchronized static String getAccessToken(Context context) {
         if (accessToken == null) {

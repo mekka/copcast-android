@@ -15,6 +15,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.hardware.SensorManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
@@ -28,6 +29,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.OrientationEventListener;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -57,6 +59,7 @@ import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.LocationUtils;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.StateManager;
+import org.igarape.webrecorder.enums.Orientation;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -124,6 +127,42 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        OrientationEventListener mOrientationListener = new OrientationEventListener(this,
+                SensorManager.SENSOR_DELAY_UI) {
+
+            private Orientation state;
+
+            @Override
+            public void onOrientationChanged(int orientation) {
+
+                Orientation o;
+
+                if (orientation >= 315 || (orientation <= 45))
+                    o = Orientation.TOP;
+                else if (orientation > 225 && orientation < 315)
+                    o = Orientation.LEFT;
+                else if (orientation > 135 && orientation < 225)
+                    o = Orientation.BOTTOM;
+                else
+                    o = Orientation.RIGHT;
+
+                if (o != state) {
+                    state = o;
+                    Log.v(TAG, "Orientation changed to " + o.name());
+                    Globals.orientation = o;
+                    Intent i = new Intent("ROTATION");
+                    i.putExtra("ORIENTATION", o.name());
+                    LocalBroadcastManager.getInstance(MainActivity.this).sendBroadcast(i);
+                }
+
+            }
+        };
+
+        Log.i(TAG, "CAN DETECT? " + mOrientationListener.canDetectOrientation());
+
+        if (mOrientationListener.canDetectOrientation())
+            mOrientationListener.enable();
 
         NetworkUtils.get(getApplicationContext(), "/users/me", new Promise() {
 
