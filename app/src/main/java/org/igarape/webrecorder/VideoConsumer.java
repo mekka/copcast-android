@@ -57,7 +57,6 @@ class VideoConsumer extends Thread {
             if (outputBufferId >= 0) {
 
                 buf = outputBuffers[outputBufferId];
-
                 buf.position(bi.offset);
                 buf.limit(bi.offset + bi.size);
 

@@ -46,12 +46,12 @@ class AudioConsumer extends Thread {
             if (outputBufferId >= 0) {
 
                 buf = outputBuffers[outputBufferId];
+                buf.position(bi.offset);
+                buf.limit(bi.offset + bi.size);
 
                 byte[] bpack = new byte[bi.size];
                 buf.get(bpack, 0, bi.size);
 
-                buf.position(bi.offset);
-                buf.limit(bi.offset + bi.size);
                 if ((bi.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) == 0) {
                     muxerThread.push(MediaType.AUDIO_FRAME, ByteBuffer.wrap(bpack), bi);
                 }
