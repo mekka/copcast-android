@@ -120,9 +120,9 @@ class Mp4Muxer extends Thread {
 
         videoInitialTS = System.nanoTime()/1000;
 
-        while(isRunning) {
+        while(true) {
             try {
-                frame = queue.poll(10, TimeUnit.MILLISECONDS);
+                frame = queue.poll(250, TimeUnit.MILLISECONDS);
 
                 if (frame != null) {
 
@@ -149,6 +149,9 @@ class Mp4Muxer extends Thread {
                     int delta = (int) (frame.getBufferInfo().presentationTimeUs - videoInitialTS);
                     frames.append(delta, frame);
 
+                } else {
+                    if (!isRunning)
+                        break;
                 }
             } catch (InterruptedException e) {
 //                Log.e(TAG, "Error writing data to muxer", e);
