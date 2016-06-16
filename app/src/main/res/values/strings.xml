@@ -58,7 +58,7 @@
     <string name="cancel_button">Cancel</string>
     <string name="settings_button">Settings</string>
     <string name="confirmation_tittle">Confirmation</string>
-    <string name="confirmation_msg">Do you really want to leave the app?</string>
+    <string name="confirmation_msg">Do you really want to logout?</string>
     <string name="confirmation_button_positive">Yes</string>
     <string name="confirmation_button_negative">No</string>
     <string name="pref_upload_wifi_only">Use wifi only</string>
