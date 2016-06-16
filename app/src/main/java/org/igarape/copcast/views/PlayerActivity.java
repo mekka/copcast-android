@@ -51,7 +51,8 @@ class VideoEntry {
     private Pair<String, String> pathToTimestamp(String b64path) {
 
         String[] tokens = path.split("/");
-        String filename = new String(Base64.decode(tokens[tokens.length-1].replace(".mp4", ""), Base64.NO_PADDING | Base64.NO_WRAP));
+        String originalName = tokens[tokens.length - 1].replace(".mp4", "");
+        String filename = new String(Base64.decode(originalName, Base64.NO_PADDING | Base64.NO_WRAP));
         String[] fileTokens;
         String data, hora;
 
@@ -61,10 +62,18 @@ class VideoEntry {
             hora = fileTokens[1].split("\\.")[0];
             return new Pair(data, hora);
         } catch (Exception e) {
-            fileTokens = filename.split("_");
-            data = fileTokens[0].replace("-","/");
-            hora = fileTokens[1].replace("-",":");
-            return new Pair(data, hora);
+            try {
+                fileTokens = filename.split("_");
+                data = fileTokens[0].replace("-", "/");
+                hora = fileTokens[1].replace("-", ":");
+                return new Pair(data, hora);
+            } catch (Exception e1){
+                //case where the files still have the old name format without encryption
+                fileTokens = originalName.split("T");
+                data =  fileTokens[0].replace("-","/");
+                hora = fileTokens[1].split("\\.")[0];
+                return new Pair(data, hora);
+            }
         }
     }
 
