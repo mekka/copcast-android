@@ -25,7 +25,6 @@ class VideoConsumer extends Thread {
         this.videoCodec = videoCodec;
     }
 
-
     public void setWebsocketThread(WebsocketThread websocketThread) throws WebRecorderException {
         this.websocketThread = websocketThread;
     }
@@ -63,23 +62,8 @@ class VideoConsumer extends Thread {
                 byte[] bpack = new byte[bi.size];
                 buf.get(bpack, 0, bi.size);
 
-                if (true || isStreaming && websocketThread != null) {
-//                    Log.d(TAG, "streaming " + bpack.length+" bytes");
-                    websocketThread.push(bpack);
-                }
-
-                buf.position(bi.offset);
-                buf.limit(bi.offset + bi.size);
-
                 if ((bi.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) == 0) {
                     muxerThread.push(MediaType.VIDEO_FRAME, ByteBuffer.wrap(bpack), bi);
-                } else {
-                    if (websocketThread != null) {
-                        byte[] sps = new byte[bi.size];
-                        buf.get(sps, 0, bi.size);
-                        websocketThread.setSps(sps);
-                        Log.d(TAG, "SPS Set: "+sps.length);
-                    }
                 }
                 videoCodec.releaseOutputBuffer(outputBufferId, false);
 

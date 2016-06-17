@@ -235,9 +235,12 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         lock.lock();
         Log.d(TAG, "> prepare locked");
 
-        webRecorder = new WebRecorder.Builder(baseDir, BuildConfig.RECORDING_QUALITY, surfaceHolder)
-                .setVideoBitRate(BuildConfig.RECORDING_BITRATE)
-                .setVideoFrameRate(BuildConfig.RECORDING_FRAMERATE)
+        webRecorder = new WebRecorder.Builder(baseDir, BuildConfig.RECORDING_QUALITY,
+                BuildConfig.STREAMING_QUALITY, surfaceHolder)
+                .setVideoBitrate(BuildConfig.RECORDING_BITRATE)
+                .setVideoFramerate(BuildConfig.RECORDING_FRAMERATE)
+                .setLiveVideoBitrate(BuildConfig.STREAMING_BITRATE)
+                .setLiveVideoFramerate(BuildConfig.STREAMING_FRAMERATE)
                 .setVideoIFrameInterval(1)
                 .setWebsocket(VideoRecorderService.this.ws)
                 .build();

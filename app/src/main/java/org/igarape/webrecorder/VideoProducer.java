@@ -11,6 +11,12 @@ import org.igarape.webrecorder.enums.Orientation;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import static org.igarape.webrecorder.libs.LibYUV.nv21tovn12;
+import static org.igarape.webrecorder.libs.LibYUV.shrink;
+import static org.igarape.webrecorder.libs.LibYUV.transpose;
+import static org.igarape.webrecorder.libs.LibYUV.transpose_bottom;
+import static org.igarape.webrecorder.libs.LibYUV.transpose_flip_vert;
+
 /**
  * Created by martelli on 2/18/16.
  */
@@ -19,13 +25,17 @@ class VideoProducer implements Camera.PreviewCallback {
     private final static String TAG = VideoProducer.class.getCanonicalName();
     Camera camera;
     MediaCodec.BufferInfo bi;
-    ByteBuffer[] inputBuffers;
+    ByteBuffer[] inputBuffers, liveInputBuffers;
     long lastCapture = 0, tmpCapture;
+    long lastLiveCapture = 0, liveTmpCapture;
     private MediaCodec videoCodec;
+    private MediaCodec liveVideoCodec;
     private int videoFrameRate = -1;
+    private int liveVideoFrameRate = -1;
     private int videoWidth;
     private int videoHeight;
     private boolean isRunning = false;
+    private boolean isStreaming = false;
 
     public VideoProducer(SurfaceHolder surfaceHolder, int videoWidth, int videoHeight) throws WebRecorderException {
 
@@ -66,6 +76,10 @@ class VideoProducer implements Camera.PreviewCallback {
         Log.i(TAG, "Producer dimensions: "+videoWidth+" / "+videoHeight);
     }
 
+    public void setStreaming(boolean streaming) {
+        isStreaming = streaming;
+    }
+
     public void start() {
 
         Log.d(TAG, "Start requested.");
@@ -77,6 +91,11 @@ class VideoProducer implements Camera.PreviewCallback {
         }
 
         if (videoFrameRate == -1) {
+            Log.e(TAG, "Video frame rate not defined. Thread aborting.");
+            return;
+        }
+
+        if (liveVideoFrameRate == -1) {
             Log.e(TAG, "Video frame rate not defined. Thread aborting.");
             return;
         }
@@ -101,104 +120,64 @@ class VideoProducer implements Camera.PreviewCallback {
         this.videoCodec = videoCodec;
     }
 
+    public void setLiveVideoCodec(MediaCodec liveVideoCodec) {
+        this.liveVideoCodec = liveVideoCodec;
+    }
+
     public void setVideoFrameRate(int videoFrameRate) {
         this.videoFrameRate = videoFrameRate;
+    }
+
+    public void setLiveVideoFrameRate(int liveVideoFrameRate) {
+        this.liveVideoFrameRate = liveVideoFrameRate;
     }
 
     @Override
     public void onPreviewFrame(byte[] data, android.hardware.Camera camera) {
         long now = System.nanoTime()/1000;
-
-        bi = new MediaCodec.BufferInfo();
-        inputBuffers = videoCodec.getInputBuffers();
-
-        // simple frame rate control
         tmpCapture = now * videoFrameRate / 1000000;
+
+        // simple frame rate control.
+        // IMPORTANTE: We assume to always have LIVE_FRAME_RATE < RECORDING_FRAME_RATE
         if (tmpCapture <= lastCapture)
             return;
         lastCapture = tmpCapture;
 
         byte[] new_data = new byte[data.length];
 
+        if (Globals.orientation == Orientation.TOP)
+            transpose(data, new_data, videoHeight, videoWidth);
+        else if (Globals.orientation == Orientation.BOTTOM)
+            transpose_bottom(data, new_data, videoHeight, videoWidth);
+        else if (Globals.orientation == Orientation.RIGHT)
+            transpose_flip_vert(data, new_data, videoWidth, videoHeight);
+        else
+            nv21tovn12(data, new_data, videoHeight, videoWidth);
+
+        bi = new MediaCodec.BufferInfo();
+        inputBuffers = videoCodec.getInputBuffers();
         int inputBufferId = videoCodec.dequeueInputBuffer(500000);
         if (inputBufferId >= 0) {
-
-            if (Globals.orientation == Orientation.TOP)
-                transpose(data, new_data, videoHeight, videoWidth);
-            else if (Globals.orientation == Orientation.BOTTOM)
-                transpose_bottom(data, new_data, videoHeight, videoWidth);
-            else if (Globals.orientation == Orientation.RIGHT)
-                transpose_flip_vert(data, new_data, videoWidth, videoHeight);
-            else
-                nv21tovn12(data, new_data, videoHeight, videoWidth);
-
             inputBuffers[inputBufferId].put(new_data);
-            videoCodec.queueInputBuffer(inputBufferId, 0, data.length, now, 0);
-        }
-    }
-
-    public static void nv21tovn12(byte[] in, byte[] out, int w, int h) {
-
-        for(int i=0; i<w*h; i++) {
-            out[i] = in[i];
+            videoCodec.queueInputBuffer(inputBufferId, 0, new_data.length, now, 0);
         }
 
-        for(int i=0; i<w*h/4; i++) {
-            out[w*h + 2*i] = in[w*h + 2*i + 1];
-            out[w*h + 2*i+ 1] = in[w*h + 2*i];
-        }
+        if (!isStreaming)
+            return;
 
-    }
+        liveTmpCapture = now * liveVideoFrameRate / 1000000;
+        if (liveTmpCapture <= lastLiveCapture)
+            return;
+        lastLiveCapture = liveTmpCapture;
 
-    public static void transpose(byte[] in, byte[] out, int w, int h) {
+        byte[] reduced_data = shrink(new_data, videoWidth, videoHeight, 4);
 
-        for(int x=0; x<w; x++) {
-            for(int y=0; y<h; y++) {
-                out[(x+1)*h-1-y] = in[y*w+x];
-            }
-        }
-
-        for(int x=0; x<w/2; x++) {
-            for(int y=0; y<h/2; y++) {
-                out[w*h+(((x+1)*(h/2))-1-y)*2+1] = in[w*h+(y*w/2+x)*2];
-                out[w*h+(((x+1)*(h/2))-1-y)*2] = in[w*h+(y*w/2+x)*2+1];
-            }
-        }
-    }
-
-    public static void transpose_bottom(byte[] in, byte[] out, int w, int h) {
-
-        for(int x2=0; x2<w; x2++) {
-            int x = w-1-x2;
-            for(int y=0; y<h; y++) {
-                int y2 = h-1-y;
-                out[(x+1)*h-1-y] = in[y2*w+x2];
-            }
-        }
-
-        for(int x2=0; x2<w/2; x2++) {
-            int x = w/2-1-x2;
-            for(int y=0; y<h/2; y++) {
-                int y2 = h/2-1-y;
-                out[w*h+(((x+1)*(h/2))-1-y)*2+1] = in[w*h+(y2*w/2+x2)*2];
-                out[w*h+(((x+1)*(h/2))-1-y)*2] = in[w*h+(y2*w/2+x2)*2+1];
-            }
-        }
-    }
-
-    public static void transpose_flip_vert(byte[] in, byte[] out, int w, int h) {
-
-        for (int y=0; y<h; y++) {
-            for(int x=0; x<w; x++) {
-                out[y*w+x] = in[(h-1-y)*w+(w-1-x)];
-            }
-        }
-
-        for (int y=0; y<h/2; y++) {
-            for(int x=0; x<w/2; x++) {
-                out[w*h+(y*w/2+(w/2-1-x))*2+1] = in[w*h+((h/2-1-y)*w/2+x)*2];
-                out[w*h+(y*w/2+(w/2-1-x))*2] = in[w*h+((h/2-1-y)*w/2+x)*2+1];
-            }
+        bi = new MediaCodec.BufferInfo();
+        liveInputBuffers = liveVideoCodec.getInputBuffers();
+        int liveInputBufferId = liveVideoCodec.dequeueInputBuffer(500000);
+        if (liveInputBufferId >= 0) {
+            liveInputBuffers[liveInputBufferId].put(reduced_data);
+            liveVideoCodec.queueInputBuffer(liveInputBufferId, 0, reduced_data.length, now, 0);
         }
     }
 }
