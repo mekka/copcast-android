@@ -63,7 +63,7 @@ class VideoConsumer extends Thread {
                 byte[] bpack = new byte[bi.size];
                 buf.get(bpack, 0, bi.size);
 
-                if (isStreaming && websocketThread != null) {
+                if (true || isStreaming && websocketThread != null) {
 //                    Log.d(TAG, "streaming " + bpack.length+" bytes");
                     websocketThread.push(bpack);
                 }

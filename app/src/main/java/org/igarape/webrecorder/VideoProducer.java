@@ -5,9 +5,11 @@ import android.media.MediaCodec;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
+import org.igarape.copcast.utils.Globals;
+import org.igarape.webrecorder.enums.Orientation;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by martelli on 2/18/16.
@@ -48,10 +50,10 @@ class VideoProducer implements Camera.PreviewCallback {
             camera.stopPreview();
             camera.setPreviewDisplay(surfaceHolder);
             android.hardware.Camera.Parameters p = camera.getParameters();
-            p.setPreviewSize(videoWidth, videoHeight);
-            p.set("orientation", "portrait");
-            p.setRotation(90);
-            camera.setDisplayOrientation(90);
+            if (videoWidth > videoHeight)
+                p.setPreviewSize(videoWidth, videoHeight);
+            else
+                p.setPreviewSize(videoHeight, videoWidth);
             camera.setParameters(p);
             camera.setPreviewCallback(this);
             Log.d(TAG, "Camera prepared");
@@ -60,6 +62,8 @@ class VideoProducer implements Camera.PreviewCallback {
             throw new WebRecorderException(e);
         }
         Log.d(TAG, "Created.");
+
+        Log.i(TAG, "Producer dimensions: "+videoWidth+" / "+videoHeight);
     }
 
     public void start() {
@@ -118,10 +122,32 @@ class VideoProducer implements Camera.PreviewCallback {
 
         int inputBufferId = videoCodec.dequeueInputBuffer(500000);
         if (inputBufferId >= 0) {
-            transpose(data, new_data, videoWidth, videoHeight);
+
+            if (Globals.orientation == Orientation.TOP)
+                transpose(data, new_data, videoHeight, videoWidth);
+            else if (Globals.orientation == Orientation.BOTTOM)
+                transpose_bottom(data, new_data, videoHeight, videoWidth);
+            else if (Globals.orientation == Orientation.RIGHT)
+                transpose_flip_vert(data, new_data, videoWidth, videoHeight);
+            else
+                nv21tovn12(data, new_data, videoHeight, videoWidth);
+
             inputBuffers[inputBufferId].put(new_data);
             videoCodec.queueInputBuffer(inputBufferId, 0, data.length, now, 0);
         }
+    }
+
+    public static void nv21tovn12(byte[] in, byte[] out, int w, int h) {
+
+        for(int i=0; i<w*h; i++) {
+            out[i] = in[i];
+        }
+
+        for(int i=0; i<w*h/4; i++) {
+            out[w*h + 2*i] = in[w*h + 2*i + 1];
+            out[w*h + 2*i+ 1] = in[w*h + 2*i];
+        }
+
     }
 
     public static void transpose(byte[] in, byte[] out, int w, int h) {
@@ -138,6 +164,41 @@ class VideoProducer implements Camera.PreviewCallback {
                 out[w*h+(((x+1)*(h/2))-1-y)*2] = in[w*h+(y*w/2+x)*2+1];
             }
         }
+    }
 
+    public static void transpose_bottom(byte[] in, byte[] out, int w, int h) {
+
+        for(int x2=0; x2<w; x2++) {
+            int x = w-1-x2;
+            for(int y=0; y<h; y++) {
+                int y2 = h-1-y;
+                out[(x+1)*h-1-y] = in[y2*w+x2];
+            }
+        }
+
+        for(int x2=0; x2<w/2; x2++) {
+            int x = w/2-1-x2;
+            for(int y=0; y<h/2; y++) {
+                int y2 = h/2-1-y;
+                out[w*h+(((x+1)*(h/2))-1-y)*2+1] = in[w*h+(y2*w/2+x2)*2];
+                out[w*h+(((x+1)*(h/2))-1-y)*2] = in[w*h+(y2*w/2+x2)*2+1];
+            }
+        }
+    }
+
+    public static void transpose_flip_vert(byte[] in, byte[] out, int w, int h) {
+
+        for (int y=0; y<h; y++) {
+            for(int x=0; x<w; x++) {
+                out[y*w+x] = in[(h-1-y)*w+(w-1-x)];
+            }
+        }
+
+        for (int y=0; y<h/2; y++) {
+            for(int x=0; x<w/2; x++) {
+                out[w*h+(y*w/2+(w/2-1-x))*2+1] = in[w*h+((h/2-1-y)*w/2+x)*2];
+                out[w*h+(y*w/2+(w/2-1-x))*2] = in[w*h+((h/2-1-y)*w/2+x)*2+1];
+            }
+        }
     }
 }

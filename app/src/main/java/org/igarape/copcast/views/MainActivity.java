@@ -124,7 +124,7 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -147,12 +147,24 @@ public class MainActivity extends Activity {
                 else
                     o = Orientation.RIGHT;
 
-                if (o != state) {
-                    state = o;
-                    Log.v(TAG, "Orientation changed to " + o.name());
-                    Globals.orientation = o;
+                Orientation narrow_o = null;
+
+                if (orientation >= 330 || (orientation <= 30))
+                    narrow_o = Orientation.TOP;
+                else if (orientation > 240 && orientation < 300)
+                    narrow_o = Orientation.LEFT;
+                else if (orientation > 150 && orientation < 210)
+                    narrow_o = Orientation.BOTTOM;
+                else if (orientation > 60 && orientation < 120)
+                    narrow_o = Orientation.RIGHT;
+
+                if (narrow_o != null && narrow_o != state) {
+
+                    state = narrow_o;
+                    Log.v(TAG, "Orientation changed to " + narrow_o.name());
+                    Globals.orientation = narrow_o;
                     Intent i = new Intent("ROTATION");
-                    i.putExtra("ORIENTATION", o.name());
+                    i.putExtra("ORIENTATION", narrow_o.name());
                     LocalBroadcastManager.getInstance(MainActivity.this).sendBroadcast(i);
                 }
 

@@ -83,10 +83,9 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, final Intent intent) {
-                Log.d(TAG, "Orientation changed: "+intent.getAction());
-                Orientation o = Orientation.valueOf(intent.getExtras().getString("ORIENTATION"));
-                Log.e(TAG, "Orientation received: "+o.name());
-//                webRecorder.restartOrientation(o);
+                Log.d(TAG, "Orientation changed: "+intent.getExtras().getString("ORIENTATION"));
+                if (webRecorder != null)
+                    webRecorder.restartOrientation();
 //                if (webRecorder != null)
 //                    try {
 //                        webRecorder.setVideoCodec90();

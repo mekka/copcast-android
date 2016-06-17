@@ -6,12 +6,12 @@ import android.media.MediaRecorder;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
-import org.igarape.copcast.BuildConfig;
-import org.igarape.copcast.promises.WebRecorderPromiseError;
 import org.igarape.copcast.promises.Promise;
+import org.igarape.copcast.promises.WebRecorderPromiseError;
+import org.igarape.copcast.utils.Globals;
+import org.igarape.webrecorder.enums.Orientation;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 import io.socket.client.Socket;
 
@@ -49,6 +49,7 @@ public class WebRecorder {
     private VideoConsumer videoConsumerThread;
     private Mp4Muxer muxerThread;
     private WebsocketThread websocketThread;
+    private Semaphore orientationLock = new Semaphore(1);
 
     private int videoHeight;
     private int videoWidth;
@@ -158,12 +159,44 @@ public class WebRecorder {
             videoConsumerThread.setStreaming(true);
     }
 
+    public void restartOrientation() {
+
+        try {
+            orientationLock.acquire();
+        } catch (InterruptedException e) {
+            Log.e(TAG, "Interrupted while wating for a lock", e);
+        }
+
+        this.stop(new Promise<WebRecorderPromiseError>() {
+            @Override
+            public void success() {
+                try {
+                    WebRecorder.this.prepare();
+                    WebRecorder.this.start();
+                    Log.d(TAG, "Webrecorder restarted");
+                } catch (WebRecorderException e) {
+                    Log.e(TAG, "Failed to restart webrecorder", e);
+                } finally {
+                    orientationLock.release();
+                }
+            }
+        });
+    }
+
     public void prepare() throws WebRecorderException {
+
+        int h = this.videoHeight;
+        int w = this.videoWidth;
+
+        if (Globals.orientation == Orientation.TOP || Globals.orientation == Orientation.BOTTOM) {
+            h = this.videoWidth;
+            w = this.videoHeight;
+        }
 
         if (websocket != null)
             websocketThread = new WebsocketThread(websocket, videoFrameRate);
 
-        videoCodec = new VideoCodec(videoWidth, videoHeight, videoBitRate, videoFrameRate, iFrameInterval);
+        videoCodec = new VideoCodec(w, h, videoBitRate, videoFrameRate, iFrameInterval);
         audioCodec = new AudioCodec();
 
         audioProducerThread = new AudioProducer();
@@ -181,7 +214,7 @@ public class WebRecorder {
             videoConsumerThread.setWebsocketThread(websocketThread);
         videoConsumerThread.setMuxer(muxerThread);
 
-        videoProducerThread = new VideoProducer(surfaceHolder, videoWidth, videoHeight);
+        videoProducerThread = new VideoProducer(surfaceHolder, w, h);
         videoProducerThread.setVideoCodec(videoCodec.getCodec());
         videoProducerThread.setVideoFrameRate(videoFrameRate);
     }
