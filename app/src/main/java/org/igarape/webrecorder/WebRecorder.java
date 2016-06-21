@@ -201,6 +201,7 @@ public class WebRecorder {
 
         try {
             orientationLock.acquire();
+            Log.v(TAG, "Beginning restart");
         } catch (InterruptedException e) {
             Log.e(TAG, "Interrupted while wating for a lock", e);
         }
@@ -209,6 +210,7 @@ public class WebRecorder {
             @Override
             public void success() {
                 try {
+                    Log.v(TAG, "Restart: services stopped");
                     WebRecorder.this.prepare();
                     WebRecorder.this.start();
                     if (isStreaming)
@@ -230,7 +232,7 @@ public class WebRecorder {
         int lh = this.liveVideoHeight;
         int lw = this.liveVideoWidth;
 
-        if (Globals.orientation == Orientation.TOP || Globals.orientation == Orientation.BOTTOM) {
+        if (Globals.orientation.second == Orientation.TOP || Globals.orientation.second == Orientation.BOTTOM) {
             h = this.videoWidth;
             w = this.videoHeight;
             lh = this.liveVideoWidth;
@@ -240,32 +242,53 @@ public class WebRecorder {
         if (websocket != null) {
             liveVideoConsumerThread = new LiveVideoConsumer(websocket, videoFramerate);
         }
+        Log.v(TAG, "LiveVideoConsumer prepared");
 
         videoCodec = new VideoCodec(w, h, videoBitrate, videoFramerate, iFrameInterval);
+        Log.v(TAG, "VideoCodec prepared");
         liveVideoCodec = new VideoCodec(lw, lh, liveVideoBitrate, liveVideoFramerate, iFrameInterval);
+        Log.v(TAG, "LiveVideoCodec prepared");
         audioCodec = new AudioCodec();
+        Log.v(TAG, "AudioCodec prepared");
 
         audioProducerThread = new AudioProducer();
+        Log.v(TAG, "AudioProducer prepared");
         audioProducerThread.setAudioCodec(audioCodec.getCodec());
+        Log.v(TAG, "AudioProducer codec set");
 
         muxerThread = new Mp4Muxer(outputPath);
+        Log.v(TAG, "Mp4Muxer prepared");
 
         audioConsumerThread = new AudioConsumer();
+        Log.v(TAG, "AudioConsumer prepared");
         audioConsumerThread.setCodec(audioCodec.getCodec());
+        Log.v(TAG, "AudioConsumer codec set");
         audioConsumerThread.setMuxer(muxerThread);
+        Log.v(TAG, "AudioConsumer muxer set");
 
         videoConsumerThread = new VideoConsumer();
+        Log.v(TAG, "VideoConsumer prepared");
         videoConsumerThread.setCodec(videoCodec.getCodec());
+        Log.v(TAG, "VideoConsumer codec set");
         videoConsumerThread.setMuxer(muxerThread);
+        Log.v(TAG, "VideoConsumer muxer set");
 
         videoProducerThread = new VideoProducer(surfaceHolder, w, h);
+        Log.v(TAG, "VideoProducer prepared");
         videoProducerThread.setVideoCodec(videoCodec.getCodec());
+        Log.v(TAG, "VideoProducer codec set");
         videoProducerThread.setLiveVideoCodec(liveVideoCodec.getCodec());
+        Log.v(TAG, "VideoProducer live codec set");
         videoProducerThread.setVideoFrameRate(videoFramerate);
+        Log.v(TAG, "VideoProducer framerate set");
         videoProducerThread.setLiveVideoFrameRate(liveVideoFramerate);
+        Log.v(TAG, "VideoProducer live framerate set");
 
-        if (websocket != null)
+        if (websocket != null) {
             liveVideoConsumerThread.setLiveVideoCodec(liveVideoCodec.getCodec());
+            Log.v(TAG, "LiveVideoConsumer live codec set");
+        }
+
     }
 
     public void start() {
@@ -273,21 +296,31 @@ public class WebRecorder {
         isRunning = true;
 
         videoCodec.start();
+        Log.v(TAG, "VideoCodec started");
         liveVideoCodec.start();
+        Log.v(TAG, "LiveVideoCodec started");
         audioCodec.start();
+        Log.v(TAG, "AudioCodec started");
 
-        if (websocket != null)
+        if (websocket != null) {
             liveVideoConsumerThread.start();
+            Log.v(TAG, "LiveVideoConsumer started");
+        }
 
         muxerThread.start();
+        Log.v(TAG, "M4Muser started");
 
         videoConsumerThread.start();
+        Log.v(TAG, "VideoConsumer started");
         audioConsumerThread.start();
+        Log.v(TAG, "AudioConsumer started");
 
         videoProducerThread.start();
+        Log.v(TAG, "VideoProducer started");
         audioProducerThread.start();
+        Log.v(TAG, "AudioProducer started");
 
-        Log.d(TAG, "ALL STARTED");
+        Log.v(TAG, "ALL STARTED");
     }
 
     public void stop(final Promise<WebRecorderPromiseError> promise) {

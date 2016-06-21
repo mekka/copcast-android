@@ -58,6 +58,7 @@ import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.LocationUtils;
 import org.igarape.copcast.utils.NetworkUtils;
+import org.igarape.copcast.utils.OrientationManager;
 import org.igarape.copcast.utils.StateManager;
 import org.igarape.webrecorder.enums.Orientation;
 import org.json.JSONException;
@@ -128,53 +129,54 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        OrientationEventListener mOrientationListener = new OrientationEventListener(this,
-                SensorManager.SENSOR_DELAY_UI) {
+        OrientationManager mOrientationListener = new OrientationManager(this,
+                SensorManager.SENSOR_DELAY_UI);
+        mOrientationListener.tryStart();
 
-            private Orientation state;
-
-            @Override
-            public void onOrientationChanged(int orientation) {
-
-                Orientation o;
-
-                if (orientation >= 315 || (orientation <= 45))
-                    o = Orientation.TOP;
-                else if (orientation > 225 && orientation < 315)
-                    o = Orientation.LEFT;
-                else if (orientation > 135 && orientation < 225)
-                    o = Orientation.BOTTOM;
-                else
-                    o = Orientation.RIGHT;
-
-                Orientation narrow_o = null;
-
-                if (orientation >= 330 || (orientation <= 30))
-                    narrow_o = Orientation.TOP;
-                else if (orientation > 240 && orientation < 300)
-                    narrow_o = Orientation.LEFT;
-                else if (orientation > 150 && orientation < 210)
-                    narrow_o = Orientation.BOTTOM;
-                else if (orientation > 60 && orientation < 120)
-                    narrow_o = Orientation.RIGHT;
-
-                if (narrow_o != null && narrow_o != state) {
-
-                    state = narrow_o;
-                    Log.v(TAG, "Orientation changed to " + narrow_o.name());
-                    Globals.orientation = narrow_o;
-                    Intent i = new Intent("ROTATION");
-                    i.putExtra("ORIENTATION", narrow_o.name());
-                    LocalBroadcastManager.getInstance(MainActivity.this).sendBroadcast(i);
-                }
-
-            }
-        };
-
-        Log.i(TAG, "CAN DETECT? " + mOrientationListener.canDetectOrientation());
-
-        if (mOrientationListener.canDetectOrientation())
-            mOrientationListener.enable();
+//            private Orientation state;
+//
+//            @Override
+//            public void onOrientationChanged(int orientation) {
+//
+//                Orientation o;
+//
+//                if (orientation >= 315 || (orientation <= 45))
+//                    o = Orientation.TOP;
+//                else if (orientation > 225 && orientation < 315)
+//                    o = Orientation.LEFT;
+//                else if (orientation > 135 && orientation < 225)
+//                    o = Orientation.BOTTOM;
+//                else
+//                    o = Orientation.RIGHT;
+//
+//                Orientation narrow_o = null;
+//
+//                if (orientation >= 330 || (orientation <= 30))
+//                    narrow_o = Orientation.TOP;
+//                else if (orientation > 240 && orientation < 300)
+//                    narrow_o = Orientation.LEFT;
+//                else if (orientation > 150 && orientation < 210)
+//                    narrow_o = Orientation.BOTTOM;
+//                else if (orientation > 60 && orientation < 120)
+//                    narrow_o = Orientation.RIGHT;
+//
+//                if (narrow_o != null && narrow_o != state) {
+//
+//                    state = narrow_o;
+//                    Log.v(TAG, "Orientation changed to " + narrow_o.name());
+//                    Globals.orientation = narrow_o;
+//                    Intent i = new Intent("ROTATION");
+//                    i.putExtra("ORIENTATION", narrow_o.name());
+//                    LocalBroadcastManager.getInstance(MainActivity.this).sendBroadcast(i);
+//                }
+//
+//            }
+//        };
+//
+//        Log.i(TAG, "CAN DETECT? " + mOrientationListener.canDetectOrientation());
+//
+//        if (mOrientationListener.canDetectOrientation())
+//            mOrientationListener.enable();
 
         NetworkUtils.get(getApplicationContext(), "/users/me", new Promise() {
 
@@ -287,8 +289,6 @@ public class MainActivity extends Activity {
                 if (intent.getAction().equals(UploadService.UPLOAD_FEEDBACK_ACTION)) {
                     if (intent.getExtras() != null && intent.getExtras().get("event") != null) {
                         UploadServiceEvent use = (UploadServiceEvent) intent.getExtras().get("event");
-
-                        Log.d(TAG, "Received upload event: " + use);
 
                         if (!use.isRunning()) {
                             resetStatusUpload();

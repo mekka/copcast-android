@@ -145,11 +145,11 @@ class VideoProducer implements Camera.PreviewCallback {
 
         byte[] new_data = new byte[data.length];
 
-        if (Globals.orientation == Orientation.TOP)
+        if (Globals.orientation.second == Orientation.TOP)
             transpose(data, new_data, videoHeight, videoWidth);
-        else if (Globals.orientation == Orientation.BOTTOM)
+        else if (Globals.orientation.second == Orientation.BOTTOM)
             transpose_bottom(data, new_data, videoHeight, videoWidth);
-        else if (Globals.orientation == Orientation.RIGHT)
+        else if (Globals.orientation.second == Orientation.RIGHT)
             transpose_flip_vert(data, new_data, videoWidth, videoHeight);
         else
             nv21tovn12(data, new_data, videoHeight, videoWidth);

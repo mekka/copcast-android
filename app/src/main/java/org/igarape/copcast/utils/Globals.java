@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.location.Location;
 import android.media.CamcorderProfile;
 import android.preference.PreferenceManager;
+import android.support.v4.util.Pair;
 import android.util.Log;
 
 import org.igarape.copcast.state.IncidentFlagState;
@@ -58,7 +59,7 @@ public class Globals {
     private static StateManager stateManager;
     private static Integer userId;
     private static Boolean hasVideoPlayback;
-    public static Orientation orientation;
+    public static Pair<Long, Orientation> orientation;
 
     public synchronized static String getAccessToken(Context context) {
         if (accessToken == null) {

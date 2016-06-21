@@ -32,7 +32,7 @@ class VideoCodec {
 
         mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, videoBitRate);
         mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, videoFrameRate);
-        mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible);
+        mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar);
         mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval);
         videoCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
         Log.d(TAG, "Created.");
