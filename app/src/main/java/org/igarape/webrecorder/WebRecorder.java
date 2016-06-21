@@ -50,7 +50,7 @@ public class WebRecorder {
     private VideoConsumer videoConsumerThread;
     private Mp4Muxer muxerThread;
     private LiveVideoConsumer liveVideoConsumerThread;
-    private Semaphore orientationLock = new Semaphore(1);
+    private Semaphore startStopLock = new Semaphore(1);
 
     private int videoHeight;
     private int videoWidth;
@@ -200,32 +200,50 @@ public class WebRecorder {
     public void restartOrientation() {
 
         try {
-            orientationLock.acquire();
+            startStopLock.acquire();
             Log.v(TAG, "Beginning restart");
         } catch (InterruptedException e) {
-            Log.e(TAG, "Interrupted while wating for a lock", e);
+            Log.e(TAG, "Interrupted while waiting for a lock", e);
         }
 
-        this.stop(new Promise<WebRecorderPromiseError>() {
-            @Override
-            public void success() {
-                try {
-                    Log.v(TAG, "Restart: services stopped");
-                    WebRecorder.this.prepare();
-                    WebRecorder.this.start();
-                    if (isStreaming)
-                        startBroadcasting();
-                    Log.d(TAG, "Webrecorder restarted");
-                } catch (WebRecorderException e) {
-                    Log.e(TAG, "Failed to restart webrecorder", e);
-                } finally {
-                    orientationLock.release();
-                }
-            }
-        });
+        try {
+            WebRecorder.this._stopSync();
+            Log.v(TAG, "Restart: services stopped");
+            WebRecorder.this._prepare();
+            Log.v(TAG, "Restart: services prepared");
+            WebRecorder.this._start();
+            Log.v(TAG, "Restart: services started");
+
+            if (isStreaming)
+                startBroadcasting();
+
+            Log.d(TAG, "Webrecorder restarted");
+        } catch (WebRecorderException e) {
+            Log.e(TAG, "Failed to restart webrecorder", e);
+        } catch (InterruptedException e) {
+            Log.e(TAG, "Failed to restart webrecorder", e);
+        } finally {
+            startStopLock.release();
+        }
     }
 
     public void prepare() throws WebRecorderException {
+        try {
+            startStopLock.acquire();
+            Log.v(TAG, "Beginning prepare");
+        } catch (InterruptedException e) {
+            Log.e(TAG, "Interrupted while waiting for a lock", e);
+        }
+
+        try {
+            _prepare();
+        } finally {
+            startStopLock.release();
+        }
+
+    }
+
+    private void _prepare() throws WebRecorderException {
 
         int h = this.videoHeight;
         int w = this.videoWidth;
@@ -292,6 +310,21 @@ public class WebRecorder {
     }
 
     public void start() {
+        try {
+            startStopLock.acquire();
+            Log.v(TAG, "Beginning start");
+        } catch (InterruptedException e) {
+            Log.e(TAG, "Interrupted while waiting for a lock", e);
+        }
+
+        try {
+            _start();
+        } finally {
+            startStopLock.release();
+        }
+    }
+
+    private void _start() {
 
         isRunning = true;
 
@@ -329,11 +362,20 @@ public class WebRecorder {
             public void run() {
 
                 try {
-                    stopSync();
+                    startStopLock.acquire();
+                    Log.v(TAG, "Beginning stop");
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "Interrupted while waiting for a lock", e);
+                }
+
+                try {
+                    _stopSync();
+                    startStopLock.release();
 
                     if (promise!=null)
                         promise.success();
                 } catch (InterruptedException e) {
+                    startStopLock.release();
                     if (promise!=null)
                         promise.error(WebRecorderPromiseError.OTHER.put("exception", e));
                 }
@@ -343,7 +385,22 @@ public class WebRecorder {
         }.start();
     }
 
-    public void stopSync() throws InterruptedException {
+    public void stopSync() throws InterruptedException  {
+        try {
+            startStopLock.acquire();
+            Log.v(TAG, "Beginning start");
+        } catch (InterruptedException e) {
+            Log.e(TAG, "Interrupted while waiting for a lock", e);
+        }
+
+        try {
+            _stopSync();
+        } finally {
+            startStopLock.release();
+        }
+    }
+
+    private void _stopSync() throws InterruptedException {
         if (videoProducerThread != null)
             videoProducerThread.end();
 
@@ -369,6 +426,9 @@ public class WebRecorder {
         if (liveVideoConsumerThread != null) {
             liveVideoConsumerThread.join();
         }
+
+        audioCodec.end();
+        videoCodec.end();
 
         muxerThread.join();
     }
