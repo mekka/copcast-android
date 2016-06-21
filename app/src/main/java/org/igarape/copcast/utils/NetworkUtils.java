@@ -31,6 +31,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
@@ -258,6 +259,9 @@ public class NetworkUtils {
                 } catch (SocketTimeoutException e) {
                     callback.error(HttpPromiseError.BAD_CONNECTION);
                     Log.e(TAG, "Timeout error ", e);
+                } catch (ConnectException e) {
+                    callback.error(HttpPromiseError.BAD_CONNECTION);
+                    Log.e(TAG, "Could not connect ", e);
                 } catch (IOException e) {
                     callback.error(HttpPromiseError.BAD_RESPONSE);
                     Log.e(TAG, "Could not read response body ", e);
