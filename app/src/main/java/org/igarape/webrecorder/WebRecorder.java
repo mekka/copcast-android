@@ -6,12 +6,8 @@ import android.media.MediaRecorder;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
-import org.igarape.copcast.BuildConfig;
-import org.igarape.copcast.promises.WebRecorderPromiseError;
 import org.igarape.copcast.promises.Promise;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.igarape.copcast.promises.WebRecorderPromiseError;
 
 import io.socket.client.Socket;
 
@@ -216,36 +212,8 @@ public class WebRecorder {
         new Thread() {
             @Override
             public void run() {
-
-                if (videoProducerThread != null)
-                    videoProducerThread.end();
-
-                if (audioProducerThread != null)
-                    audioProducerThread.end();
-
-                if (muxerThread != null)
-                    muxerThread.end();
-
-                if (audioConsumerThread != null)
-                    audioConsumerThread.end();
-
-                if (videoConsumerThread != null)
-                    videoConsumerThread.end();
-
-                if (websocketThread != null)
-                    websocketThread.end();
-
                 try {
-                    audioProducerThread.join();
-                    audioConsumerThread.join();
-                    videoConsumerThread.join();
-
-                    if (websocketThread != null) {
-                        websocketThread.join();
-                    }
-
-                    muxerThread.join();
-
+                    stopSync();
                     if (promise!=null)
                         promise.success();
                 } catch (InterruptedException e) {
@@ -256,5 +224,36 @@ public class WebRecorder {
                 isRunning = false;
             }
         }.start();
+    }
+
+    public void stopSync() throws InterruptedException {
+        if (videoProducerThread != null)
+            videoProducerThread.end();
+
+        if (audioProducerThread != null)
+            audioProducerThread.end();
+
+        if (muxerThread != null)
+            muxerThread.end();
+
+        if (audioConsumerThread != null)
+            audioConsumerThread.end();
+
+        if (videoConsumerThread != null)
+            videoConsumerThread.end();
+
+        if (websocketThread != null)
+            websocketThread.end();
+
+
+        audioProducerThread.join();
+        audioConsumerThread.join();
+        videoConsumerThread.join();
+
+        if (websocketThread != null) {
+            websocketThread.join();
+        }
+
+        muxerThread.join();
     }
 }

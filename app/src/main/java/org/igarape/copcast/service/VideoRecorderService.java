@@ -49,12 +49,9 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     private final IBinder mBinder = new LocalBinder();
     private WindowManager windowManager;
     private SurfaceView surfaceView;
-    private boolean isRecording;
     protected SurfaceHolder surfaceHolder;
-    public static final int MAX_DURATION_MS = 300000;
     private int mId = 1;
     private ReentrantLock lock = new ReentrantLock();
-    private boolean serviceExiting = false;
     public static boolean serviceRunning = false;
     private static String baseDir;
     WebRecorder webRecorder;
@@ -346,6 +343,36 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
             this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
             this.stopSelf();
+        } finally {
+            lock.unlock();
+            Log.d(TAG, "< stop unlocked");
+
+        }
+    }
+
+    public void stopSync() {
+        Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
+        lock.lock();
+        Log.d(TAG, "< stop locked");
+        try {
+
+            Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
+
+            NotificationManager mNotificationManager =
+                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            mNotificationManager.cancel(mId);
+
+            if (webRecorder != null) {
+                webRecorder.stopSync();
+                webRecorder = null;
+            }
+            serviceRunning = false;
+            ws.disconnect();
+            Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
+            this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
+            this.stopSelf();
+        } catch (InterruptedException e) {
+            Log.e(TAG, "error stopping video recording with stopSync", e);
         } finally {
             lock.unlock();
             Log.d(TAG, "< stop unlocked");

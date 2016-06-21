@@ -745,6 +745,9 @@ public class MainActivity extends Activity {
     private void killServices() {
         if (videoServiceBound) {
             Log.e(TAG, this.getClass().getCanonicalName() + "<<<");
+            if (this.videoRecorderService.serviceRunning){
+                this.videoRecorderService.stopSync();
+            }
             this.unbindService(mConnection);
         }
         stopService(new Intent(MainActivity.this, LocationService.class));
