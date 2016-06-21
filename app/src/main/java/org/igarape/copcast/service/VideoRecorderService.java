@@ -32,6 +32,7 @@ import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.StateManager;
+import org.igarape.copcast.utils.VibrateUtils;
 import org.igarape.copcast.views.MainActivity;
 import org.igarape.webrecorder.WebRecorder;
 import org.igarape.webrecorder.WebRecorderException;
@@ -53,12 +54,9 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     private final IBinder mBinder = new LocalBinder();
     private WindowManager windowManager;
     private SurfaceView surfaceView;
-    private boolean isRecording;
     protected SurfaceHolder surfaceHolder;
-    public static final int MAX_DURATION_MS = 300000;
     private int mId = 1;
     private ReentrantLock lock = new ReentrantLock();
-    private boolean serviceExiting = false;
     public static boolean serviceRunning = false;
     private static String baseDir;
     WebRecorder webRecorder;
@@ -128,6 +126,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 if (stateManager.canChangeToState(State.STREAMING) || stateManager.isCurrent(State.STREAMING)) {
                     VideoRecorderService.this.startStreaming();
                     VideoRecorderService.this.sendBroadcast(VideoRecorderService.STARTED_STREAMING);
+                    VibrateUtils.vibrate(getApplicationContext(), 200);
                     Log.e(TAG, "Start Stream!!!");
                 } else {
                     ws.emit("streamDenied");
@@ -370,6 +369,36 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
             this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
             this.stopSelf();
+        } finally {
+            lock.unlock();
+            Log.d(TAG, "< stop unlocked");
+
+        }
+    }
+
+    public void stopSync() {
+        Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
+        lock.lock();
+        Log.d(TAG, "< stop locked");
+        try {
+
+            Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
+
+            NotificationManager mNotificationManager =
+                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            mNotificationManager.cancel(mId);
+
+            if (webRecorder != null) {
+                webRecorder.stopSync();
+                webRecorder = null;
+            }
+            serviceRunning = false;
+            ws.disconnect();
+            Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
+            this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
+            this.stopSelf();
+        } catch (InterruptedException e) {
+            Log.e(TAG, "error stopping video recording with stopSync", e);
         } finally {
             lock.unlock();
             Log.d(TAG, "< stop unlocked");

@@ -84,7 +84,7 @@ public class WebRecorder {
         public Builder(String outputPath, final int videoQuality, final int liveVideoQuality, SurfaceHolder surfaceHolder) {
             CamcorderProfile profile = CamcorderProfile.get(videoQuality);
             CamcorderProfile liveProfile = CamcorderProfile.get(liveVideoQuality);
-            
+
             this.videoHeight = profile.videoFrameHeight;
             this.videoWidth = profile.videoFrameWidth;
             this.liveVideoHeight = liveProfile.videoFrameHeight;
@@ -176,7 +176,7 @@ public class WebRecorder {
         this.websocket = websocket;
         this.surfaceHolder = surfaceHolder;
     }
-    
+
     public boolean isRunning() {
         return isRunning;
     }
@@ -328,34 +328,8 @@ public class WebRecorder {
             @Override
             public void run() {
 
-                if (videoProducerThread != null)
-                    videoProducerThread.end();
-
-                if (audioProducerThread != null)
-                    audioProducerThread.end();
-
-                if (muxerThread != null)
-                    muxerThread.end();
-
-                if (audioConsumerThread != null)
-                    audioConsumerThread.end();
-
-                if (videoConsumerThread != null)
-                    videoConsumerThread.end();
-
-                if (liveVideoConsumerThread != null)
-                    liveVideoConsumerThread.end();
-
                 try {
-                    audioProducerThread.join();
-                    audioConsumerThread.join();
-                    videoConsumerThread.join();
-
-                    if (liveVideoConsumerThread != null) {
-                        liveVideoConsumerThread.join();
-                    }
-
-                    muxerThread.join();
+                    stopSync();
 
                     if (promise!=null)
                         promise.success();
@@ -367,5 +341,35 @@ public class WebRecorder {
                 isRunning = false;
             }
         }.start();
+    }
+
+    public void stopSync() throws InterruptedException {
+        if (videoProducerThread != null)
+            videoProducerThread.end();
+
+        if (audioProducerThread != null)
+            audioProducerThread.end();
+
+        if (muxerThread != null)
+            muxerThread.end();
+
+        if (audioConsumerThread != null)
+            audioConsumerThread.end();
+
+        if (videoConsumerThread != null)
+            videoConsumerThread.end();
+
+        if (liveVideoConsumerThread != null)
+            liveVideoConsumerThread.end();
+
+        audioProducerThread.join();
+        audioConsumerThread.join();
+        videoConsumerThread.join();
+
+        if (liveVideoConsumerThread != null) {
+            liveVideoConsumerThread.join();
+        }
+
+        muxerThread.join();
     }
 }
