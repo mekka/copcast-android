@@ -383,6 +383,7 @@ public class MainActivity extends Activity {
                 findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
                 findViewById(R.id.streamLayout).setVisibility(View.VISIBLE);
                 findViewById(R.id.recBall).setVisibility(View.VISIBLE);
+                mEndMissionButton.setEnabled(true);
 
                 Intent intent = new Intent(MainActivity.this, VideoRecorderService.class);
                 bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
@@ -406,6 +407,8 @@ public class MainActivity extends Activity {
                                              {
                                                  @Override
                                                  public void onClick(View view) {
+
+                                                     mEndMissionButton.setEnabled(false);
 
                                                      final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
                                                      progressDialog.setTitle(getString(R.string.please_hold));
@@ -453,8 +456,8 @@ public class MainActivity extends Activity {
                                                                      //reset upload values
                                                                      resetStatusUpload();
                                                                      missionCompleted();
+                                                                     Log.d(TAG, "dismissing!!!");
                                                                      progressDialog.dismiss();
-//                                                                     MainActivity.this.appState = IDLE;
                                                                  }
                                                              });
                                                          }
