@@ -907,7 +907,7 @@ public class MainActivity extends Activity {
 
         alertDialog.setPositiveButton(res.getText(R.string.confirmation_button_positive), new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-                logout(null);
+                MainActivity.this.finishAffinity();
             }
         });
         alertDialog.setNegativeButton(res.getText(R.string.confirmation_button_negative), new DialogInterface.OnClickListener() {
