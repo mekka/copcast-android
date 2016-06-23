@@ -33,7 +33,6 @@ public class SplashScreenActivity extends Activity {
         FileUtils.init(getApplicationContext());
         Globals.setDirectorySize(getApplicationContext(), FileUtils.getDirectorySize());
 
-
         //splunk initialization
 //        Mint.initAndStartSession(SplashScreenActivity.this, "0c1e5146");
         PreferenceManager.setDefaultValues(getApplicationContext(), R.xml.preferences, false);

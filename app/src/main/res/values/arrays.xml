@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array
+        name="device_orientation">
+        <item>Portrait (top)</item>
+        <item>Portrait (bottom)</item>
+        <item>Landscape (left)</item>
+        <item>Landscape (right)</item>
+    </string-array>
+
+    <string-array
+        name="device_orientation_values">
+        <item>TOP</item>
+        <item>BOTTOM</item>
+        <item>LEFT</item>
+        <item>RIGHT</item>
+    </string-array>
+
+</resources>

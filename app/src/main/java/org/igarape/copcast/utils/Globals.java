@@ -11,6 +11,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.util.Pair;
 import android.util.Log;
 
+import org.igarape.copcast.R;
 import org.igarape.copcast.state.IncidentFlagState;
 import org.igarape.webrecorder.enums.Orientation;
 
@@ -41,6 +42,7 @@ public class Globals {
     public static final String SERVER_URL = "server_url";
     private static final String REQUIRE_WIFI_ONLY = "upload_wifi_only";
     private static final String AUTOMATIC_UPLOAD = "automatic_upload";
+    private static final String DEVICE_ORIENTATION = "device_orientation";
     private static String accessToken = null;
     private static String userLogin = null;
     private static String userName = null;
@@ -59,7 +61,6 @@ public class Globals {
     private static StateManager stateManager;
     private static Integer userId;
     private static Boolean hasVideoPlayback;
-    public static Pair<Long, Orientation> orientation;
 
     public synchronized static String getAccessToken(Context context) {
         if (accessToken == null) {
@@ -235,8 +236,10 @@ public class Globals {
         Globals.rotation = rotation;
     }
 
-    public static int getRotation() {
-        return rotation;
+    public static Orientation getOrientation(Context context) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        return Orientation.valueOf(sharedPref.getString(DEVICE_ORIENTATION,
+                context.getString(R.string.ORIENTATION_DEFAULT)));
     }
 
     public static String getServerUrl(Context context){

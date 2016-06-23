@@ -8,7 +8,6 @@ import android.view.SurfaceHolder;
 
 import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.promises.WebRecorderPromiseError;
-import org.igarape.copcast.utils.Globals;
 import org.igarape.webrecorder.enums.Orientation;
 
 import java.util.concurrent.Semaphore;
@@ -52,6 +51,7 @@ public class WebRecorder {
     private LiveVideoConsumer liveVideoConsumerThread;
     private Semaphore startStopLock = new Semaphore(1);
 
+    private Orientation orientation;
     private int videoHeight;
     private int videoWidth;
     public static int videoBitrate;
@@ -70,6 +70,7 @@ public class WebRecorder {
     public static class Builder {
         private int videoWidth;
         private int videoHeight;
+        private Orientation orientation;
         private Integer videoBitrate;
         private Integer videoFramerate;
         private int liveVideoWidth;
@@ -81,7 +82,7 @@ public class WebRecorder {
         private String outputPath;
         private SurfaceHolder surfaceHolder;
 
-        public Builder(String outputPath, final int videoQuality, final int liveVideoQuality, SurfaceHolder surfaceHolder) {
+        public Builder(String outputPath, final int videoQuality, final int liveVideoQuality, Orientation orientation, SurfaceHolder surfaceHolder) {
             CamcorderProfile profile = CamcorderProfile.get(videoQuality);
             CamcorderProfile liveProfile = CamcorderProfile.get(liveVideoQuality);
 
@@ -91,6 +92,7 @@ public class WebRecorder {
             this.liveVideoWidth = liveProfile.videoFrameWidth;
             this.outputPath = outputPath;
             this.surfaceHolder = surfaceHolder;
+            this.orientation = orientation;
         }
 
         public Builder setVideoBitrate(int video_bitrate) {
@@ -143,7 +145,7 @@ public class WebRecorder {
             if (this.videoIFrameInterval == null)
                 this.videoIFrameInterval = WebRecorder.DEFAULT_KEY_I_FRAME_INTERVAL;
 
-            return new WebRecorder(outputPath, videoWidth, videoHeight,
+            return new WebRecorder(outputPath, orientation, videoWidth, videoHeight,
                     videoBitrate, videoFramerate, liveVideoWidth, liveVideoHeight, liveVideoFramerate,
                     liveVideoBitrate, videoIFrameInterval, websocket, surfaceHolder);
         }
@@ -151,6 +153,7 @@ public class WebRecorder {
 
 
     private WebRecorder(String outputPath,
+                        Orientation orientation,
                         int videoWidth,
                         int videoHeight,
                         Integer videoBitrate,
@@ -163,6 +166,7 @@ public class WebRecorder {
                         Socket websocket,
                         SurfaceHolder surfaceHolder
     ) {
+        this.orientation = orientation;
         this.outputPath = outputPath;
         this.videoWidth = videoWidth;
         this.videoHeight = videoHeight;
@@ -195,36 +199,6 @@ public class WebRecorder {
             videoProducerThread.setStreaming(true);
     }
 
-    public void restartOrientation() {
-
-        try {
-            startStopLock.acquire();
-            Log.v(TAG, "Beginning restart");
-        } catch (InterruptedException e) {
-            Log.e(TAG, "Interrupted while waiting for a lock", e);
-        }
-
-        try {
-            WebRecorder.this._stopSync();
-            Log.v(TAG, "Restart: services stopped");
-            WebRecorder.this._prepare();
-            Log.v(TAG, "Restart: services prepared");
-            WebRecorder.this._start();
-            Log.v(TAG, "Restart: services started");
-
-            if (isStreaming)
-                startBroadcasting();
-
-            Log.d(TAG, "Webrecorder restarted");
-        } catch (WebRecorderException e) {
-            Log.e(TAG, "Failed to restart webrecorder", e);
-        } catch (InterruptedException e) {
-            Log.e(TAG, "Failed to restart webrecorder", e);
-        } finally {
-            startStopLock.release();
-        }
-    }
-
     public void prepare() throws WebRecorderException {
         try {
             startStopLock.acquire();
@@ -248,7 +222,7 @@ public class WebRecorder {
         int lh = this.liveVideoHeight;
         int lw = this.liveVideoWidth;
 
-        if (Globals.orientation.second == Orientation.TOP || Globals.orientation.second == Orientation.BOTTOM) {
+        if (this.orientation == Orientation.TOP || this.orientation == Orientation.BOTTOM) {
             h = this.videoWidth;
             w = this.videoHeight;
             lh = this.liveVideoWidth;
@@ -289,7 +263,7 @@ public class WebRecorder {
         videoConsumerThread.setMuxer(muxerThread);
         Log.v(TAG, "VideoConsumer muxer set");
 
-        videoProducerThread = new VideoProducer(surfaceHolder, w, h);
+        videoProducerThread = new VideoProducer(surfaceHolder, w, h, orientation);
         Log.v(TAG, "VideoProducer prepared");
         videoProducerThread.setVideoCodec(videoCodec.getCodec());
         Log.v(TAG, "VideoProducer codec set");
@@ -304,7 +278,6 @@ public class WebRecorder {
             liveVideoConsumerThread.setLiveVideoCodec(liveVideoCodec.getCodec());
             Log.v(TAG, "LiveVideoConsumer live codec set");
         }
-
     }
 
     public void start() {

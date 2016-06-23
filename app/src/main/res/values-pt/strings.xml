@@ -121,4 +121,6 @@
     <string name="enable">Habilitar</string>
     <string name="notification_paused_description">A gravação está interrompida</string>
     <string name="no_connection">Você não possio conexão neste momento. Todas as informações serão mantidas localmente</string>
+    <string name="device_orientation">Orientação do dispositivo</string>
+    <string name="device_orientation_description">Orientação do dispositivo durante a gravação de vídeos</string>
 </resources>

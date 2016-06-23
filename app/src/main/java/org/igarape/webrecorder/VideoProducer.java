@@ -36,11 +36,13 @@ class VideoProducer implements Camera.PreviewCallback {
     private int videoHeight;
     private boolean isRunning = false;
     private boolean isStreaming = false;
+    private Orientation orientation;
 
-    public VideoProducer(SurfaceHolder surfaceHolder, int videoWidth, int videoHeight) throws WebRecorderException {
+    public VideoProducer(SurfaceHolder surfaceHolder, int videoWidth, int videoHeight, Orientation orientation) throws WebRecorderException {
 
         this.videoWidth = videoWidth;
         this.videoHeight = videoHeight;
+        this.orientation = orientation;
 
         if (surfaceHolder == null) {
             Log.e(TAG, "SurfaceHolder not defined. Thread aborting.");
@@ -145,11 +147,11 @@ class VideoProducer implements Camera.PreviewCallback {
 
         byte[] new_data = new byte[data.length];
 
-        if (Globals.orientation.second == Orientation.TOP)
+        if (orientation == Orientation.TOP)
             transpose(data, new_data, videoHeight, videoWidth);
-        else if (Globals.orientation.second == Orientation.BOTTOM)
+        else if (orientation == Orientation.BOTTOM)
             transpose_bottom(data, new_data, videoHeight, videoWidth);
-        else if (Globals.orientation.second == Orientation.RIGHT)
+        else if (orientation == Orientation.RIGHT)
             transpose_flip_vert(data, new_data, videoWidth, videoHeight);
         else
             nv21tovn12(data, new_data, videoHeight, videoWidth);
