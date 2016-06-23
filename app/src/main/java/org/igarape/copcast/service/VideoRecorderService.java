@@ -285,6 +285,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         mNotificationManager.notify(mId, mNotification.build());
         if (webRecorder != null)
             webRecorder.stop(null);
+        ws.emit("missionPaused");
     }
 
     public void resumeRecording() {
@@ -300,6 +301,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 Log.e(TAG, "Error resuming recording", e);
             }
         }
+        ws.emit("missionResumed");
     }
 
     public void startStreamingRequest() {
