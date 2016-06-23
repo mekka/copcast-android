@@ -181,20 +181,18 @@ public class WebRecorder {
         return isRunning;
     }
 
-    public void stopBroadcasting() {
+    public void stopBroadcasting(Boolean notifyServer) {
         isStreaming = false;
         if (videoProducerThread != null)
             videoProducerThread.setStreaming(false);
-        if (liveVideoConsumerThread != null)
-            liveVideoConsumerThread.setStreaming(false);
+        if (notifyServer)
+            websocket.emit("streamStopped");
     }
 
     public void startBroadcasting() {
         isStreaming = true;
         if (videoProducerThread != null)
             videoProducerThread.setStreaming(true);
-        if (liveVideoConsumerThread != null)
-            liveVideoConsumerThread.setStreaming(true);
     }
 
     public void restartOrientation() {

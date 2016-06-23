@@ -234,13 +234,10 @@ public class MainActivity extends Activity {
                 Globals.setLivestreamToggle(true);
                 //When toogling, the stopped service will start the other one
                 if (isChecked) {
-                    StateManager.setStateOrDie(MainActivity.this, State.STREAMING);
-                    videoRecorderService.startStreaming();
+                    videoRecorderService.startStreamingRequest();
                 } else {
                     StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
-                    videoRecorderService.stopStreaming();
-
-
+                    videoRecorderService.stopStreaming(true);
                 }
             }
         };
@@ -277,6 +274,7 @@ public class MainActivity extends Activity {
                     }
                 } else if (intent.getAction().equals(VideoRecorderService.STARTED_STREAMING)) {
                     mStreamSwitch.setChecked(true);
+                    StateManager.setStateOrDie(MainActivity.this, State.STREAMING);
                 } else if (intent.getAction().equals(VideoRecorderService.STOPPED_STREAMING)) {
                     mStreamSwitch.setChecked(false);
                 }
