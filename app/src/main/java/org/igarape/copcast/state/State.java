@@ -9,6 +9,7 @@ public enum State {
     IDLE,
     PAUSED,
     RECORDING,
+    STREAM_REQUESTED,
     STREAMING,
     UPLOADING,
 

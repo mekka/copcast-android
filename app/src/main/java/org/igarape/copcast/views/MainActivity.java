@@ -227,6 +227,7 @@ public class MainActivity extends Activity {
                 Globals.setLivestreamToggle(true);
                 //When toogling, the stopped service will start the other one
                 if (isChecked) {
+                    StateManager.setStateOrDie(MainActivity.this, State.STREAM_REQUESTED);
                     videoRecorderService.startStreamingRequest();
                 } else {
                     StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
