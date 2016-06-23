@@ -29,7 +29,7 @@ android {
         minSdkVersion 18
         targetSdkVersion 22
         versionCode 7
-        versionName "1.3.3"
+        versionName "2.1.0"
         // Enabling multidex support.
         multiDexEnabled true
         signingConfig signingConfigs.config
@@ -48,6 +48,7 @@ android {
             resValue "string", "SERVER_URL_DEFAULT", "\"https://api.mycopcast.com\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "true"
             resValue "string", "AUTOMATIC_UPLOAD_DEFAULT", "true"
+            resValue "string", "ORIENTATION_DEFAULT", "\"RIGHT\""
             resValue "string", "VERSION_NAME", android.defaultConfig.versionName
             buildConfigField "boolean", "HAS_INCIDENT_FORM", "false"
             buildConfigField "int", "RECORDING_QUALITY", "android.media.CamcorderProfile.QUALITY_QVGA"
@@ -63,6 +64,7 @@ android {
             resValue "string", "SERVER_URL_DEFAULT", "\"https://docs-api.mycopcast.com\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "false"
             resValue "string", "AUTOMATIC_UPLOAD_DEFAULT", "true"
+            resValue "string", "ORIENTATION_DEFAULT", "\"TOP\""
             resValue "string", "VERSION_NAME", android.defaultConfig.versionName
             buildConfigField "boolean", "HAS_INCIDENT_FORM", "true"
             buildConfigField "int", "RECORDING_QUALITY", "android.media.CamcorderProfile.QUALITY_QVGA"
@@ -77,6 +79,7 @@ android {
             resValue "string", "SERVER_URL_DEFAULT", "\"https://rwanda-api.mycopcast.com\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "false"
             resValue "string", "AUTOMATIC_UPLOAD_DEFAULT", "true"
+            resValue "string", "ORIENTATION_DEFAULT", "\"TOP\""
             resValue "string", "VERSION_NAME", android.defaultConfig.versionName
             buildConfigField "boolean", "HAS_INCIDENT_FORM", "true"
             // The video quality values for Rwanda MUST NOT be changed.
@@ -93,6 +96,7 @@ android {
             resValue "string", "SERVER_URL_DEFAULT", "\"https://dev-api.mycopcast.com\""
             resValue "string", "REQUIRE_WIFI_UPLOAD_DEFAULT", "false"
             resValue "string", "AUTOMATIC_UPLOAD_DEFAULT", "true"
+            resValue "string", "ORIENTATION_DEFAULT", "\"TOP\""
             resValue "string", "VERSION_NAME", android.defaultConfig.versionName
             buildConfigField "boolean", "HAS_INCIDENT_FORM", "true"
             buildConfigField "int", "RECORDING_QUALITY", "android.media.CamcorderProfile.QUALITY_QVGA"

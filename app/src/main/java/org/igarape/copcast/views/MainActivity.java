@@ -28,7 +28,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.OrientationEventListener;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -57,9 +56,7 @@ import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.LocationUtils;
 import org.igarape.copcast.utils.NetworkUtils;
-import org.igarape.copcast.utils.OrientationManager;
 import org.igarape.copcast.utils.StateManager;
-import org.igarape.webrecorder.enums.Orientation;
 import org.igarape.copcast.utils.VibrateUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -128,10 +125,6 @@ public class MainActivity extends Activity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        OrientationManager mOrientationListener = new OrientationManager(this,
-                SensorManager.SENSOR_DELAY_UI);
-        mOrientationListener.tryStart();
 
 //            private Orientation state;
 //
@@ -623,13 +616,11 @@ public class MainActivity extends Activity {
         manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), Globals.BATTERY_REPEAT_TIME, pending);
 
     }
-
     public void missionCompleted() {
         vibrate(200); //vibrate when touch a button
         talk("mission_completed");
         talk("wait");
     }
-
     private void startPausedCountdown() {
         StateManager.setStateOrDie(MainActivity.this, State.PAUSED);
 

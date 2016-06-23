@@ -75,27 +75,6 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             return START_STICKY;
         }
 
-        BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, final Intent intent) {
-                Log.d(TAG, "Orientation changed: "+intent.getExtras().getString("ORIENTATION"));
-                if (webRecorder != null)
-                    webRecorder.restartOrientation();
-//                if (webRecorder != null)
-//                    try {
-//                        webRecorder.setVideoCodec90();
-//                    } catch (WebRecorderException e) {
-//                        Log.e(TAG, "Error rotating codec", e);
-//                    } catch (InterruptedException e) {
-//                        Log.e(TAG, "Error rotating codec", e);
-//                    }
-            }
-        };
-
-        IntentFilter broadcastFilter = new IntentFilter();
-        broadcastFilter.addAction("ROTATION");
-        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, broadcastFilter);
-
         String query = "token="+Globals.getPlainToken(this);
         query += "&userId="+Globals.getUserId(this);
         query += "&clientType=android";
@@ -232,7 +211,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         Log.d(TAG, "> prepare locked");
 
         webRecorder = new WebRecorder.Builder(baseDir, BuildConfig.RECORDING_QUALITY,
-                BuildConfig.STREAMING_QUALITY, surfaceHolder)
+                BuildConfig.STREAMING_QUALITY, Globals.getOrientation(this), surfaceHolder)
                 .setVideoBitrate(BuildConfig.RECORDING_BITRATE)
                 .setVideoFramerate(BuildConfig.RECORDING_FRAMERATE)
                 .setLiveVideoBitrate(BuildConfig.STREAMING_BITRATE)

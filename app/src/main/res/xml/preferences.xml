@@ -13,6 +13,15 @@
         android:summary="@string/automatic_upload_desc"
         android:defaultValue="@string/AUTOMATIC_UPLOAD_DEFAULT" />
 
+    <ListPreference
+        android:key="device_orientation"
+        android:title="@string/device_orientation"
+        android:summary="@string/device_orientation_description"
+        android:entries="@array/device_orientation"
+        android:entryValues="@array/device_orientation_values"
+        android:dialogTitle="@string/device_orientation"
+        android:defaultValue="@string/ORIENTATION_DEFAULT"/>
+
     <PreferenceCategory
         android:title="@string/about">
         <PreferenceScreen
