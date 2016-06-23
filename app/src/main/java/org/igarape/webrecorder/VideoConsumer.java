@@ -19,26 +19,15 @@ class VideoConsumer extends Thread {
     private boolean isRunning = false;
     private boolean isStreaming = false;
     private Mp4Muxer muxerThread;
-    private WebsocketThread websocketThread;
 
     public void setCodec(MediaCodec videoCodec) {
         this.videoCodec = videoCodec;
-    }
-
-    public void setWebsocketThread(WebsocketThread websocketThread) throws WebRecorderException {
-        this.websocketThread = websocketThread;
     }
 
     public void setMuxer(Mp4Muxer muxerThread) throws WebRecorderException {
         if (muxerThread == null)
             throw new WebRecorderException("Muxer thread not initialialized");
         this.muxerThread = muxerThread;
-    }
-
-    public void setStreaming(boolean isStreaming) {
-        Log.d(TAG, "streaming set to "+isStreaming);
-        this.isStreaming = isStreaming;
-        websocketThread.setStreaming(isStreaming);
     }
 
     @Override
@@ -84,5 +73,4 @@ class VideoConsumer extends Thread {
         isRunning = false;
         Log.d(TAG, "Waiting for loop to finish.");
     }
-
 }

@@ -80,6 +80,7 @@ class VideoProducer implements Camera.PreviewCallback {
 
     public void setStreaming(boolean streaming) {
         isStreaming = streaming;
+        Log.v(TAG, "Livestream "+(streaming ? "activated" : "deactivated"));
     }
 
     public void start() {

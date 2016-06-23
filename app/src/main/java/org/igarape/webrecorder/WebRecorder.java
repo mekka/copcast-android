@@ -230,7 +230,7 @@ public class WebRecorder {
         }
 
         if (websocket != null) {
-            liveVideoConsumerThread = new LiveVideoConsumer(websocket, videoFramerate);
+            liveVideoConsumerThread = new LiveVideoConsumer(websocket);
         }
         Log.v(TAG, "LiveVideoConsumer prepared");
 
