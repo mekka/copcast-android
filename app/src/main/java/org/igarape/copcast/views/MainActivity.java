@@ -284,7 +284,12 @@ public class MainActivity extends Activity {
 
                         if (!use.isRunning()) {
                             resetStatusUpload();
-                            StateManager.setStateOrDie(MainActivity.this, State.IDLE);
+
+                            // we only set the state if coming from the UPLOADING state
+                            // in cases when this method is called after another state
+                            // has been set (RECORDING, for instance), we do nothing.
+                            if (Globals.getStateManager().isState(State.UPLOADING))
+                                StateManager.setStateOrDie(MainActivity.this, State.IDLE);
                         } else
                             displayUploadBar();
 
@@ -671,7 +676,8 @@ public class MainActivity extends Activity {
 
     private void stopUploading() {
         findViewById(R.id.uploadCancelButton).setVisibility(View.INVISIBLE);
-        UploadService.stop(getApplicationContext());
+        if (Globals.getStateManager().isState(State.UPLOADING))
+            UploadService.stop(getApplicationContext());
     }
 
     /*
