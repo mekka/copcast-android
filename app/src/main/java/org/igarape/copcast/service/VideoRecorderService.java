@@ -334,6 +334,9 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.cancel(mId);
 
+        if (webRecorder.isStreaming())
+            this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
+
         if (webRecorder != null) {
             webRecorder.stop(promise);
             webRecorder = null;
@@ -341,7 +344,6 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         serviceRunning = false;
         ws.disconnect();
         Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
-        this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
         this.stopSelf();
     }
 

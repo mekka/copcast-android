@@ -197,6 +197,10 @@ public class WebRecorder {
             videoProducerThread.setStreaming(true);
     }
 
+    public boolean isStreaming() {
+        return this.isStreaming;
+    }
+
     public void prepare() throws WebRecorderException {
         try {
             startStopLock.acquire();
