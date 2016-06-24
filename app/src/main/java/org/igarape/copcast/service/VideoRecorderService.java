@@ -96,12 +96,14 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         ws.on("startStreaming", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                if (Globals.getStateManager().canChangeToState(State.STREAMING) || Globals.getStateManager().isCurrent(State.STREAMING)) {
+                if (Globals.getStateManager().canChangeToState(State.STREAMING)) {
                     webRecorder.startBroadcasting();
                     VideoRecorderService.this.sendBroadcast(VideoRecorderService.STARTED_STREAMING);
                     ws.emit("streamStarted");
                     VibrateUtils.vibrate(getApplicationContext(), 200);
                     Log.e(TAG, "Start Stream!!!");
+                } else if (Globals.getStateManager().isCurrent(State.STREAMING)) {
+                    // we are already streaming...
                 } else {
                     ws.emit("streamDenied");
                 }
