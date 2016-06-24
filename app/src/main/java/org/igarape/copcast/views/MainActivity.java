@@ -241,7 +241,7 @@ public class MainActivity extends Activity {
                         livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
                         break;
                     case STREAMING:
-                        videoRecorderService.stopStreaming(true);
+                        videoRecorderService.stopStreaming();
                         livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
                         break;
                     default:
