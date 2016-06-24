@@ -96,10 +96,10 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         ws.on("startStreaming", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                StateManager stateManager = Globals.getStateManager();
-                if (stateManager.canChangeToState(State.STREAMING) || stateManager.isCurrent(State.STREAMING)) {
+                if (Globals.getStateManager().canChangeToState(State.STREAMING) || Globals.getStateManager().isCurrent(State.STREAMING)) {
                     webRecorder.startBroadcasting();
                     VideoRecorderService.this.sendBroadcast(VideoRecorderService.STARTED_STREAMING);
+                    ws.emit("streamStarted");
                     VibrateUtils.vibrate(getApplicationContext(), 200);
                     Log.e(TAG, "Start Stream!!!");
                 } else {
@@ -287,7 +287,10 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
     public void stopStreaming(Boolean notifyServer) {
         if (webRecorder != null)
-            webRecorder.stopBroadcasting(notifyServer);
+            webRecorder.stopBroadcasting();
+        if (notifyServer)
+            ws.emit("streamStopped");
+
     }
 
     class MediaPrepareTask extends AsyncTask<Void, Void, Boolean> {

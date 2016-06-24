@@ -185,12 +185,10 @@ public class WebRecorder {
         return isRunning;
     }
 
-    public void stopBroadcasting(Boolean notifyServer) {
+    public void stopBroadcasting() {
         isStreaming = false;
         if (videoProducerThread != null)
             videoProducerThread.setStreaming(false);
-        if (notifyServer)
-            websocket.emit("streamStopped");
     }
 
     public void startBroadcasting() {
