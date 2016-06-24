@@ -652,11 +652,6 @@ public class MainActivity extends Activity {
         findViewById(R.id.pausedLayout).setVisibility(View.GONE);
         findViewById(R.id.resumeMissionButton).setVisibility(View.VISIBLE);
 
-//        mStreamSwitch.setOnCheckedChangeListener(null);
-//        mStreamSwitch.setChecked(false);
-//        mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
-//        mStreamSwitch.setEnabled(false);
-        livestreamBtn.setBackgroundColor(Color.rgb(0, 0, 255));
         livestreamBtn.setEnabled(false);
 
         mPauseCounter.setVisibility(View.VISIBLE);
@@ -669,7 +664,6 @@ public class MainActivity extends Activity {
 
         StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
 
-//        mStreamSwitch.setEnabled(true);
         livestreamBtn.setEnabled(true);
         mResumeMissionButton.setVisibility(View.GONE);
         mPauseRecordingButton.setVisibility(View.VISIBLE);
