@@ -224,7 +224,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             webRecorder.prepare();
             webRecorder.start();
         } catch (WebRecorderException e) {
-            e.printStackTrace();    
+            e.printStackTrace();
         } finally {
             lock.unlock();
             Log.d(TAG, "< prepare unlocked");
@@ -328,30 +328,20 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     public void stop(Promise promise) {
 
         Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
-        lock.lock();
-        Log.d(TAG, "< stop locked");
-        try {
 
-            Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.cancel(mId);
 
-            NotificationManager mNotificationManager =
-                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            mNotificationManager.cancel(mId);
-
-            if (webRecorder != null) {
-                webRecorder.stop(promise);
-                webRecorder = null;
-            }
-            serviceRunning = false;
-            ws.disconnect();
-            Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
-            this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
-            this.stopSelf();
-        } finally {
-            lock.unlock();
-            Log.d(TAG, "< stop unlocked");
-
+        if (webRecorder != null) {
+            webRecorder.stop(promise);
+            webRecorder = null;
         }
+        serviceRunning = false;
+        ws.disconnect();
+        Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
+        this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
+        this.stopSelf();
     }
 
     public void stopSync() {
@@ -380,7 +370,6 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         } finally {
             lock.unlock();
             Log.d(TAG, "< stop unlocked");
-
         }
     }
 
