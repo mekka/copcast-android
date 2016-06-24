@@ -126,7 +126,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             @Override
             public void call(Object... args) {
                 Log.e(TAG, "reconnect attempt");
-                VideoRecorderService.this.stopStreaming(true);
+                VideoRecorderService.this.stopStreaming();
                 VideoRecorderService.this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
                 Log.e(TAG, "Stop Stream!!!");
             }
@@ -135,7 +135,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         ws.on("stopStreaming", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                VideoRecorderService.this.stopStreaming(false);
+                VideoRecorderService.this.stopStreaming();
                 VideoRecorderService.this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
                 Log.e(TAG, "Stop Stream!!!");
             }
@@ -285,12 +285,10 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         ws.emit("startStreamingRequest");
     }
 
-    public void stopStreaming(Boolean notifyServer) {
+    public void stopStreaming() {
         if (webRecorder != null)
             webRecorder.stopBroadcasting();
-        if (notifyServer)
-            ws.emit("streamStopped");
-
+        ws.emit("streamStopped");
     }
 
     class MediaPrepareTask extends AsyncTask<Void, Void, Boolean> {
