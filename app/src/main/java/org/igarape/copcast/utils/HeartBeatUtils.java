@@ -53,6 +53,8 @@ public class HeartBeatUtils {
                 json.put("battery", batteryJson);
             }
 
+            json.put("state", Globals.getStateManager().getState().name());
+
             final LoggedHTTPResponseCallback hblogger = new HeartbeatLoggedCallback(context, JsonDataType.TYPE_HEARTBEAT_DATA, json, TAG);
 
             NetworkUtils.post(context, JsonDataType.TYPE_HEARTBEAT_DATA.getUrl(), json, hblogger);
