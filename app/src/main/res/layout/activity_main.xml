@@ -334,16 +334,16 @@
                 android:layout_alignParentEnd="true"
                 android:gravity="center">
 
-                <Switch
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=""
-                    android:textOff="off"
-                    android:textOn="on"
-                    android:id="@+id/streamSwitch"
-                    android:layout_alignParentBottom="true"
+                <Button
+                    android:layout_width="120dp"
+                    android:layout_height="40dp"
+                    android:text="Request"
+                    android:id="@+id/livestreamBtn"
                     android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true" />
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentBottom="true"
+                    android:textAlignment="center"
+                    android:gravity="center" />
             </RelativeLayout>
 
 

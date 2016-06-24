@@ -8,7 +8,6 @@ import android.graphics.Bitmap;
 import android.location.Location;
 import android.media.CamcorderProfile;
 import android.preference.PreferenceManager;
-import android.support.v4.util.Pair;
 import android.util.Log;
 
 import org.igarape.copcast.R;
@@ -49,7 +48,6 @@ public class Globals {
     private static Bitmap userImage = null;
     private static Long directorySize;
     private static Long directoryUploadedSize;
-    private static Boolean livestreamToggle = false;
     private static Location lastKnownLocation = null;
     private static int rotation;
     private static IncidentFlagState incidentFlag = IncidentFlagState.NOT_FLAGGED;
@@ -188,7 +186,6 @@ public class Globals {
         userLogin = null;
         userName = null;
         userImage = null;
-        livestreamToggle = false;
         hasVideoPlayback = null;
     }
 
@@ -225,13 +222,7 @@ public class Globals {
         }
         return directorySize/1024;
     }
-    public static void setLivestreamToggle(boolean value) {
-        livestreamToggle = value;
-    }
 
-    public static Boolean getLivestreamToggle(){
-        return livestreamToggle;
-    }
     public static void setRotation(int rotation) {
         Globals.rotation = rotation;
     }

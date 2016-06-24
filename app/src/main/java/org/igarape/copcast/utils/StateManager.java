@@ -89,6 +89,9 @@ public class StateManager {
     public boolean isState(State state) {
         return this.currentState == state;
     }
+    public State getState() {
+        return this.currentState;
+    }
 
 
     public static void setStateOrDie(Activity activity, State newState) {

@@ -15,7 +15,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.hardware.SensorManager;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
@@ -30,9 +30,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.ProgressBar;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -84,8 +82,12 @@ public class MainActivity extends Activity {
     private TextView mPauseCounter;
     private CountDownPausedTimer mCountDownThirtyPaused;
     private CountDownPausedTimer mCountDownTenPaused;
-    private Switch mStreamSwitch;
-    private CompoundButton.OnCheckedChangeListener mStreamListener;
+//    private Switch mStreamSwitch;
+    private Button livestreamBtn;
+    private final int GREEN_STREAM_COLOR = Color.rgb(47, 173, 114);
+    private final int YELLOW_STREAM_COLOR = Color.rgb(243, 166, 29);
+    private final int GRAY_STREAM_COLOR = Color.rgb(72, 72, 73);
+    private View.OnClickListener livestreamBtnListener;
 
     private MediaPlayer mySongclick;
     private boolean longPress = false;
@@ -210,7 +212,8 @@ public class MainActivity extends Activity {
         }
         FileUtils.init(getApplicationContext());
 
-        mStreamSwitch = (Switch) findViewById(R.id.streamSwitch);
+        //mStreamSwitch = (Switch) findViewById(R.id.streamSwitch);
+        livestreamBtn = (Button) findViewById(R.id.livestreamBtn);
         uploadButton = (Button) findViewById(R.id.uploadButton);
         mStartMissionButton = (Button) findViewById(R.id.startMissionButton);
         mEndMissionButton = (Button) findViewById(R.id.endMissionButton);
@@ -221,20 +224,35 @@ public class MainActivity extends Activity {
         mCountDownThirtyPaused = new CountDownPausedTimer(MINUTES_30, 1000);
         mCountDownTenPaused = new CountDownPausedTimer(MINUTES_10, 1000);
 
-        mStreamListener = new CompoundButton.OnCheckedChangeListener() {
+        livestreamBtnListener = new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Globals.setLivestreamToggle(true);
-                //When toogling, the stopped service will start the other one
-                if (isChecked) {
-                    StateManager.setStateOrDie(MainActivity.this, State.STREAM_REQUESTED);
-                    videoRecorderService.startStreamingRequest();
-                } else {
-                    StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
-                    videoRecorderService.stopStreaming(true);
+            public void onClick(View view) {
+                State currentState = Globals.getStateManager().getState();
+
+                switch (currentState) {
+                    case RECORDING:
+                        videoRecorderService.startStreamingRequest();
+                        Globals.getStateManager().setStateOrDie(MainActivity.this, State.STREAM_REQUESTED);
+                        livestreamBtn.setBackgroundColor(YELLOW_STREAM_COLOR);
+                        break;
+                    case STREAM_REQUESTED:
+//                        showToast("Request already sent");
+                        Globals.getStateManager().setStateOrDie(MainActivity.this, State.RECORDING);
+                        livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
+                        break;
+                    case STREAMING:
+                        videoRecorderService.stopStreaming(true);
+                        livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
+                        break;
+                    default:
+                        Log.e(TAG, "stream button clicked from invalid state: "+currentState.name());
+                        showToast("stream button clicked from invalid state: "+currentState.name());
                 }
+
             }
         };
+
+        livestreamBtn.setOnClickListener(livestreamBtnListener);
 
         broadcastReceiver
                 = new BroadcastReceiver() {
@@ -267,10 +285,11 @@ public class MainActivity extends Activity {
                         });
                     }
                 } else if (intent.getAction().equals(VideoRecorderService.STARTED_STREAMING)) {
-                    mStreamSwitch.setChecked(true);
+                    livestreamBtn.setBackgroundColor(GREEN_STREAM_COLOR);
                     StateManager.setStateOrDie(MainActivity.this, State.STREAMING);
                 } else if (intent.getAction().equals(VideoRecorderService.STOPPED_STREAMING)) {
-                    mStreamSwitch.setChecked(false);
+                    livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
+                    StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
                 }
             }
         };
@@ -342,6 +361,7 @@ public class MainActivity extends Activity {
         mStartMissionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
                 if (Globals.getStateManager().isState(State.UPLOADING)) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
@@ -437,9 +457,7 @@ public class MainActivity extends Activity {
                                                                      findViewById(R.id.streamLayout).setVisibility(View.GONE);
                                                                      findViewById(R.id.recBall).setVisibility(View.INVISIBLE);
 
-                                                                     mStreamSwitch.setOnCheckedChangeListener(null);
-                                                                     mStreamSwitch.setChecked(false);
-                                                                     mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+                                                                     livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
 
                                                                      Intent intent = new Intent(MainActivity.this, LocationService.class);
                                                                      stopService(intent);
@@ -578,7 +596,8 @@ public class MainActivity extends Activity {
                                                                 }
         );
 
-        mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+        //mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+
 
     }
 
@@ -633,10 +652,12 @@ public class MainActivity extends Activity {
         findViewById(R.id.pausedLayout).setVisibility(View.GONE);
         findViewById(R.id.resumeMissionButton).setVisibility(View.VISIBLE);
 
-        mStreamSwitch.setOnCheckedChangeListener(null);
-        mStreamSwitch.setChecked(false);
-        mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
-        mStreamSwitch.setEnabled(false);
+//        mStreamSwitch.setOnCheckedChangeListener(null);
+//        mStreamSwitch.setChecked(false);
+//        mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+//        mStreamSwitch.setEnabled(false);
+        livestreamBtn.setBackgroundColor(Color.rgb(0, 0, 255));
+        livestreamBtn.setEnabled(false);
 
         mPauseCounter.setVisibility(View.VISIBLE);
         findViewById(R.id.recBall).setVisibility(View.GONE);
@@ -648,7 +669,8 @@ public class MainActivity extends Activity {
 
         StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
 
-        mStreamSwitch.setEnabled(true);
+//        mStreamSwitch.setEnabled(true);
+        livestreamBtn.setEnabled(true);
         mResumeMissionButton.setVisibility(View.GONE);
         mPauseRecordingButton.setVisibility(View.VISIBLE);
         mPauseCounter.setVisibility(View.GONE);
