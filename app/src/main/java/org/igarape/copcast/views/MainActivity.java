@@ -286,7 +286,7 @@ public class MainActivity extends Activity {
                     }
                 } else if (intent.getAction().equals(VideoRecorderService.STARTED_STREAMING)) {
                     livestreamBtn.setBackgroundColor(GREEN_STREAM_COLOR);
-                    StateManager.setStateOrDie(MainActivity.this, State.STREAMING);
+                    Globals.getStateManager().setStateOrDie(MainActivity.this, State.STREAMING);
                 } else if (intent.getAction().equals(VideoRecorderService.STOPPED_STREAMING)) {
                     livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
                     StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
