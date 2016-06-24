@@ -5,6 +5,7 @@ import android.media.MediaCodec;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
+import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.webrecorder.enums.Orientation;
 
@@ -173,7 +174,12 @@ class VideoProducer implements Camera.PreviewCallback {
             return;
         lastLiveCapture = liveTmpCapture;
 
-        byte[] reduced_data = shrink(new_data, videoWidth, videoHeight, 4);
+        // this is a hack to avoid issues with the image reduction where their are equal.
+        byte[] reduced_data;
+        if (BuildConfig.RECORDING_QUALITY != BuildConfig.STREAMING_QUALITY)
+            reduced_data = shrink(new_data, videoWidth, videoHeight, 4);
+        else
+            reduced_data = new_data;
 
         bi = new MediaCodec.BufferInfo();
         liveInputBuffers = liveVideoCodec.getInputBuffers();
