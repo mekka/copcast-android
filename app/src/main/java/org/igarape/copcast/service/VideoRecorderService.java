@@ -129,7 +129,6 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             public void call(Object... args) {
                 Log.e(TAG, "reconnect attempt");
                 VideoRecorderService.this.stopStreaming();
-                VideoRecorderService.this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
                 Log.e(TAG, "Stop Stream!!!");
             }
         });
@@ -138,7 +137,6 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             @Override
             public void call(Object... args) {
                 VideoRecorderService.this.stopStreaming();
-                VideoRecorderService.this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
                 Log.e(TAG, "Stop Stream!!!");
             }
         });
@@ -288,9 +286,11 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     }
 
     public void stopStreaming() {
-        if (webRecorder != null)
+        if (webRecorder != null && webRecorder.isStreaming()) {
+            this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
             webRecorder.stopBroadcasting();
-        ws.emit("streamStopped");
+            ws.emit("streamStopped");
+        }
     }
 
     class MediaPrepareTask extends AsyncTask<Void, Void, Boolean> {
@@ -334,8 +334,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.cancel(mId);
 
-        if (webRecorder.isStreaming())
-            this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
+        this.stopStreaming();
 
         if (webRecorder != null) {
             webRecorder.stop(promise);
@@ -366,7 +365,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             serviceRunning = false;
             ws.disconnect();
             Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
-            this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
+            this.stopStreaming();
             this.stopSelf();
         } catch (InterruptedException e) {
             Log.e(TAG, "error stopping video recording with stopSync", e);
