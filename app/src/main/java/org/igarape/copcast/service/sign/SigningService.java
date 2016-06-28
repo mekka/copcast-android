@@ -83,8 +83,10 @@ public class SigningService {
         if (simno == null) {
             if (BuildConfig.DEBUG)
                 simno = "FakeSimNo";
-            else
-               throw new SigningServiceException("SimID is NULL");
+            else {
+                Log.w(TAG, "SIM is null. Can't move forward.");
+                throw new SigningServiceException("SimID is NULL");
+            }
         }
 
         Globals.setImei(ctx, imei);

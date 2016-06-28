@@ -18,6 +18,8 @@ import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.StateManager;
 
+import static org.igarape.copcast.utils.OkDialog.displayAndTerminate;
+
 //import com.splunk.mint.Mint;
 
 public class SplashScreenActivity extends Activity {
@@ -46,6 +48,7 @@ public class SplashScreenActivity extends Activity {
             public void run() {
                 try {
                     SigningService.loadIDs(SplashScreenActivity.this);
+                    Log.v(TAG, "IDs loaded");
                     String server_url = Globals.getServerUrl(getApplicationContext());
                     String registered_server_url = Globals.getAppRegistered(getApplicationContext());
                     if (registered_server_url == null || registered_server_url.compareTo(server_url)!=0 ||
@@ -62,14 +65,14 @@ public class SplashScreenActivity extends Activity {
                         SplashScreenActivity.this.finish();
                         return;
                     }
+
+                    startActivity(new Intent(SplashScreenActivity.this, LoginActivity.class));
+                    SplashScreenActivity.this.finish();
+
                 } catch (SigningServiceException e) {
                     Log.e(TAG, "Failed to load device ID parameters", e);
-                    Toast.makeText(SplashScreenActivity.this, getString(R.string.error_keystore), Toast.LENGTH_LONG);
-                    SplashScreenActivity.this.finish();
+                    displayAndTerminate(SplashScreenActivity.this, getString(R.string.internal_error), getString(R.string.error_keystore));
                 }
-
-                startActivity(new Intent(SplashScreenActivity.this, LoginActivity.class));
-                SplashScreenActivity.this.finish();
 
             }
         }, SPLASH_SHOW_TIME);
