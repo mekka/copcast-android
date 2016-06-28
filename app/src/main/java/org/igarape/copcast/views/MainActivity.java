@@ -362,6 +362,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
+                livestreamBtn.setEnabled(true);
                 if (Globals.getStateManager().isState(State.UPLOADING)) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
