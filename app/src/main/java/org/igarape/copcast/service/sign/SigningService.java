@@ -21,7 +21,6 @@ import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.promises.PromiseError;
 import org.igarape.copcast.promises.PromisePayload;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -58,7 +57,7 @@ public class SigningService {
             ks = KeyStore.getInstance("AndroidKeyStore");
         } catch (KeyStoreException e) {
             errorMsg = "Could not get keystore instance";
-            ILog.e(TAG, errorMsg, e);
+            Log.e(TAG, errorMsg, e);
             throw new SigningServiceException(errorMsg);
         }
 
@@ -67,7 +66,7 @@ public class SigningService {
             return ks;
         } catch (Exception e) {
             errorMsg = "Could not load keys from keystore";
-            ILog.e(TAG, errorMsg, e);
+            Log.e(TAG, errorMsg, e);
             throw new SigningServiceException(errorMsg);
         }
     }
@@ -90,8 +89,8 @@ public class SigningService {
 
         Globals.setImei(ctx, imei);
         Globals.setSimid(ctx, simno);
-        ILog.d(TAG, "IMEI: "+imei);
-        ILog.d(TAG, "SimID: "+simno);
+        Log.d(TAG, "IMEI: "+imei);
+        Log.d(TAG, "SimID: "+simno);
     }
 
     public static KeyStore.Entry fetchKey() throws SigningServiceException {
@@ -103,7 +102,7 @@ public class SigningService {
             return ks.getEntry(COPCASTKEY, null);
         } catch (Exception e) {
             errorMsg = "Could not load COPCAST key from keystore";
-            ILog.i(TAG, errorMsg, e);
+            Log.i(TAG, errorMsg, e);
             return null;
         }
     }
@@ -115,9 +114,9 @@ public class SigningService {
 
         try {
             ks.deleteEntry(COPCASTKEY);
-            ILog.d(TAG, "copcastkey deleted");
+            Log.d(TAG, "copcastkey deleted");
         } catch (KeyStoreException e) {
-            ILog.e(TAG, "Unable to delete Android Keystore (delete)", e);
+            Log.e(TAG, "Unable to delete Android Keystore (delete)", e);
         }
 
     }
@@ -137,13 +136,13 @@ public class SigningService {
 
         } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
 
-            ILog.d(TAG, "older Android versions.");
+            Log.d(TAG, "older Android versions.");
 
             try {
                 g = KeyPairGenerator.getInstance("RSA", "AndroidKeyStore");
             } catch (Exception e) {
                 String errmsg = "Error getting AndroidKeyStore instance";
-                ILog.e(TAG, errmsg, e);
+                Log.e(TAG, errmsg, e);
                 throw new SigningServiceException(errmsg);
             }
 
@@ -162,7 +161,7 @@ public class SigningService {
                     spec.setKeyType(KeyProperties.KEY_ALGORITHM_RSA);
                 } catch (NoSuchAlgorithmException e) {
                     String errmsg = "No such algorithm exception";
-                    ILog.e(TAG, errmsg, e);
+                    Log.e(TAG, errmsg, e);
                     throw new SigningServiceException(errmsg);
                 }
                 spec.setKeySize(2048);
@@ -172,7 +171,7 @@ public class SigningService {
                 g.initialize(spec.build());
             } catch (InvalidAlgorithmParameterException e) {
                 String errmsg = "Invalid algorithm parameters exception";
-                ILog.e(TAG, errmsg, e);
+                Log.e(TAG, errmsg, e);
                 throw new SigningServiceException(errmsg);
             }
 
@@ -184,7 +183,7 @@ public class SigningService {
                         KeyProperties.KEY_ALGORITHM_EC, "AndroidKeyStore");
             } catch (Exception e) {
                 String errmsg = "No such algorithm exception";
-                ILog.e(TAG, errmsg, e);
+                Log.e(TAG, errmsg, e);
                 throw new SigningServiceException(errmsg);
             }
             try {
@@ -196,13 +195,13 @@ public class SigningService {
                         .build());
             } catch (InvalidAlgorithmParameterException e) {
                 String errmsg = "Invalid algorithm parameters exception";
-                ILog.e(TAG, errmsg, e);
+                Log.e(TAG, errmsg, e);
                 throw new SigningServiceException(errmsg);
             }
 
         }
 
-        ILog.d(TAG, g.toString());
+        Log.d(TAG, g.toString());
 
         KeyPair pair;
         try {
@@ -239,19 +238,19 @@ public class SigningService {
         try {
             s = Signature.getInstance(algo);
         } catch (NoSuchAlgorithmException e) {
-            ILog.e(TAG, "Unknown algorithm "+algo+" (sign)", e);
+            Log.e(TAG, "Unknown algorithm "+algo+" (sign)", e);
         }
         try {
             s.initSign(((KeyStore.PrivateKeyEntry) entry).getPrivateKey());
         } catch (InvalidKeyException e) {
-            ILog.e(TAG, "Invalid key (sign)", e);
+            Log.e(TAG, "Invalid key (sign)", e);
         }
         try {
             s.update(input.getBytes());
             byte[] signature = s.sign();
             return Base64.encodeToString(signature, Base64.DEFAULT);
         } catch (SignatureException e) {
-            ILog.e(TAG, "Unable to sign data", e);
+            Log.e(TAG, "Unable to sign data", e);
         }
 
         return null;
@@ -276,7 +275,7 @@ public class SigningService {
             register.put("imei", Globals.getImei(ctx));
             register.put("simid", Globals.getSimid(ctx));
         } catch (JSONException e) {
-            ILog.e(TAG, "Could not write public key in JSON");
+            Log.e(TAG, "Could not write public key in JSON");
         }
 
 

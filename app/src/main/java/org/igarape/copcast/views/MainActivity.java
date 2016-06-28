@@ -50,7 +50,6 @@ import org.igarape.copcast.state.State;
 import org.igarape.copcast.state.UploadServiceEvent;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.LocationUtils;
 import org.igarape.copcast.utils.NetworkUtils;
@@ -258,7 +257,7 @@ public class MainActivity extends Activity {
                 = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, final Intent intent) {
-                ILog.d(TAG, "received generic");
+                Log.d(TAG, "received generic");
 
                 if (intent.getAction().equals(BatteryReceiver.BATTERY_LOW_MESSAGE)) {
                     stopUploading();
@@ -323,7 +322,7 @@ public class MainActivity extends Activity {
                                 break;
                             case ABORTED_NO_NETWORK:
                                 Toast.makeText(getApplicationContext(), getString(R.string.network_state_no_network), Toast.LENGTH_LONG).show();
-                                ILog.d(TAG, "No network available");
+                                Log.d(TAG, "No network available");
                                 break;
                             case FAILED:
                                 Toast.makeText(getApplicationContext(), getString(R.string.upload_error), Toast.LENGTH_LONG).show();
@@ -332,10 +331,10 @@ public class MainActivity extends Activity {
                                 Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
                                 break;
                             case ABORTED_USER:
-                                ILog.d(TAG, "user aborted upload");
+                                Log.d(TAG, "user aborted upload");
                                 break;
                             default:
-                                ILog.e(TAG, "Unexpected upload feedback status: " + use);
+                                Log.e(TAG, "Unexpected upload feedback status: " + use);
                         }
                     }
                 }

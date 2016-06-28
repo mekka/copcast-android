@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -15,7 +16,6 @@ import org.igarape.copcast.service.sign.SigningServiceException;
 import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.StateManager;
 
 //import com.splunk.mint.Mint;
@@ -63,7 +63,7 @@ public class SplashScreenActivity extends Activity {
                         return;
                     }
                 } catch (SigningServiceException e) {
-                    ILog.e(TAG, "Failed to load device ID parameters", e);
+                    Log.e(TAG, "Failed to load device ID parameters", e);
                     Toast.makeText(SplashScreenActivity.this, getString(R.string.error_keystore), Toast.LENGTH_LONG);
                     SplashScreenActivity.this.finish();
                 }

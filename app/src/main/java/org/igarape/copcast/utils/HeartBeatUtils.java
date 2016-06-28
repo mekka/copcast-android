@@ -34,7 +34,7 @@ class HeartbeatLoggedCallback extends LoggedHTTPResponseCallback {
             try {
                 SqliteUtils.storeToDb(this.context, userLogin, JsonDataType.TYPE_BATTERY_STATUS, this.data.getJSONObject("battery"));
             } catch (JSONException e) {
-                ILog.e(this.tag, "heartbeat with wrong battery field", e);
+                Log.e(this.tag, "heartbeat with wrong battery field", e);
             } catch (SqliteDbException e) {
                 Log.e(this.tag, "error storing data into db", e);
             }
@@ -59,7 +59,7 @@ public class HeartBeatUtils {
 
             NetworkUtils.post(context, JsonDataType.TYPE_HEARTBEAT_DATA.getUrl(), json, hblogger);
         } catch (JSONException e) {
-            ILog.e(TAG, "error sending heartbeat", e);
+            Log.e(TAG, "error sending heartbeat", e);
         }
 
     }
