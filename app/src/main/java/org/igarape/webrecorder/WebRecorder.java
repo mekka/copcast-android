@@ -299,6 +299,11 @@ public class WebRecorder {
 
     private void _start() {
 
+        if (isRunning) {
+            Log.w(TAG, "Trying to start second instance of Webrecorder");
+            return;
+        }
+
         isRunning = true;
 
         videoCodec.start();
@@ -342,7 +347,8 @@ public class WebRecorder {
                 }
 
                 try {
-                    _stopSync();
+                    if (isRunning)
+                        _stopSync();
                     startStopLock.release();
 
                     if (promise!=null)
