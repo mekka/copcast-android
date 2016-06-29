@@ -285,6 +285,10 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         ws.emit("startStreamingRequest");
     }
 
+    public void stopStreamingRequest() {
+        ws.emit("stopStreamingRequest");
+    }
+
     public void stopStreaming() {
         if (webRecorder != null && webRecorder.isStreaming()) {
             this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);

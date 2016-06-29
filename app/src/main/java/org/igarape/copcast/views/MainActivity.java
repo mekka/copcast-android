@@ -235,7 +235,7 @@ public class MainActivity extends Activity {
                         livestreamBtn.setBackgroundColor(YELLOW_STREAM_COLOR);
                         break;
                     case STREAM_REQUESTED:
-//                        showToast("Request already sent");
+                        videoRecorderService.stopStreamingRequest();
                         Globals.getStateManager().setStateOrDie(MainActivity.this, State.RECORDING);
                         livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
                         break;
