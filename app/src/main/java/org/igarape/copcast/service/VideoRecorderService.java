@@ -34,6 +34,8 @@ import org.igarape.webrecorder.WebRecorder;
 import org.igarape.webrecorder.WebRecorderException;
 
 import java.net.URISyntaxException;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.locks.ReentrantLock;
 
 import io.socket.client.IO;
@@ -58,6 +60,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     LocalBroadcastManager localBroadcastManager;
     private Socket ws;
     private NotificationCompat.Builder mNotification;
+    private Timer mStopStreamingOnReconnectTimer;
 
 
     public class LocalBinder extends Binder {
@@ -121,6 +124,10 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             @Override
             public void call(Object... args) {
                 Log.e(TAG, "reconnect");
+                if (mStopStreamingOnReconnectTimer != null) {
+                    mStopStreamingOnReconnectTimer.cancel();
+                    mStopStreamingOnReconnectTimer = null;
+                }
             }
         });
 
@@ -128,9 +135,18 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             @Override
             public void call(Object... args) {
                 Log.e(TAG, "reconnect attempt");
-                VideoRecorderService.this.stopStreaming();
-                VideoRecorderService.this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
-                Log.e(TAG, "Stop Stream!!!");
+                if (mStopStreamingOnReconnectTimer == null) {
+                    mStopStreamingOnReconnectTimer = new Timer();
+                    mStopStreamingOnReconnectTimer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            VideoRecorderService.this.stopStreaming();
+                            VideoRecorderService.this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
+                            mStopStreamingOnReconnectTimer = null;
+                            Log.e(TAG, "Stoping stream after reconnect timeout");
+                        }
+                    }, BuildConfig.STOP_STREAMING_TIMEOUT);
+                }
             }
         });
 
@@ -142,6 +158,12 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 Log.e(TAG, "Stop Stream!!!");
             }
         });
+
+        if (mStopStreamingOnReconnectTimer != null) {
+            // Start with a new reconnect timer on each websocket new start command.
+            mStopStreamingOnReconnectTimer.cancel();
+            mStopStreamingOnReconnectTimer = null;
+        }
 
         ws.connect();
 
@@ -283,8 +305,9 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     }
 
     public void stopStreaming() {
-        if (webRecorder != null)
+        if (webRecorder != null) {
             webRecorder.stopBroadcasting();
+        }
     }
 
     class MediaPrepareTask extends AsyncTask<Void, Void, Boolean> {
