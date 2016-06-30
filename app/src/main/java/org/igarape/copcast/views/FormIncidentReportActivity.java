@@ -396,6 +396,6 @@ public class FormIncidentReportActivity extends Activity implements GoogleApiCli
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        GPSTracker.showSettingsAlert(getApplicationContext());
+        GPSTracker.showSettingsAlert(FormIncidentReportActivity.this);
     }
 }
