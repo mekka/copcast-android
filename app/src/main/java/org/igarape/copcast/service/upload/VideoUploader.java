@@ -53,12 +53,7 @@ public class VideoUploader {
 
             setRequestHeaders(conn, requestHeaders);
 
-            if (android.os.Build.VERSION.SDK_INT >= 19) {
-                conn.setFixedLengthStreamingMode(bodyLength);
-            } else {
-                conn.setFixedLengthStreamingMode((int) bodyLength);
-            }
-
+            conn.setChunkedStreamingMode(1024*BUFFER_SIZE);
             requestStream = conn.getOutputStream();
 
             requestStream.write(boundaryBytes, 0, boundaryBytes.length);
@@ -76,6 +71,7 @@ public class VideoUploader {
                         return false;
                     }
                     requestStream.write(buffer, 0, bytesRead);
+                    requestStream.flush();
                     runUpload.updateCounter(bytesRead/1024);
                 }
             } catch (Exception e) {
