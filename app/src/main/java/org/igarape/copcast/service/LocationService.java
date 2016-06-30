@@ -57,7 +57,7 @@ public class LocationService extends Service implements LocationListener, Google
 
     public void sendHeartbeat(Location location) throws JSONException {
         Globals.setLastKnownLocation(location);
-        HeartBeatUtils.sendHeartBeat(getApplicationContext(), LocationUtils.buildJson(location), BatteryUtils.buildJson());
+        HeartBeatUtils.sendHeartBeat(LocationService.this, LocationUtils.buildJson(location), BatteryUtils.buildJson());
     }
 
     @Override
