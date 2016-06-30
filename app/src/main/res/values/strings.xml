@@ -16,12 +16,12 @@
     <string name="network_required">Network required</string>
     <string name="copcast_main_title">CopCast</string>
     <string name="start_mission">Start Mission</string>
-    <string name="recording_started">Started Registering...</string>
+    <string name="recording_started">Started Registering&#8230;</string>
     <string name="notification_record_title">CopCast Camera</string>
     <string name="notification_record_description">Recording on SDCard</string>
     <string name="notification_location_title">Searching Location</string>
     <string name="notification_location_description">Searching for your current location</string>
-    <string name="please_hold">Please hold...</string>
+    <string name="please_hold">Please hold&#8230;</string>
     <string name="login_in">Logging in</string>
     <string name="server_error">Unable to contact server</string>
     <string name="connection_error">Error contacting server. Please, verify your connection.</string>
@@ -40,7 +40,7 @@
     <string name="live_stream_desc">Stream data live to HQ</string>
     <string name="uploading">Uploading</string>
     <string name="uploading_size">Uploading (%1$sMB of %2$sMB)</string>
-    <string name="upload_disabled">Can\'t upload right now. The phone need to be charging or battery status full.</string>
+    <string name="upload_disabled">Battery low. Connect your phone to a power source to upload.</string>
     <string name="upload_stopped">Upload canceled due to network/charging restrictions</string>
     <string name="upload_completed">Upload completed!</string>
     <string name="stop_uploading">You are uploading data. Want to stop it and start the mission?</string>
@@ -51,8 +51,8 @@
     <string name="ten_minutes">10 minutes</string>
     <string name="thirty_minutes">30 minutes</string>
     <string name="resume_mission">Resume Mission</string>
-    <string name="pause_title">Paused</string>
-    <string name="pause_desc">Recording have been paused.</string>
+    <string name="pause_title">Paused.</string>
+    <string name="pause_desc">Recording has been paused.</string>
     <string name="wifi_dialog_title">Wi-Fi is disabled</string>
     <string name="wifi_dialog_msg">For better location accuracy please turn Wi-Fi on. Do you want to change settings?</string>
     <string name="cancel_button">Cancel</string>
@@ -61,8 +61,8 @@
     <string name="confirmation_msg">Do you really want to leave Copcast?</string>
     <string name="confirmation_button_positive">Yes</string>
     <string name="confirmation_button_negative">No</string>
-    <string name="pref_upload_wifi_only">Use wifi only</string>
-    <string name="pref_upload_wifi_only_desc">When uploading the videos, prevent the app from using 3G data</string>
+    <string name="pref_upload_wifi_only">Use wi-fi only</string>
+    <string name="pref_upload_wifi_only_desc">Disables mobile data when uploading video.</string>
     <string name="pref_server_url">Server URL</string>
     <string name="serverurl_disabled_logged">It is not possible to change the server url while logged.</string>
     <string name="title_activity_upload_video">UploadVideoActivity</string>
@@ -78,13 +78,13 @@
     <string name="argument">Argument?</string>
     <string name="resistance">Resistance?</string>
     <string name="arrest">Arrest?</string>
-    <string name="type_fine">Type of fine</string>
-    <string name="fine">Fine?</string>
+    <string name="type_fine">Type of citation?</string>
+    <string name="fine">Citation?</string>
     <string name="number_injured">Number of injured</string>
-    <string name="gravity">Gravity</string>
+    <string name="gravity">Severity</string>
     <string name="accident">Accident?</string>
     <string name="address">Address</string>
-    <string name="location">Location</string>
+    <string name="location">GPS coordinates</string>
     <string name="date_time">Date / Time</string>
     <string name="use_force">Use of force?</string>
     <string name="date">Date</string>
@@ -92,7 +92,7 @@
     <string name="fill_address">Please, fill the address</string>
     <string name="fill_fine_type">Please, fill the Fine type</string>
     <string name="fill_number_injured">Please, fill Number of Injured</string>
-    <string name="address_not_detected">Address not detect automatically, please type yourself...</string>
+    <string name="address_not_detected">Could not detect address. Please enter it manually.</string>
     <string name="form_sent">Form sent</string>
     <string name="error_sending_form">Error sending form to server, please retry!</string>
     <string name="registered_incident">Incident Registered</string>
@@ -107,7 +107,7 @@
     <string name="upload_no_data">There is no data to be uploaded</string>
     <string name="warning">Warning</string>
     <string name="incompatible_version">Incompatible Android version</string>
-    <string name="loading">Loading...</string>
+    <string name="loading">Loading&#8230;</string>
     <string name="error_keystore">Error initializing cryptographic system.\nA SIM card is required.</string>
     <string name="server_url_hint">API server URL</string>
     <string name="do_registration">Register</string>
@@ -122,13 +122,13 @@
     <string name="version_name">Version</string>
     <string name="power_unplugged_upload_aborted">Power disconnected. Aborting upload.</string>
     <string name="automatic_upload">Automatic upload</string>
-    <string name="automatic_upload_desc">Automatically start uploading while connected to the power supply.</string>
+    <string name="automatic_upload_desc">Enables automatic uploading while connected to power supply.</string>
     <string name="start_automatic_upload">Starting automatic upload</string>
     <string name="high_accuracy_location_dialog_msg">You must enable high accuracy location services to use Copcast</string>
     <string name="enable">Enable</string>
     <string name="notification_paused_description">Recording is paused</string>
     <string name="no_connection">You are not presently connected to the server. All data will be stored locally on your device.</string>
     <string name="device_orientation">Device orientation</string>
-    <string name="device_orientation_description">Device orientation setting for recorded videos</string>
+    <string name="device_orientation_description">Device orientation setting for recorded videos.</string>
 
 </resources>
