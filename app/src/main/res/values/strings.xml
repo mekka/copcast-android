@@ -108,7 +108,7 @@
     <string name="warning">Warning</string>
     <string name="incompatible_version">Incompatible Android version</string>
     <string name="loading">Loading...</string>
-    <string name="error_keystore">Error initializing cryptographic system</string>
+    <string name="error_keystore">Error initializing cryptographic system.\nA SIM card is required.</string>
     <string name="server_url_hint">API server URL</string>
     <string name="do_registration">Register</string>
     <string name="device_registration">Device Registration</string>
@@ -128,4 +128,7 @@
     <string name="enable">Enable</string>
     <string name="notification_paused_description">Recording is paused</string>
     <string name="no_connection">You are not presently connected to the server. All data will be stored locally on your device.</string>
+    <string name="device_orientation">Device orientation</string>
+    <string name="device_orientation_description">Device orientation setting for recorded videos</string>
+
 </resources>

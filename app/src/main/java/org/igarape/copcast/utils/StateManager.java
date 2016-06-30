@@ -64,15 +64,19 @@ public class StateManager {
                 break;
 
             case RECORDING:
-                isInvalid = (currentState != State.IDLE && currentState != State.STREAMING && currentState != State.PAUSED);
+                isInvalid = (currentState != State.IDLE && currentState != State.STREAM_REQUESTED && currentState != State.STREAMING && currentState != State.PAUSED && currentState != State.UPLOADING);
                 break;
 
-            case STREAMING:
+            case STREAM_REQUESTED:
                 isInvalid = (currentState != State.RECORDING);
                 break;
 
+            case STREAMING:
+                isInvalid = (currentState != State.RECORDING && currentState != State.STREAM_REQUESTED);
+                break;
+
             case PAUSED:
-                isInvalid = (currentState != State.RECORDING && currentState != State.STREAMING);
+                isInvalid = (currentState != State.RECORDING && currentState != State.STREAM_REQUESTED && currentState != State.STREAMING);
                 break;
 
             case UPLOADING:
@@ -84,6 +88,9 @@ public class StateManager {
 
     public boolean isState(State state) {
         return this.currentState == state;
+    }
+    public State getState() {
+        return this.currentState;
     }
 
 

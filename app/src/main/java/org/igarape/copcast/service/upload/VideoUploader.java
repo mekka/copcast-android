@@ -1,9 +1,6 @@
 package org.igarape.copcast.service.upload;
 
-import android.os.AsyncTask;
 import android.util.Log;
-
-import org.igarape.copcast.utils.ILog;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -75,7 +72,7 @@ public class VideoUploader {
             try {
                 while ((bytesRead = stream.read(buffer, 0, buffer.length)) > 0 && shouldContinue) {
                     if (runUpload.isCancelled()) {
-                        ILog.d(TAG, "aborting....");
+                        Log.d(TAG, "aborting....");
                         return false;
                     }
                     requestStream.write(buffer, 0, bytesRead);
@@ -91,7 +88,7 @@ public class VideoUploader {
             requestStream.write(trailer, 0, trailer.length);
 
             final int serverResponseCode = conn.getResponseCode();
-            ILog.d(TAG, "return code: "+serverResponseCode);
+            Log.d(TAG, "return code: "+serverResponseCode);
             return (serverResponseCode / 100 == 2);
         } finally {
             closeOutputStream(requestStream);

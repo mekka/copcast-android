@@ -5,9 +5,18 @@ import android.media.MediaCodec;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
+import org.igarape.copcast.BuildConfig;
+import org.igarape.copcast.utils.Globals;
+import org.igarape.webrecorder.enums.Orientation;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.concurrent.locks.ReentrantLock;
+
+import static org.igarape.webrecorder.libs.LibYUV.nv21tovn12;
+import static org.igarape.webrecorder.libs.LibYUV.shrink;
+import static org.igarape.webrecorder.libs.LibYUV.transpose;
+import static org.igarape.webrecorder.libs.LibYUV.transpose_bottom;
+import static org.igarape.webrecorder.libs.LibYUV.transpose_flip_vert;
 
 /**
  * Created by martelli on 2/18/16.
@@ -17,18 +26,24 @@ class VideoProducer implements Camera.PreviewCallback {
     private final static String TAG = VideoProducer.class.getCanonicalName();
     Camera camera;
     MediaCodec.BufferInfo bi;
-    ByteBuffer[] inputBuffers;
+    ByteBuffer[] inputBuffers, liveInputBuffers;
     long lastCapture = 0, tmpCapture;
+    long lastLiveCapture = 0, liveTmpCapture;
     private MediaCodec videoCodec;
+    private MediaCodec liveVideoCodec;
     private int videoFrameRate = -1;
+    private int liveVideoFrameRate = -1;
     private int videoWidth;
     private int videoHeight;
     private boolean isRunning = false;
+    private boolean isStreaming = false;
+    private Orientation orientation;
 
-    public VideoProducer(SurfaceHolder surfaceHolder, int videoWidth, int videoHeight) throws WebRecorderException {
+    public VideoProducer(SurfaceHolder surfaceHolder, int videoWidth, int videoHeight, Orientation orientation) throws WebRecorderException {
 
         this.videoWidth = videoWidth;
         this.videoHeight = videoHeight;
+        this.orientation = orientation;
 
         if (surfaceHolder == null) {
             Log.e(TAG, "SurfaceHolder not defined. Thread aborting.");
@@ -48,10 +63,10 @@ class VideoProducer implements Camera.PreviewCallback {
             camera.stopPreview();
             camera.setPreviewDisplay(surfaceHolder);
             android.hardware.Camera.Parameters p = camera.getParameters();
-            p.setPreviewSize(videoWidth, videoHeight);
-            p.set("orientation", "portrait");
-            p.setRotation(90);
-            camera.setDisplayOrientation(90);
+            if (videoWidth > videoHeight)
+                p.setPreviewSize(videoWidth, videoHeight);
+            else
+                p.setPreviewSize(videoHeight, videoWidth);
             camera.setParameters(p);
             camera.setPreviewCallback(this);
             Log.d(TAG, "Camera prepared");
@@ -60,6 +75,13 @@ class VideoProducer implements Camera.PreviewCallback {
             throw new WebRecorderException(e);
         }
         Log.d(TAG, "Created.");
+
+        Log.i(TAG, "Producer dimensions: "+videoWidth+" / "+videoHeight);
+    }
+
+    public void setStreaming(boolean streaming) {
+        isStreaming = streaming;
+        Log.v(TAG, "Livestream "+(streaming ? "activated" : "deactivated"));
     }
 
     public void start() {
@@ -73,6 +95,11 @@ class VideoProducer implements Camera.PreviewCallback {
         }
 
         if (videoFrameRate == -1) {
+            Log.e(TAG, "Video frame rate not defined. Thread aborting.");
+            return;
+        }
+
+        if (liveVideoFrameRate == -1) {
             Log.e(TAG, "Video frame rate not defined. Thread aborting.");
             return;
         }
@@ -97,47 +124,69 @@ class VideoProducer implements Camera.PreviewCallback {
         this.videoCodec = videoCodec;
     }
 
+    public void setLiveVideoCodec(MediaCodec liveVideoCodec) {
+        this.liveVideoCodec = liveVideoCodec;
+    }
+
     public void setVideoFrameRate(int videoFrameRate) {
         this.videoFrameRate = videoFrameRate;
+    }
+
+    public void setLiveVideoFrameRate(int liveVideoFrameRate) {
+        this.liveVideoFrameRate = liveVideoFrameRate;
     }
 
     @Override
     public void onPreviewFrame(byte[] data, android.hardware.Camera camera) {
         long now = System.nanoTime()/1000;
-
-        bi = new MediaCodec.BufferInfo();
-        inputBuffers = videoCodec.getInputBuffers();
-
-        // simple frame rate control
         tmpCapture = now * videoFrameRate / 1000000;
+
+        // simple frame rate control.
+        // IMPORTANTE: We assume to always have LIVE_FRAME_RATE < RECORDING_FRAME_RATE
         if (tmpCapture <= lastCapture)
             return;
         lastCapture = tmpCapture;
 
         byte[] new_data = new byte[data.length];
 
+        if (orientation == Orientation.TOP)
+            transpose(data, new_data, videoHeight, videoWidth);
+        else if (orientation == Orientation.BOTTOM)
+            transpose_bottom(data, new_data, videoHeight, videoWidth);
+        else if (orientation == Orientation.RIGHT)
+            transpose_flip_vert(data, new_data, videoWidth, videoHeight);
+        else
+            nv21tovn12(data, new_data, videoHeight, videoWidth);
+
+        bi = new MediaCodec.BufferInfo();
+        inputBuffers = videoCodec.getInputBuffers();
         int inputBufferId = videoCodec.dequeueInputBuffer(500000);
         if (inputBufferId >= 0) {
-            transpose(data, new_data, videoWidth, videoHeight);
             inputBuffers[inputBufferId].put(new_data);
-            videoCodec.queueInputBuffer(inputBufferId, 0, data.length, now, 0);
-        }
-    }
-
-    public static void transpose(byte[] in, byte[] out, int w, int h) {
-
-        for(int x=0; x<w; x++) {
-            for(int y=0; y<h; y++) {
-                out[(x+1)*h-1-y] = in[y*w+x];
-            }
+            videoCodec.queueInputBuffer(inputBufferId, 0, new_data.length, now, 0);
         }
 
-        for(int x=0; x<w/2; x++) {
-            for(int y=0; y<h/2; y++) {
-                out[w*h+(((x+1)*(h/2))-1-y)*2+1] = in[w*h+(y*w/2+x)*2];
-                out[w*h+(((x+1)*(h/2))-1-y)*2] = in[w*h+(y*w/2+x)*2+1];
-            }
-        }
+        if (!isStreaming)
+            return;
 
+        liveTmpCapture = now * liveVideoFrameRate / 1000000;
+        if (liveTmpCapture <= lastLiveCapture)
+            return;
+        lastLiveCapture = liveTmpCapture;
+
+        // this is a hack to avoid issues with the image reduction where their are equal.
+        byte[] reduced_data;
+        if (BuildConfig.RECORDING_QUALITY != BuildConfig.STREAMING_QUALITY)
+            reduced_data = shrink(new_data, videoWidth, videoHeight, 4);
+        else
+            reduced_data = new_data;
+
+        bi = new MediaCodec.BufferInfo();
+        liveInputBuffers = liveVideoCodec.getInputBuffers();
+        int liveInputBufferId = liveVideoCodec.dequeueInputBuffer(500000);
+        if (liveInputBufferId >= 0) {
+            liveInputBuffers[liveInputBufferId].put(reduced_data);
+            liveVideoCodec.queueInputBuffer(liveInputBufferId, 0, reduced_data.length, now, 0);
+        }
     }
 }

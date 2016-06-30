@@ -35,6 +35,7 @@
 
     <style name="button_default">
         <item name="android:background">@drawable/button_default</item>
+        <item name="android:textColor">@color/color</item>
     </style>
 
     <style name="button_blue">

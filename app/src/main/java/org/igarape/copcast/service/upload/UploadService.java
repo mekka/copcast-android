@@ -17,7 +17,6 @@ import org.igarape.copcast.state.UploadServiceEvent;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.GenericExtFilter;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.SqliteUtils;
 
@@ -65,7 +64,7 @@ public class UploadService extends Service {
 
         videoUploadIntent.putExtras(b);
 
-        ILog.d(TAG, "calling service...");
+        Log.d(TAG, "calling service...");
         videoUploadIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startService(videoUploadIntent);
         return true;
@@ -83,7 +82,7 @@ public class UploadService extends Service {
         Context context = getApplicationContext();
         UploadRequest request;
 
-        ILog.d(TAG, "UPLOAD Service STARTED!");
+        Log.d(TAG, "UPLOAD Service STARTED!");
         feedback(context, UploadServiceEvent.STARTED, null, null);
 
         ArrayList<String> users = new ArrayList<>();
@@ -92,8 +91,8 @@ public class UploadService extends Service {
         GenericExtFilter filter = new GenericExtFilter(".mp4");
 
         Collections.addAll(users, FileUtils.getNonEmptyUserFolders());
-        ILog.d(TAG, "from user folders:"+users.toString());
-        ILog.d(TAG, "from sqlite:" + dbUsers.toString());
+        Log.d(TAG, "from user folders:"+users.toString());
+        Log.d(TAG, "from sqlite:" + dbUsers.toString());
         Collections.addAll(users, dbUsers.toArray(new String[dbUsers.size()]));
 
         if ((users == null || users.isEmpty()) && SqliteUtils.countEntries(context) == 0){
@@ -113,7 +112,7 @@ public class UploadService extends Service {
                 dir.delete();
             }
 
-            ILog.d(TAG, "Uploading JSONs for user: " + userLogin);
+            Log.d(TAG, "Uploading JSONs for user: " + userLogin);
             SqliteUploader.upload(context, JsonDataType.TYPE_HISTORY_DATA, userLogin);
             SqliteUploader.upload(context, JsonDataType.TYPE_LOCATION_INFO, userLogin);
             SqliteUploader.upload(context, JsonDataType.TYPE_BATTERY_STATUS, userLogin);
@@ -138,13 +137,13 @@ public class UploadService extends Service {
             return START_NOT_STICKY;
         }
 
-        ILog.d(TAG, "Num of files: " + filesToUpload.size());
+        Log.d(TAG, "Num of files: " + filesToUpload.size());
 
 
         if (filesToUpload != null)
-            ILog.d(TAG, "# of files: "+filesToUpload.size());
+            Log.d(TAG, "# of files: "+filesToUpload.size());
         else
-            ILog.d(TAG, "No files to upload");
+            Log.d(TAG, "No files to upload");
 
         request = new UploadRequest(getApplicationContext(), UUID.randomUUID().toString());
         request.setMaxRetries(intent.getIntExtra(PARAM_MAX_RETRIES, 0));
@@ -152,7 +151,7 @@ public class UploadService extends Service {
         request.addHeader("Authorization", intent.getStringExtra(PARAM_TOKEN));
         request.setFilesToUpload(filesToUpload);
 
-        ILog.d(TAG, request.toString());
+        Log.d(TAG, request.toString());
 
         uploadTask = new RunUpload(request);
         uploadTask.execute();
@@ -228,12 +227,12 @@ public class UploadService extends Service {
                     if (res) {
                         try {
                             fileToUpload.getFile().delete();
-                            ILog.i(TAG, "File deleted: " + fileToUpload.getFileName());
+                            Log.i(TAG, "File deleted: " + fileToUpload.getFileName());
                         } catch (Exception ex) {
-                            ILog.e(TAG, "Unable to remove uploaded file", ex);
+                            Log.e(TAG, "Unable to remove uploaded file", ex);
                         }
                     } else {
-                        ILog.w(TAG, "Error ocurred with "+fileToUpload.getFileName());
+                        Log.w(TAG, "Error ocurred with "+fileToUpload.getFileName());
                     }
                     errorOccured = !res || errorOccured;
                 } catch (IOException e) {
@@ -254,7 +253,7 @@ public class UploadService extends Service {
         @Override
         protected void onCancelled() {
             super.onCancelled();
-            ILog.d(TAG, "Task upload cancel!");
+            Log.d(TAG, "Task upload cancel!");
         }
 
         @Override
@@ -296,6 +295,6 @@ public class UploadService extends Service {
         super.onDestroy();
         if (uploadTask != null && !uploadTask.isCancelled())
             uploadTask.cancel(true);
-        ILog.d(TAG, "service exiting...");
+        Log.d(TAG, "service exiting...");
     }
 }

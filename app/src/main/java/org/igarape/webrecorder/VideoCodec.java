@@ -28,7 +28,7 @@ class VideoCodec {
 
         // codec motorola razor
         //encoder = MediaCodec.createByCodecName("OMX.MTK.VIDEO.ENCODER.AVC");
-        MediaFormat mediaFormat = MediaFormat.createVideoFormat("video/avc", videoHeight, videoWidth);
+        MediaFormat mediaFormat = MediaFormat.createVideoFormat("video/avc", videoWidth, videoHeight);
 
         mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, videoBitRate);
         mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, videoFrameRate);
@@ -36,6 +36,7 @@ class VideoCodec {
         mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval);
         videoCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
         Log.d(TAG, "Created.");
+        Log.d(TAG, "Codec dimensions: "+videoWidth+" / "+videoHeight);
     }
 
     public MediaCodec getCodec() {
