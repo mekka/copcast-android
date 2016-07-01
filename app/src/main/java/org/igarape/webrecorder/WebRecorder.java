@@ -353,7 +353,7 @@ public class WebRecorder {
 
                     if (promise!=null)
                         promise.success();
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     startStopLock.release();
                     if (promise!=null)
                         promise.error(WebRecorderPromiseError.OTHER.put("exception", e));

@@ -124,7 +124,7 @@ class Mp4Muxer extends Thread {
 
         while(true) {
             try {
-                frame = queue.poll(250, TimeUnit.MILLISECONDS);
+                frame = queue.poll(100, TimeUnit.MILLISECONDS);
 
                 Log.v(TAG, "queue: "+queue.size());
 
