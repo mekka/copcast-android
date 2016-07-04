@@ -123,4 +123,7 @@
     <string name="no_connection">Você não possio conexão neste momento. Todas as informações serão mantidas localmente</string>
     <string name="device_orientation">Orientação do dispositivo</string>
     <string name="device_orientation_description">Orientação do dispositivo durante a gravação de vídeos</string>
+    <string name="livestream_request">requisitar</string>
+    <string name="livestream_cancel">cancelar</string>
+
 </resources>

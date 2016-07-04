@@ -233,15 +233,18 @@ public class MainActivity extends Activity {
                         videoRecorderService.startStreamingRequest();
                         Globals.getStateManager().setStateOrDie(MainActivity.this, State.STREAM_REQUESTED);
                         livestreamBtn.setBackgroundColor(YELLOW_STREAM_COLOR);
+                        livestreamBtn.setText(R.string.livestream_cancel);
                         break;
                     case STREAM_REQUESTED:
                         videoRecorderService.stopStreamingRequest();
                         Globals.getStateManager().setStateOrDie(MainActivity.this, State.RECORDING);
                         livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
+                        livestreamBtn.setText(R.string.livestream_request);
                         break;
                     case STREAMING:
                         videoRecorderService.stopStreaming();
                         livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
+                        livestreamBtn.setText(R.string.livestream_request);
                         break;
                     default:
                         Log.e(TAG, "stream button clicked from invalid state: "+currentState.name());
@@ -285,9 +288,11 @@ public class MainActivity extends Activity {
                     }
                 } else if (intent.getAction().equals(VideoRecorderService.STARTED_STREAMING)) {
                     livestreamBtn.setBackgroundColor(GREEN_STREAM_COLOR);
+                    livestreamBtn.setText(R.string.livestream_cancel);
                     Globals.getStateManager().setStateOrDie(MainActivity.this, State.STREAMING);
                 } else if (intent.getAction().equals(VideoRecorderService.STOPPED_STREAMING)) {
                     livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
+                    livestreamBtn.setText(R.string.livestream_request);
                     StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
                 }
             }
@@ -361,6 +366,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View view) {
                 livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
+                livestreamBtn.setText(R.string.livestream_request);
                 livestreamBtn.setEnabled(true);
                 if (Globals.getStateManager().isState(State.UPLOADING)) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -458,6 +464,7 @@ public class MainActivity extends Activity {
                                                                      findViewById(R.id.recBall).setVisibility(View.INVISIBLE);
 
                                                                      livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
+                                                                     livestreamBtn.setText(R.string.livestream_request);
 
                                                                      Intent intent = new Intent(MainActivity.this, LocationService.class);
                                                                      stopService(intent);
