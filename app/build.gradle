@@ -86,10 +86,10 @@ android {
             // You have been warned...
             buildConfigField "int", "RECORDING_QUALITY", "android.media.CamcorderProfile.QUALITY_720P"
             buildConfigField "int", "RECORDING_BITRATE", "4000000"
-            buildConfigField "int", "RECORDING_FRAMERATE", "10"
+            buildConfigField "int", "RECORDING_FRAMERATE", "30"
             buildConfigField "int", "STREAMING_QUALITY", "android.media.CamcorderProfile.QUALITY_QVGA"
             buildConfigField "int", "STREAMING_BITRATE", "250000"
-            buildConfigField "int", "STREAMING_FRAMERATE", "5"
+            buildConfigField "int", "STREAMING_FRAMERATE", "10"
         }
 
         dev {
