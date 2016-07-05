@@ -45,6 +45,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
     public static String STARTED_STREAMING = "org.igarape.mycopcast.StreamStarted";
     public static String STOPPED_STREAMING  = "org.igarape.mycopcast.StreamStopped";
+    public static String MISSION_STARTED  = "org.igarape.mycopcast.MissionStarted";
     private static final String TAG = VideoRecorderService.class.getName();
     private final IBinder mBinder = new LocalBinder();
     private WindowManager windowManager;
@@ -221,6 +222,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         try {
             webRecorder.prepare();
             webRecorder.start();
+            sendBroadcast(MISSION_STARTED);
         } catch (WebRecorderException e) {
             e.printStackTrace();
         } finally {
