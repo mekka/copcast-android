@@ -294,6 +294,9 @@ public class MainActivity extends Activity {
                     livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
                     livestreamBtn.setText(R.string.livestream_request);
                     StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
+                } else if (intent.getAction().equals(VideoRecorderService.MISSION_STARTED)) {
+                    mEndMissionButton.setEnabled(true);
+                    mPauseRecordingButton.setEnabled(true);
                 }
             }
         };
@@ -354,6 +357,7 @@ public class MainActivity extends Activity {
         broadcastFilter.addAction(BatteryReceiver.POWER_UNPLUGGED);
         broadcastFilter.addAction(VideoRecorderService.STARTED_STREAMING);
         broadcastFilter.addAction(VideoRecorderService.STOPPED_STREAMING);
+        broadcastFilter.addAction(VideoRecorderService.MISSION_STARTED);
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, broadcastFilter);
 
         //upload specific broadcast filter
@@ -394,6 +398,8 @@ public class MainActivity extends Activity {
             }
 
             private void startMission() {
+                mEndMissionButton.setEnabled(false);
+                mPauseRecordingButton.setEnabled(false);
                 mStartMissionButton.setVisibility(View.GONE);
 
                 vibrate(200);
@@ -406,7 +412,6 @@ public class MainActivity extends Activity {
                 findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
                 findViewById(R.id.streamLayout).setVisibility(View.VISIBLE);
                 findViewById(R.id.recBall).setVisibility(View.VISIBLE);
-                mEndMissionButton.setEnabled(true);
 
                 Intent intent = new Intent(MainActivity.this, VideoRecorderService.class);
                 bindService(intent, mConnection, Context.BIND_AUTO_CREATE);

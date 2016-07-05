@@ -169,9 +169,10 @@ class Mp4Muxer extends Thread {
         }
         Log.d(TAG, "Loop finished.");
 
-        flushAll();
+        if (muxerStarted && mediaMuxer != null) {
 
-        if (muxerStarted) {
+            flushAll();
+
             try {
                 mediaMuxer.release();
             } catch (IllegalStateException e) {
@@ -207,6 +208,7 @@ class Mp4Muxer extends Thread {
 
             MediaFrame frame = frames.valueAt(i);
             int trackIndex = frame.getMediaType() == MediaType.AUDIO_FRAME ? audioTrackIndex : videoTrackIndex;
+            if (mediaMuxer != null)
             mediaMuxer.writeSampleData(trackIndex, frame.getBuffer(), frame.getBufferInfo());
         }
 
