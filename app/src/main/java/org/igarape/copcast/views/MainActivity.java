@@ -126,7 +126,7 @@ public class MainActivity extends Activity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
+
         NetworkUtils.get(getApplicationContext(), "/users/me", new Promise() {
 
             @Override
@@ -317,6 +317,7 @@ public class MainActivity extends Activity {
 
         resetStatusUpload();
 
+        mStartMissionButton.setEnabled(true);
         mStartMissionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
