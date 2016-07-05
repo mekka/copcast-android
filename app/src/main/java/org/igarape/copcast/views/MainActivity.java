@@ -126,52 +126,7 @@ public class MainActivity extends Activity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-//            private Orientation state;
-//
-//            @Override
-//            public void onOrientationChanged(int orientation) {
-//
-//                Orientation o;
-//
-//                if (orientation >= 315 || (orientation <= 45))
-//                    o = Orientation.TOP;
-//                else if (orientation > 225 && orientation < 315)
-//                    o = Orientation.LEFT;
-//                else if (orientation > 135 && orientation < 225)
-//                    o = Orientation.BOTTOM;
-//                else
-//                    o = Orientation.RIGHT;
-//
-//                Orientation narrow_o = null;
-//
-//                if (orientation >= 330 || (orientation <= 30))
-//                    narrow_o = Orientation.TOP;
-//                else if (orientation > 240 && orientation < 300)
-//                    narrow_o = Orientation.LEFT;
-//                else if (orientation > 150 && orientation < 210)
-//                    narrow_o = Orientation.BOTTOM;
-//                else if (orientation > 60 && orientation < 120)
-//                    narrow_o = Orientation.RIGHT;
-//
-//                if (narrow_o != null && narrow_o != state) {
-//
-//                    state = narrow_o;
-//                    Log.v(TAG, "Orientation changed to " + narrow_o.name());
-//                    Globals.orientation = narrow_o;
-//                    Intent i = new Intent("ROTATION");
-//                    i.putExtra("ORIENTATION", narrow_o.name());
-//                    LocalBroadcastManager.getInstance(MainActivity.this).sendBroadcast(i);
-//                }
-//
-//            }
-//        };
-//
-//        Log.i(TAG, "CAN DETECT? " + mOrientationListener.canDetectOrientation());
-//
-//        if (mOrientationListener.canDetectOrientation())
-//            mOrientationListener.enable();
-
+        
         NetworkUtils.get(getApplicationContext(), "/users/me", new Promise() {
 
             @Override
