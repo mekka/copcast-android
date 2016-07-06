@@ -370,8 +370,7 @@ public class MainActivity extends Activity {
                 findViewById(R.id.recBall).setVisibility(View.VISIBLE);
 
                 Intent intent = new Intent(MainActivity.this, VideoRecorderService.class);
-                bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                bindService(intent, mConnection, Context.BIND_ADJUST_WITH_ACTIVITY);
                 startService(intent);
 
                 intent = new Intent(MainActivity.this, LocationService.class);
@@ -523,6 +522,7 @@ public class MainActivity extends Activity {
                                                      public void onClick(View view) {
                                                          mPauseRecordingButton.setVisibility(View.GONE);
                                                          findViewById(R.id.pausedLayout).setVisibility(View.VISIBLE);
+                                                         livestreamBtn.setEnabled(false);
                                                      }
                                                  }
         );
@@ -558,6 +558,7 @@ public class MainActivity extends Activity {
 
                                                                     @Override
                                                                     public void onClick(View view) {
+                                                                        livestreamBtn.setEnabled(true);
                                                                         mPauseRecordingButton.setVisibility(View.VISIBLE);
                                                                         findViewById(R.id.pausedLayout).setVisibility(View.GONE);
                                                                     }
@@ -621,6 +622,8 @@ public class MainActivity extends Activity {
         findViewById(R.id.resumeMissionButton).setVisibility(View.VISIBLE);
 
         livestreamBtn.setEnabled(false);
+        livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
+        livestreamBtn.setText(R.string.livestream_request);
 
         mPauseCounter.setVisibility(View.VISIBLE);
         findViewById(R.id.recBall).setVisibility(View.GONE);

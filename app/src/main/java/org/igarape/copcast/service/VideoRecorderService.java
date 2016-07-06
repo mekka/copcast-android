@@ -27,7 +27,6 @@ import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.IncidentUtils;
-import org.igarape.copcast.utils.StateManager;
 import org.igarape.copcast.utils.VibrateUtils;
 import org.igarape.copcast.views.MainActivity;
 import org.igarape.webrecorder.WebRecorder;
@@ -235,7 +234,18 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
     @Override
     public void onDestroy() {
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.cancel(mId);
 
+        if (webRecorder != null) {
+            try {
+                webRecorder.stopSync();
+            } catch (InterruptedException e) {
+                Log.e(TAG, "error stopping webrecorder onDestroy", e);
+            }
+            webRecorder = null;
+        }
         if(null != windowManager && null != surfaceView){
             windowManager.removeView(surfaceView);
             Log.d(TAG, "onDestroy with windowManager=["+windowManager+" and surfaceView=["+surfaceView+"]");

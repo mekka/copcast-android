@@ -337,7 +337,7 @@
                 <Button
                     android:layout_width="120dp"
                     android:layout_height="40dp"
-                    android:text="Request"
+                    android:text="@string/livestream_request"
                     android:id="@+id/livestreamBtn"
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentStart="true"
