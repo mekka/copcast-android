@@ -370,8 +370,7 @@ public class MainActivity extends Activity {
                 findViewById(R.id.recBall).setVisibility(View.VISIBLE);
 
                 Intent intent = new Intent(MainActivity.this, VideoRecorderService.class);
-                bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                bindService(intent, mConnection, Context.BIND_ADJUST_WITH_ACTIVITY);
                 startService(intent);
 
                 intent = new Intent(MainActivity.this, LocationService.class);
