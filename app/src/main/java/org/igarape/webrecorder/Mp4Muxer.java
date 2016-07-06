@@ -136,7 +136,12 @@ class Mp4Muxer extends Thread {
 
                         if (videoInitialTS > -1) {
                             flushAll();
-                            mediaMuxer.release();
+                            try {
+                                mediaMuxer.stop();
+                                mediaMuxer.release();
+                            } catch (IllegalStateException e) {
+                                Log.e(TAG, "Failed releasing the muxer (for mp4muxer restart)", e);
+                            }
                             initMuxer(true); //forced muxer will restart even if the muxer object is not null.
                             frameCounter=0;
                         }
@@ -174,6 +179,7 @@ class Mp4Muxer extends Thread {
             flushAll();
 
             try {
+                mediaMuxer.stop();
                 mediaMuxer.release();
             } catch (IllegalStateException e) {
                 Log.e(TAG, "Error releasing muxer", e);
