@@ -12,6 +12,7 @@ import android.util.Log;
 
 import org.igarape.copcast.R;
 import org.igarape.copcast.state.IncidentFlagState;
+import org.igarape.copcast.state.State;
 import org.igarape.webrecorder.enums.Orientation;
 
 import java.util.UUID;
@@ -309,6 +310,10 @@ public class Globals {
 
     public static void initStateManager(Context context) {
         stateManager = new StateManager(context);
+    }
+
+    public static void initStateManager(Context context, State currentState) {
+        stateManager = new StateManager(context, currentState);
     }
 
     public static StateManager getStateManager() {

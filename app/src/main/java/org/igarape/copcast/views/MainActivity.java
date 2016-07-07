@@ -967,4 +967,20 @@ public class MainActivity extends Activity {
         findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
         findViewById(R.id.streamLayout).setVisibility(View.GONE);
     }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable("currentState", Globals.getStateManager().getState());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        State currentState = (State) savedInstanceState.getSerializable("currentState");
+        if (currentState != null && Globals.getStateManager() == null ){
+            Log.d(TAG, "retrieving current state from bundle: "+ currentState);
+            Globals.initStateManager(getApplicationContext(), currentState);
+        }
+    }
 }

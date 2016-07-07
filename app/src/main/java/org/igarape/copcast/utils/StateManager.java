@@ -22,6 +22,11 @@ public class StateManager {
         this.context = context;
     }
 
+    public StateManager(Context context, State currentState) {
+        this.context = context;
+        this.currentState = currentState;
+    }
+
     public void setState(State newState, JSONObject extras) throws StateTransitionException {
 
         Log.d(TAG, "From "+currentState.toString()+" to "+newState.toString());
