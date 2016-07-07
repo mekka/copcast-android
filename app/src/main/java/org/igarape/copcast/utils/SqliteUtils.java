@@ -165,7 +165,7 @@ public class SqliteUtils {
 
         db.close();
 
-        ILog.d(TAG, "Entries in sqlite: "+res);
+        Log.d(TAG, "Entries in sqlite: "+res);
         return res;
     }
 }

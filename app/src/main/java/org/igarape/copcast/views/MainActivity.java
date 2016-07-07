@@ -15,6 +15,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.wifi.WifiManager;
@@ -29,9 +30,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.ProgressBar;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,7 +50,6 @@ import org.igarape.copcast.state.State;
 import org.igarape.copcast.state.UploadServiceEvent;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
-import org.igarape.copcast.utils.ILog;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.LocationUtils;
 import org.igarape.copcast.utils.NetworkUtils;
@@ -83,8 +81,12 @@ public class MainActivity extends Activity {
     private TextView mPauseCounter;
     private CountDownPausedTimer mCountDownThirtyPaused;
     private CountDownPausedTimer mCountDownTenPaused;
-    private Switch mStreamSwitch;
-    private CompoundButton.OnCheckedChangeListener mStreamListener;
+//    private Switch mStreamSwitch;
+    private Button livestreamBtn;
+    private final int GREEN_STREAM_COLOR = Color.rgb(47, 173, 114);
+    private final int YELLOW_STREAM_COLOR = Color.rgb(243, 166, 29);
+    private final int GRAY_STREAM_COLOR = Color.rgb(72, 72, 73);
+    private View.OnClickListener livestreamBtnListener;
 
     private MediaPlayer mySongclick;
     private boolean longPress = false;
@@ -121,7 +123,7 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -164,7 +166,8 @@ public class MainActivity extends Activity {
         }
         FileUtils.init(getApplicationContext());
 
-        mStreamSwitch = (Switch) findViewById(R.id.streamSwitch);
+        //mStreamSwitch = (Switch) findViewById(R.id.streamSwitch);
+        livestreamBtn = (Button) findViewById(R.id.livestreamBtn);
         uploadButton = (Button) findViewById(R.id.uploadButton);
         mStartMissionButton = (Button) findViewById(R.id.startMissionButton);
         mEndMissionButton = (Button) findViewById(R.id.endMissionButton);
@@ -175,28 +178,44 @@ public class MainActivity extends Activity {
         mCountDownThirtyPaused = new CountDownPausedTimer(MINUTES_30, 1000);
         mCountDownTenPaused = new CountDownPausedTimer(MINUTES_10, 1000);
 
-        mStreamListener = new CompoundButton.OnCheckedChangeListener() {
+        livestreamBtnListener = new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Globals.setLivestreamToggle(true);
-                //When toogling, the stopped service will start the other one
-                if (isChecked) {
-                    StateManager.setStateOrDie(MainActivity.this, State.STREAMING);
-                    videoRecorderService.startStreaming();
-                } else {
-                    StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
-                    videoRecorderService.stopStreaming();
+            public void onClick(View view) {
+                State currentState = Globals.getStateManager().getState();
 
-
+                switch (currentState) {
+                    case RECORDING:
+                        videoRecorderService.startStreamingRequest();
+                        Globals.getStateManager().setStateOrDie(MainActivity.this, State.STREAM_REQUESTED);
+                        livestreamBtn.setBackgroundColor(YELLOW_STREAM_COLOR);
+                        livestreamBtn.setText(R.string.livestream_cancel);
+                        break;
+                    case STREAM_REQUESTED:
+                        videoRecorderService.stopStreamingRequest();
+                        Globals.getStateManager().setStateOrDie(MainActivity.this, State.RECORDING);
+                        livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
+                        livestreamBtn.setText(R.string.livestream_request);
+                        break;
+                    case STREAMING:
+                        videoRecorderService.stopStreaming();
+                        livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
+                        livestreamBtn.setText(R.string.livestream_request);
+                        break;
+                    default:
+                        Log.e(TAG, "stream button clicked from invalid state: "+currentState.name());
+                        showToast("stream button clicked from invalid state: "+currentState.name());
                 }
+
             }
         };
+
+        livestreamBtn.setOnClickListener(livestreamBtnListener);
 
         broadcastReceiver
                 = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, final Intent intent) {
-                ILog.d(TAG, "received generic");
+                Log.d(TAG, "received generic");
 
                 if (intent.getAction().equals(BatteryReceiver.BATTERY_LOW_MESSAGE)) {
                     stopUploading();
@@ -223,9 +242,16 @@ public class MainActivity extends Activity {
                         });
                     }
                 } else if (intent.getAction().equals(VideoRecorderService.STARTED_STREAMING)) {
-                    mStreamSwitch.setChecked(true);
+                    livestreamBtn.setBackgroundColor(GREEN_STREAM_COLOR);
+                    livestreamBtn.setText(R.string.livestream_cancel);
+                    Globals.getStateManager().setStateOrDie(MainActivity.this, State.STREAMING);
                 } else if (intent.getAction().equals(VideoRecorderService.STOPPED_STREAMING)) {
-                    mStreamSwitch.setChecked(false);
+                    livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
+                    livestreamBtn.setText(R.string.livestream_request);
+                    StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
+                } else if (intent.getAction().equals(VideoRecorderService.MISSION_STARTED)) {
+                    mEndMissionButton.setEnabled(true);
+                    mPauseRecordingButton.setEnabled(true);
                 }
             }
         };
@@ -237,11 +263,14 @@ public class MainActivity extends Activity {
                     if (intent.getExtras() != null && intent.getExtras().get("event") != null) {
                         UploadServiceEvent use = (UploadServiceEvent) intent.getExtras().get("event");
 
-                        Log.d(TAG, "Received upload event: " + use);
-
                         if (!use.isRunning()) {
                             resetStatusUpload();
-                            StateManager.setStateOrDie(MainActivity.this, State.IDLE);
+
+                            // we only set the state if coming from the UPLOADING state
+                            // in cases when this method is called after another state
+                            // has been set (RECORDING, for instance), we do nothing.
+                            if (Globals.getStateManager().isState(State.UPLOADING))
+                                StateManager.setStateOrDie(MainActivity.this, State.IDLE);
                         } else
                             displayUploadBar();
 
@@ -256,7 +285,7 @@ public class MainActivity extends Activity {
                                 break;
                             case ABORTED_NO_NETWORK:
                                 Toast.makeText(getApplicationContext(), getString(R.string.network_state_no_network), Toast.LENGTH_LONG).show();
-                                ILog.d(TAG, "No network available");
+                                Log.d(TAG, "No network available");
                                 break;
                             case FAILED:
                                 Toast.makeText(getApplicationContext(), getString(R.string.upload_error), Toast.LENGTH_LONG).show();
@@ -265,10 +294,10 @@ public class MainActivity extends Activity {
                                 Toast.makeText(getApplicationContext(), getString(R.string.upload_completed), Toast.LENGTH_LONG).show();
                                 break;
                             case ABORTED_USER:
-                                ILog.d(TAG, "user aborted upload");
+                                Log.d(TAG, "user aborted upload");
                                 break;
                             default:
-                                ILog.e(TAG, "Unexpected upload feedback status: " + use);
+                                Log.e(TAG, "Unexpected upload feedback status: " + use);
                         }
                     }
                 }
@@ -283,6 +312,7 @@ public class MainActivity extends Activity {
         broadcastFilter.addAction(BatteryReceiver.POWER_UNPLUGGED);
         broadcastFilter.addAction(VideoRecorderService.STARTED_STREAMING);
         broadcastFilter.addAction(VideoRecorderService.STOPPED_STREAMING);
+        broadcastFilter.addAction(VideoRecorderService.MISSION_STARTED);
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, broadcastFilter);
 
         //upload specific broadcast filter
@@ -291,9 +321,13 @@ public class MainActivity extends Activity {
 
         resetStatusUpload();
 
+        mStartMissionButton.setEnabled(true);
         mStartMissionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
+                livestreamBtn.setText(R.string.livestream_request);
+                livestreamBtn.setEnabled(true);
                 if (Globals.getStateManager().isState(State.UPLOADING)) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
@@ -320,6 +354,8 @@ public class MainActivity extends Activity {
             }
 
             private void startMission() {
+                mEndMissionButton.setEnabled(false);
+                mPauseRecordingButton.setEnabled(false);
                 mStartMissionButton.setVisibility(View.GONE);
 
                 vibrate(200);
@@ -334,8 +370,7 @@ public class MainActivity extends Activity {
                 findViewById(R.id.recBall).setVisibility(View.VISIBLE);
 
                 Intent intent = new Intent(MainActivity.this, VideoRecorderService.class);
-                bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                bindService(intent, mConnection, Context.BIND_ADJUST_WITH_ACTIVITY);
                 startService(intent);
 
                 intent = new Intent(MainActivity.this, LocationService.class);
@@ -355,6 +390,8 @@ public class MainActivity extends Activity {
                                              {
                                                  @Override
                                                  public void onClick(View view) {
+
+                                                     mEndMissionButton.setEnabled(false);
 
                                                      final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
                                                      progressDialog.setTitle(getString(R.string.please_hold));
@@ -386,9 +423,8 @@ public class MainActivity extends Activity {
                                                                      findViewById(R.id.streamLayout).setVisibility(View.GONE);
                                                                      findViewById(R.id.recBall).setVisibility(View.INVISIBLE);
 
-                                                                     mStreamSwitch.setOnCheckedChangeListener(null);
-                                                                     mStreamSwitch.setChecked(false);
-                                                                     mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+                                                                     livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
+                                                                     livestreamBtn.setText(R.string.livestream_request);
 
                                                                      Intent intent = new Intent(MainActivity.this, LocationService.class);
                                                                      stopService(intent);
@@ -402,8 +438,8 @@ public class MainActivity extends Activity {
                                                                      //reset upload values
                                                                      resetStatusUpload();
                                                                      missionCompleted();
+                                                                     Log.d(TAG, "dismissing!!!");
                                                                      progressDialog.dismiss();
-//                                                                     MainActivity.this.appState = IDLE;
                                                                  }
                                                              });
                                                          }
@@ -486,6 +522,7 @@ public class MainActivity extends Activity {
                                                      public void onClick(View view) {
                                                          mPauseRecordingButton.setVisibility(View.GONE);
                                                          findViewById(R.id.pausedLayout).setVisibility(View.VISIBLE);
+                                                         livestreamBtn.setEnabled(false);
                                                      }
                                                  }
         );
@@ -521,13 +558,15 @@ public class MainActivity extends Activity {
 
                                                                     @Override
                                                                     public void onClick(View view) {
+                                                                        livestreamBtn.setEnabled(true);
                                                                         mPauseRecordingButton.setVisibility(View.VISIBLE);
                                                                         findViewById(R.id.pausedLayout).setVisibility(View.GONE);
                                                                     }
                                                                 }
         );
 
-        mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+        //mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
+
 
     }
 
@@ -569,13 +608,11 @@ public class MainActivity extends Activity {
         manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), Globals.BATTERY_REPEAT_TIME, pending);
 
     }
-
     public void missionCompleted() {
         vibrate(200); //vibrate when touch a button
         talk("mission_completed");
         talk("wait");
     }
-
     private void startPausedCountdown() {
         StateManager.setStateOrDie(MainActivity.this, State.PAUSED);
 
@@ -584,10 +621,9 @@ public class MainActivity extends Activity {
         findViewById(R.id.pausedLayout).setVisibility(View.GONE);
         findViewById(R.id.resumeMissionButton).setVisibility(View.VISIBLE);
 
-        mStreamSwitch.setOnCheckedChangeListener(null);
-        mStreamSwitch.setChecked(false);
-        mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
-        mStreamSwitch.setEnabled(false);
+        livestreamBtn.setEnabled(false);
+        livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
+        livestreamBtn.setText(R.string.livestream_request);
 
         mPauseCounter.setVisibility(View.VISIBLE);
         findViewById(R.id.recBall).setVisibility(View.GONE);
@@ -599,7 +635,7 @@ public class MainActivity extends Activity {
 
         StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
 
-        mStreamSwitch.setEnabled(true);
+        livestreamBtn.setEnabled(true);
         mResumeMissionButton.setVisibility(View.GONE);
         mPauseRecordingButton.setVisibility(View.VISIBLE);
         mPauseCounter.setVisibility(View.GONE);
@@ -627,7 +663,8 @@ public class MainActivity extends Activity {
 
     private void stopUploading() {
         findViewById(R.id.uploadCancelButton).setVisibility(View.INVISIBLE);
-        UploadService.stop(getApplicationContext());
+        if (Globals.getStateManager().isState(State.UPLOADING))
+            UploadService.stop(getApplicationContext());
     }
 
     /*
@@ -929,5 +966,21 @@ public class MainActivity extends Activity {
         findViewById(R.id.uploadLayout).setVisibility(View.GONE);
         findViewById(R.id.uploadingLayout).setVisibility(View.VISIBLE);
         findViewById(R.id.streamLayout).setVisibility(View.GONE);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable("currentState", Globals.getStateManager().getState());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        State currentState = (State) savedInstanceState.getSerializable("currentState");
+        if (currentState != null && Globals.getStateManager() == null ){
+            Log.d(TAG, "retrieving current state from bundle: "+ currentState);
+            Globals.initStateManager(getApplicationContext(), currentState);
+        }
     }
 }

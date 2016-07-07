@@ -10,7 +10,10 @@ import android.media.CamcorderProfile;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import org.igarape.copcast.R;
 import org.igarape.copcast.state.IncidentFlagState;
+import org.igarape.copcast.state.State;
+import org.igarape.webrecorder.enums.Orientation;
 
 import java.util.UUID;
 
@@ -39,13 +42,13 @@ public class Globals {
     public static final String SERVER_URL = "server_url";
     private static final String REQUIRE_WIFI_ONLY = "upload_wifi_only";
     private static final String AUTOMATIC_UPLOAD = "automatic_upload";
+    private static final String DEVICE_ORIENTATION = "device_orientation";
     private static String accessToken = null;
     private static String userLogin = null;
     private static String userName = null;
     private static Bitmap userImage = null;
     private static Long directorySize;
     private static Long directoryUploadedSize;
-    private static Boolean livestreamToggle = false;
     private static Location lastKnownLocation = null;
     private static int rotation;
     private static IncidentFlagState incidentFlag = IncidentFlagState.NOT_FLAGGED;
@@ -184,7 +187,6 @@ public class Globals {
         userLogin = null;
         userName = null;
         userImage = null;
-        livestreamToggle = false;
         hasVideoPlayback = null;
     }
 
@@ -221,19 +223,15 @@ public class Globals {
         }
         return directorySize/1024;
     }
-    public static void setLivestreamToggle(boolean value) {
-        livestreamToggle = value;
-    }
 
-    public static Boolean getLivestreamToggle(){
-        return livestreamToggle;
-    }
     public static void setRotation(int rotation) {
         Globals.rotation = rotation;
     }
 
-    public static int getRotation() {
-        return rotation;
+    public static Orientation getOrientation(Context context) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        return Orientation.valueOf(sharedPref.getString(DEVICE_ORIENTATION,
+                context.getString(R.string.ORIENTATION_DEFAULT)));
     }
 
     public static String getServerUrl(Context context){
@@ -312,6 +310,10 @@ public class Globals {
 
     public static void initStateManager(Context context) {
         stateManager = new StateManager(context);
+    }
+
+    public static void initStateManager(Context context, State currentState) {
+        stateManager = new StateManager(context, currentState);
     }
 
     public static StateManager getStateManager() {

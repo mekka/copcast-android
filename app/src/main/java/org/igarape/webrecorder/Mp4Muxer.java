@@ -93,9 +93,11 @@ class Mp4Muxer extends Thread {
         audioTrackIndex = mediaMuxer.addTrack(audioFormat);
         mediaMuxer.start();
         muxerStarted = true;
-        Log.d(TAG, "permits before: " + muxerLock.availablePermits());
-        muxerLock.release();
-        Log.d(TAG, "permits after: " + muxerLock.availablePermits());
+            Log.d(TAG, "permits before: " + muxerLock.availablePermits());
+        if (!forcedRestart) {
+            muxerLock.release();
+        }
+            Log.d(TAG, "permits after: " + muxerLock.availablePermits());
         return true;
     }
 
@@ -122,7 +124,9 @@ class Mp4Muxer extends Thread {
 
         while(true) {
             try {
-                frame = queue.poll(250, TimeUnit.MILLISECONDS);
+                frame = queue.poll(100, TimeUnit.MILLISECONDS);
+
+                Log.v(TAG, "queue: "+queue.size());
 
                 if (frame != null) {
 
@@ -131,8 +135,15 @@ class Mp4Muxer extends Thread {
                     if ((frame.getBufferInfo().presentationTimeUs - videoInitialTS)>MINUTES_5) {
 
                         if (videoInitialTS > -1) {
-                            mediaMuxer.release();
+                            flushAll();
+                            try {
+                                mediaMuxer.stop();
+                                mediaMuxer.release();
+                            } catch (IllegalStateException e) {
+                                Log.e(TAG, "Failed releasing the muxer (for mp4muxer restart)", e);
+                            }
                             initMuxer(true); //forced muxer will restart even if the muxer object is not null.
+                            frameCounter=0;
                         }
                         videoInitialTS = frame.getBufferInfo().presentationTimeUs;
                     }
@@ -163,8 +174,12 @@ class Mp4Muxer extends Thread {
         }
         Log.d(TAG, "Loop finished.");
 
-        if (muxerStarted) {
+        if (muxerStarted && mediaMuxer != null) {
+
+            flushAll();
+
             try {
+                mediaMuxer.stop();
                 mediaMuxer.release();
             } catch (IllegalStateException e) {
                 Log.e(TAG, "Error releasing muxer", e);
@@ -185,13 +200,6 @@ class Mp4Muxer extends Thread {
         for(int i = 0; i< FRAME_BUFFER_SIZE/2; i++) {
 
             MediaFrame frame = frames.valueAt(i);
-
-//            try {
-//                Thread.sleep(5,0);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-
             int trackIndex = frame.getMediaType() == MediaType.AUDIO_FRAME ? audioTrackIndex : videoTrackIndex;
             mediaMuxer.writeSampleData(trackIndex, frame.getBuffer(), frame.getBufferInfo());
         }
@@ -199,5 +207,17 @@ class Mp4Muxer extends Thread {
         for(int i = 0; i< FRAME_BUFFER_SIZE/2; i++) {
             frames.removeAt(i);
         }
+    }
+
+    private void flushAll() {
+        for(int i = 0; i< frames.size(); i++) {
+
+            MediaFrame frame = frames.valueAt(i);
+            int trackIndex = frame.getMediaType() == MediaType.AUDIO_FRAME ? audioTrackIndex : videoTrackIndex;
+            if (mediaMuxer != null)
+            mediaMuxer.writeSampleData(trackIndex, frame.getBuffer(), frame.getBufferInfo());
+        }
+
+        frames.clear();
     }
 }

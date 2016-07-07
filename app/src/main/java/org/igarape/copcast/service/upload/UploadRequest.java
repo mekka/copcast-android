@@ -2,11 +2,6 @@ package org.igarape.copcast.service.upload;
 
 import android.content.Context;
 
-import android.content.Context;
-import android.content.Intent;
-
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 

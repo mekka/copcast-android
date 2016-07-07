@@ -22,12 +22,12 @@ import android.view.WindowManager;
 import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
 import org.igarape.copcast.promises.Promise;
+import org.igarape.copcast.promises.PromiseError;
 import org.igarape.copcast.state.IncidentFlagState;
 import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.FileUtils;
 import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.IncidentUtils;
-import org.igarape.copcast.utils.StateManager;
 import org.igarape.copcast.utils.VibrateUtils;
 import org.igarape.copcast.views.MainActivity;
 import org.igarape.webrecorder.WebRecorder;
@@ -47,6 +47,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
     public static String STARTED_STREAMING = "org.igarape.mycopcast.StreamStarted";
     public static String STOPPED_STREAMING  = "org.igarape.mycopcast.StreamStopped";
+    public static String MISSION_STARTED  = "org.igarape.mycopcast.MissionStarted";
     private static final String TAG = VideoRecorderService.class.getName();
     private final IBinder mBinder = new LocalBinder();
     private WindowManager windowManager;
@@ -65,8 +66,6 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
     public class LocalBinder extends Binder {
         public VideoRecorderService getService() {
-
-            Log.d(TAG, ">>>>>>>> SERVIÇO!");
             return VideoRecorderService.this;
         }
     }
@@ -101,12 +100,14 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         ws.on("startStreaming", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                StateManager stateManager = Globals.getStateManager();
-                if (stateManager.canChangeToState(State.STREAMING) || stateManager.isCurrent(State.STREAMING)) {
-                    VideoRecorderService.this.startStreaming();
+                if (Globals.getStateManager().canChangeToState(State.STREAMING)) {
+                    webRecorder.startBroadcasting();
                     VideoRecorderService.this.sendBroadcast(VideoRecorderService.STARTED_STREAMING);
+                    ws.emit("streamStarted");
                     VibrateUtils.vibrate(getApplicationContext(), 200);
                     Log.e(TAG, "Start Stream!!!");
+                } else if (Globals.getStateManager().isCurrent(State.STREAMING)) {
+                    // we are already streaming...
                 } else {
                     ws.emit("streamDenied");
                 }
@@ -141,7 +142,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                         @Override
                         public void run() {
                             VideoRecorderService.this.stopStreaming();
-                            VideoRecorderService.this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
+                            Log.e(TAG, "Stop Stream!!!");
                             mStopStreamingOnReconnectTimer = null;
                             Log.e(TAG, "Stoping stream after reconnect timeout");
                         }
@@ -154,7 +155,6 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             @Override
             public void call(Object... args) {
                 VideoRecorderService.this.stopStreaming();
-                VideoRecorderService.this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
                 Log.e(TAG, "Stop Stream!!!");
             }
         });
@@ -232,18 +232,22 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         lock.lock();
         Log.d(TAG, "> prepare locked");
 
-        webRecorder = new WebRecorder.Builder(baseDir, BuildConfig.RECORDING_QUALITY)
-                .setVideoBitRate(BuildConfig.RECORDING_BITRATE)
-                .setVideoFrameRate(BuildConfig.RECORDING_FRAMERATE)
+        webRecorder = new WebRecorder.Builder(baseDir, BuildConfig.RECORDING_QUALITY,
+                BuildConfig.STREAMING_QUALITY, Globals.getOrientation(this), surfaceHolder)
+                .setVideoBitrate(BuildConfig.RECORDING_BITRATE)
+                .setVideoFramerate(BuildConfig.RECORDING_FRAMERATE)
+                .setLiveVideoBitrate(BuildConfig.STREAMING_BITRATE)
+                .setLiveVideoFramerate(BuildConfig.STREAMING_FRAMERATE)
                 .setVideoIFrameInterval(1)
                 .setWebsocket(VideoRecorderService.this.ws)
                 .build();
 
         try {
-            webRecorder.prepare(this.surfaceHolder);
+            webRecorder.prepare();
             webRecorder.start();
+            sendBroadcast(MISSION_STARTED);
         } catch (WebRecorderException e) {
-            e.printStackTrace();    
+            e.printStackTrace();
         } finally {
             lock.unlock();
             Log.d(TAG, "< prepare unlocked");
@@ -254,7 +258,18 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
     @Override
     public void onDestroy() {
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.cancel(mId);
 
+        if (webRecorder != null) {
+            try {
+                webRecorder.stopSync();
+            } catch (InterruptedException e) {
+                Log.e(TAG, "error stopping webrecorder onDestroy", e);
+            }
+            webRecorder = null;
+        }
         if(null != windowManager && null != surfaceView){
             windowManager.removeView(surfaceView);
             Log.d(TAG, "onDestroy with windowManager=["+windowManager+" and surfaceView=["+surfaceView+"]");
@@ -283,6 +298,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         mNotificationManager.notify(mId, mNotification.build());
         if (webRecorder != null)
             webRecorder.stop(null);
+        ws.emit("missionPaused");
     }
 
     public void resumeRecording() {
@@ -292,21 +308,28 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         mNotificationManager.notify(mId, mNotification.build());
         if (webRecorder != null) {
             try {
-                webRecorder.prepare(this.surfaceHolder);
+                webRecorder.prepare();
                 webRecorder.start();
             } catch (WebRecorderException e) {
                 Log.e(TAG, "Error resuming recording", e);
             }
         }
+        ws.emit("missionResumed");
     }
 
-    public void startStreaming() {
-        webRecorder.startBroadcasting();
+    public void startStreamingRequest() {
+        ws.emit("startStreamingRequest");
+    }
+
+    public void stopStreamingRequest() {
+        ws.emit("stopStreamingRequest");
     }
 
     public void stopStreaming() {
-        if (webRecorder != null) {
+        if (webRecorder != null && webRecorder.isStreaming()) {
+            this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
             webRecorder.stopBroadcasting();
+            ws.emit("streamStopped");
         }
     }
 
@@ -335,8 +358,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 orientation = 180;
                 break;
             default:
-                Log.e(TAG, "Unknown screen orientation. Defaulting to " +
-                        "portrait.");
+                Log.e(TAG, "Unknown screen orientation. Defaulting to portrait.");
                 orientation = 0;
                 break;
         }
@@ -347,30 +369,21 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     public void stop(Promise promise) {
 
         Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
-        lock.lock();
-        Log.d(TAG, "< stop locked");
-        try {
 
-            Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.cancel(mId);
 
-            NotificationManager mNotificationManager =
-                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            mNotificationManager.cancel(mId);
+        this.stopStreaming();
 
-            if (webRecorder != null) {
-                webRecorder.stop(promise);
-                webRecorder = null;
-            }
-            serviceRunning = false;
-            ws.disconnect();
-            Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
-            this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
-            this.stopSelf();
-        } finally {
-            lock.unlock();
-            Log.d(TAG, "< stop unlocked");
-
+        if (webRecorder != null) {
+            webRecorder.stop(promise);
+            webRecorder = null;
         }
+        serviceRunning = false;
+        ws.disconnect();
+        Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
+        this.stopSelf();
     }
 
     public void stopSync() {
@@ -392,14 +405,13 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             serviceRunning = false;
             ws.disconnect();
             Globals.setIncidentFlag(IncidentFlagState.NOT_FLAGGED);
-            this.sendBroadcast(VideoRecorderService.STOPPED_STREAMING);
+            this.stopStreaming();
             this.stopSelf();
         } catch (InterruptedException e) {
             Log.e(TAG, "error stopping video recording with stopSync", e);
         } finally {
             lock.unlock();
             Log.d(TAG, "< stop unlocked");
-
         }
     }
 

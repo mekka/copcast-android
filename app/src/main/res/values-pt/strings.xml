@@ -101,7 +101,7 @@
     <string name="warning">Atenção</string>
     <string name="incompatible_version">Versão de Android incompatível</string>
     <string name="loading">Carregando...</string>
-    <string name="error_keystore">Erro ao inicializar sistema de criptografia</string>
+    <string name="error_keystore">Erro ao inicializar sistema de criptografia.\nUm cartão SIM é requerido.</string>
     <string name="server_url_hint">URL do servidor de API</string>
     <string name="do_registration">Registrar</string>
     <string name="device_registration">Registro de Dispositivo</string>
@@ -121,4 +121,9 @@
     <string name="enable">Habilitar</string>
     <string name="notification_paused_description">A gravação está interrompida</string>
     <string name="no_connection">Você não possio conexão neste momento. Todas as informações serão mantidas localmente</string>
+    <string name="device_orientation">Orientação do dispositivo</string>
+    <string name="device_orientation_description">Orientação do dispositivo durante a gravação de vídeos</string>
+    <string name="livestream_request">requisitar</string>
+    <string name="livestream_cancel">cancelar</string>
+
 </resources>

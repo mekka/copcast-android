@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array
+        name="device_orientation">
+        <item>Vertical (para cima)</item>
+        <item>Vertical (para baixo)</item>
+        <item>Horizontal (para esquerda)</item>
+        <item>Horizontal (para direita)</item>
+    </string-array>
+
+    <string-array
+        name="device_orientation_values">
+        <item>TOP</item>
+        <item>BOTTOM</item>
+        <item>LEFT</item>
+        <item>RIGHT</item>
+    </string-array>
+
+</resources>

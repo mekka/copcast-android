@@ -1,6 +1,5 @@
 package org.igarape.copcast.utils;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 /**

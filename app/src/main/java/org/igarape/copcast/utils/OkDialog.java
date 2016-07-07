@@ -4,9 +4,9 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.util.Log;
 
 import org.igarape.copcast.R;
 
@@ -53,8 +53,15 @@ public class OkDialog extends DialogFragment {
             }
         });
 
+
         return builder.create();
     }
+
+    public void onCancel(DialogInterface dialogInterface) {
+        if (OkDialog.this.mustTerminate && OkDialog.this.activity != null)
+            OkDialog.this.activity.finish();
+    }
+
 
     private static void _display(final Activity activity, final String title, final String message, final boolean mustTerminate) {
         activity.runOnUiThread(new Runnable() {
@@ -65,7 +72,11 @@ public class OkDialog extends DialogFragment {
                 msg.setTitle(title);
                 msg.setMustTerminate(mustTerminate);
                 msg.setActivity(activity);
-                msg.show(activity.getFragmentManager(), TAG);
+                try {
+                    msg.show(activity.getFragmentManager(), TAG);
+                } catch(IllegalStateException e) {
+                    Log.w(TAG, "Dialog missed. Activity gone before dialog display.");
+                }
             }
         });
     }
