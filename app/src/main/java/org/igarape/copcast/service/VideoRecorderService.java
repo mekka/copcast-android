@@ -82,9 +82,9 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             opts.forceNew = true;
             opts.query = query;
             opts.reconnection = true;
-            opts.reconnectionDelay=1000;
-            opts.reconnectionDelayMax=1000;
-            opts.timeout = 4000;
+            opts.reconnectionDelay=5000;
+            opts.reconnectionDelayMax=10000;
+            opts.timeout = 20000;
             opts.upgrade = true;
             opts.transports = new String[] {"websocket"};
             ws = IO.socket(Globals.getServerUrl(this), opts);
