@@ -273,6 +273,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         // mId allows you to update the notification later on.
         mNotificationManager.notify(mId, mNotification.build());
         if (webRecorder != null)
+            webRecorder.stopBroadcasting();
             webRecorder.stop(null);
         ws.emit("missionPaused");
     }
