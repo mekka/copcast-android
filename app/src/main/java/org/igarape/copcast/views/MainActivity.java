@@ -250,8 +250,7 @@ public class MainActivity extends Activity {
                     livestreamBtn.setText(R.string.livestream_request);
                     StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
                 } else if (intent.getAction().equals(VideoRecorderService.MISSION_STARTED)) {
-                    mEndMissionButton.setEnabled(true);
-                    mPauseRecordingButton.setEnabled(true);
+                    missionButtonsSetEnabled(true);
                 }
             }
         };
@@ -354,8 +353,7 @@ public class MainActivity extends Activity {
             }
 
             private void startMission() {
-                mEndMissionButton.setEnabled(false);
-                mPauseRecordingButton.setEnabled(false);
+                missionButtonsSetEnabled(false);
                 mStartMissionButton.setVisibility(View.GONE);
 
                 vibrate(200);
@@ -391,7 +389,7 @@ public class MainActivity extends Activity {
                                                  @Override
                                                  public void onClick(View view) {
 
-                                                     mEndMissionButton.setEnabled(false);
+                                                     missionButtonsSetEnabled(false);
 
                                                      final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
                                                      progressDialog.setTitle(getString(R.string.please_hold));
@@ -568,6 +566,12 @@ public class MainActivity extends Activity {
         //mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
 
 
+    }
+
+    private void missionButtonsSetEnabled(boolean enabled) {
+        mEndMissionButton.setEnabled(enabled);
+        mPauseRecordingButton.setEnabled(enabled);
+        livestreamBtn.setEnabled(enabled);
     }
 
     private void startCheckingForHighAccuracyLocation() {
