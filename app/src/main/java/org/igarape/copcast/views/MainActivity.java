@@ -242,9 +242,11 @@ public class MainActivity extends Activity {
                         });
                     }
                 } else if (intent.getAction().equals(VideoRecorderService.STARTED_STREAMING)) {
-                    livestreamBtn.setBackgroundColor(GREEN_STREAM_COLOR);
-                    livestreamBtn.setText(R.string.livestream_cancel);
-                    Globals.getStateManager().setStateOrDie(MainActivity.this, State.STREAMING);
+                    if (Globals.getStateManager().canChangeToState(State.STREAMING)) {
+                        livestreamBtn.setBackgroundColor(GREEN_STREAM_COLOR);
+                        livestreamBtn.setText(R.string.livestream_cancel);
+                        Globals.getStateManager().setStateOrDie(MainActivity.this, State.STREAMING);
+                    }
                 } else if (intent.getAction().equals(VideoRecorderService.STOPPED_STREAMING)) {
                     livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
                     livestreamBtn.setText(R.string.livestream_request);
