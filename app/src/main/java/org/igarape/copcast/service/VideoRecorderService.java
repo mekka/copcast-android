@@ -29,14 +29,12 @@ import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.IncidentUtils;
 import org.igarape.copcast.utils.VibrateUtils;
 import org.igarape.copcast.views.MainActivity;
+import org.igarape.copcast.ws.SocketSingleton;
 import org.igarape.webrecorder.WebRecorder;
 import org.igarape.webrecorder.WebRecorderException;
 
-import java.net.URISyntaxException;
 import java.util.concurrent.locks.ReentrantLock;
 
-import io.socket.client.IO;
-import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
 
@@ -56,7 +54,8 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     private static String baseDir;
     WebRecorder webRecorder;
     LocalBroadcastManager localBroadcastManager;
-    private Socket ws;
+//    private Socket ws;
+    SocketSingleton ws;
     private NotificationCompat.Builder mNotification;
 
 
@@ -73,30 +72,35 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             return START_STICKY;
         }
 
-        String query = "token="+Globals.getPlainToken(this);
-        query += "&userId="+Globals.getUserId(this);
-        query += "&clientType=android";
+//        String query = "token="+Globals.getPlainToken(this);
+//        query += "&userId="+Globals.getUserId(this);
+//        query += "&clientType=android";
+//
+//        try {
+//            IO.Options opts = new IO.Options();
+//            opts.forceNew = true;
+//            opts.query = query;
+//            opts.reconnection = true;
+//            opts.reconnectionDelay=5000;
+//            opts.reconnectionDelayMax=10000;
+//            opts.timeout = 20000;
+//            opts.upgrade = true;
+//            opts.transports = new String[] {"websocket"};
+//            ws = IO.socket(Globals.getServerUrl(this), opts);
+//
+//        } catch (URISyntaxException e) {
+//            Log.e(TAG, "error connecting socket", e);
+//        }
 
-        try {
-            IO.Options opts = new IO.Options();
-            opts.forceNew = true;
-            opts.query = query;
-            opts.reconnection = true;
-            opts.reconnectionDelay=5000;
-            opts.reconnectionDelayMax=10000;
-            opts.timeout = 20000;
-            opts.upgrade = true;
-            opts.transports = new String[] {"websocket"};
-            ws = IO.socket(Globals.getServerUrl(this), opts);
-
-        } catch (URISyntaxException e) {
-            Log.e(TAG, "error connecting socket", e);
-        }
+        ws = SocketSingleton.getInstance(this);
 
         ws.on("startStreaming", new Emitter.Listener() {
             @Override
             public  void call(Object... args) {
-                startStreaming();
+                if (webRecorder != null) {
+                    Log.d(TAG, "will stream");
+                    startStreaming();
+                }
             }
 
             private synchronized void startStreaming() {
@@ -217,13 +221,14 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 .setLiveVideoBitrate(BuildConfig.STREAMING_BITRATE)
                 .setLiveVideoFramerate(BuildConfig.STREAMING_FRAMERATE)
                 .setVideoIFrameInterval(1)
-                .setWebsocket(VideoRecorderService.this.ws)
+                .setWebsocket(VideoRecorderService.this.ws.getWebsocket())
                 .build();
 
         try {
             webRecorder.prepare();
             webRecorder.start();
             sendBroadcast(MISSION_STARTED);
+            Log.d(TAG, "mission started");
         } catch (WebRecorderException e) {
             e.printStackTrace();
         } finally {
