@@ -82,4 +82,8 @@ public class SocketSingleton {
     public Socket getWebsocket() {
         return ws;
     }
+
+    public static void dismiss() {
+        socketSingleton = null;
+    }
 }

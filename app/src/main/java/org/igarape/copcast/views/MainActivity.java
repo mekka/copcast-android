@@ -55,6 +55,7 @@ import org.igarape.copcast.utils.LocationUtils;
 import org.igarape.copcast.utils.NetworkUtils;
 import org.igarape.copcast.utils.StateManager;
 import org.igarape.copcast.utils.VibrateUtils;
+import org.igarape.copcast.ws.SocketSingleton;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -126,6 +127,8 @@ public class MainActivity extends Activity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        SocketSingleton.dismiss();
 
         NetworkUtils.get(getApplicationContext(), "/users/me", new Promise() {
 
