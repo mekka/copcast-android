@@ -36,6 +36,7 @@ import android.widget.Toast;
 
 import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
+import org.igarape.copcast.exceptions.UncaughtException;
 import org.igarape.copcast.promises.HttpPromiseError;
 import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.promises.PromiseError;
@@ -126,6 +127,8 @@ public class MainActivity extends Activity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Thread.setDefaultUncaughtExceptionHandler(new UncaughtException(MainActivity.this));
 
         NetworkUtils.get(getApplicationContext(), "/users/me", new Promise() {
 

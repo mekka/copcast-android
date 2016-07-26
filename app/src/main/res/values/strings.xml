@@ -132,5 +132,9 @@
     <string name="device_orientation_description">Device orientation setting for recorded videos.</string>
     <string name="livestream_request">request</string>
     <string name="livestream_cancel">cancel</string>
+    <string name="crash_subject">Copcast crashed!</string>
+    <string name="report_crash">Report...</string>
+    <string name="message_crash">Copcast has crashed</string>
+    <string name="title_crash">Sorry...!</string>
 
 </resources>

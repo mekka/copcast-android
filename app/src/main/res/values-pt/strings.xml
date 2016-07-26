@@ -125,5 +125,9 @@
     <string name="device_orientation_description">Orientação do dispositivo durante a gravação de vídeos</string>
     <string name="livestream_request">requisitar</string>
     <string name="livestream_cancel">cancelar</string>
+    <string name="crash_subject">Ocorreu um erro no Copcast!</string>
+    <string name="report_crash">Enviar...</string>
+    <string name="message_crash">Ocorreu um erro no Copcast</string>
+    <string name="title_crash">Desculpe-nos...!</string>
 
 </resources>
