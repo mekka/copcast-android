@@ -64,8 +64,8 @@ public class RegistrationActivity extends Activity {
 
     private void doRegister() {
         progressDialog.show();
-        final String url = register_url.getText().toString();
-        final String username = register_username.getText().toString();
+        final String url = register_url.getText().toString().trim();
+        final String username = register_username.getText().toString().trim();
         final String pwd = register_password.getText().toString();
 
         new AsyncTask<Void, Void, Void>() {
