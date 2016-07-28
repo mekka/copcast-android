@@ -4,6 +4,8 @@ import android.content.Context;
 import android.util.Log;
 import org.igarape.copcast.utils.Globals;
 import java.net.URISyntaxException;
+
+import io.socket.client.Ack;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -68,6 +70,10 @@ public class SocketSingleton {
     }
 
     public void emit(String event, Object... args) {
+        ws.emit(event, args);
+    }
+
+    public void safe_emit(String event, Object... args) {
         ws.emit(event, args);
     }
 
