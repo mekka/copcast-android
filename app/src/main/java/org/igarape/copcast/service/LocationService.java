@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
@@ -25,11 +24,7 @@ import org.igarape.copcast.utils.Globals;
 import org.igarape.copcast.utils.HeartBeatUtils;
 import org.igarape.copcast.utils.LocationUtils;
 import org.igarape.copcast.views.MainActivity;
-import org.igarape.copcast.ws.SocketSingleton;
 import org.json.JSONException;
-import org.json.JSONObject;
-
-import io.socket.client.Socket;
 
 
 /**
@@ -39,7 +34,6 @@ public class LocationService extends Service implements LocationListener, Google
     private static final String TAG = LocationService.class.getName();
     private int mId = 2;
     private GoogleApiClient mGoogleApiClient;
-    private Socket ws;
 
     @Override
     public void onDestroy() {
@@ -62,11 +56,8 @@ public class LocationService extends Service implements LocationListener, Google
 
     public void sendHeartbeat(Location location) throws JSONException {
         Globals.setLastKnownLocation(location);
-        JSONObject obj = new JSONObject();
-        obj.put("location", LocationUtils.buildJson(location));
-        obj.put("battery", BatteryUtils.buildJson());
-        obj.put("state", Globals.getStateManager().getState().name());
-        ws.emit("heartbeat", obj);
+        HeartBeatUtils.sendHeartBeat(LocationService.this, LocationUtils.buildJson(location), BatteryUtils.buildJson());
+
     }
 
     @Override
@@ -90,7 +81,7 @@ public class LocationService extends Service implements LocationListener, Google
             return START_STICKY;
         }
 
-        ws = SocketSingleton.getInstance(this).getWebsocket();
+//        socketSingleton = SocketSingleton.getInstance(this);
 
         final Intent resultIntent = new Intent(this, MainActivity.class);
         final Context context = getApplicationContext();
@@ -130,15 +121,6 @@ public class LocationService extends Service implements LocationListener, Google
 
     @Override
     public void onConnected(Bundle bundle) {
-
-        // set and send last known location right before setting up request service.
-        try {
-            sendHeartbeat(LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient));
-        } catch(JSONException ex) {
-            Log.e(TAG, "Tried to send initial location, but got null instead.");
-        } catch(Exception ex) {
-            Log.e(TAG, "No location information to send.");
-        }
 
         LocationRequest mLocationRequest = new LocationRequest();
 

@@ -5,8 +5,11 @@ import android.util.Log;
 
 import org.igarape.copcast.db.JsonDataType;
 import org.igarape.copcast.exceptions.SqliteDbException;
+import org.igarape.copcast.ws.SocketSingleton;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import io.socket.client.Ack;
 
 /**
  * Created by brunosiqueira on 13/10/15.
@@ -44,7 +47,9 @@ class HeartbeatLoggedCallback extends LoggedHTTPResponseCallback {
 public class HeartBeatUtils {
     private static final String TAG = HeartBeatUtils.class.getName();
 
-    public static void sendHeartBeat(Context context, final JSONObject locationJson, final JSONObject batteryJson){
+    public static void sendHeartBeat(final Context context, final JSONObject locationJson, final JSONObject batteryJson){
+
+        SocketSingleton socketSingleton = SocketSingleton.getInstance(context);
 
         try {
             JSONObject json = new JSONObject();
@@ -55,9 +60,30 @@ public class HeartBeatUtils {
 
             json.put("state", Globals.getStateManager().getState().name());
 
-            final LoggedHTTPResponseCallback hblogger = new HeartbeatLoggedCallback(context, JsonDataType.TYPE_HEARTBEAT_DATA, json, TAG);
+            String userLogin = Globals.getUserLogin(context);
+            final long[] id = new long[1];
+            id[0] = -1;
+            try {
+                id[0] = SqliteUtils.storeToDb(context, userLogin, JsonDataType.TYPE_HEARTBEAT_DATA, json);
+            } catch (SqliteDbException e) {
+                Log.e(TAG, "error storing data into db", e);
+            }
 
-            NetworkUtils.post(context, JsonDataType.TYPE_HEARTBEAT_DATA.getUrl(), json, hblogger);
+            json.put("ack", id[0]);
+
+            socketSingleton.safe_emit("heartbeat", json, new Ack() {
+                @Override
+                public void call(Object... args) {
+                    Log.e(TAG, "callback retornou: "+args[0]+" ["+id[0]+"]");
+                    if (id[0]>=0) {
+                        SqliteUtils.clearById(context, id[0]);
+                    }
+                }
+            });
+
+//            final LoggedHTTPResponseCallback hblogger = new HeartbeatLoggedCallback(context, JsonDataType.TYPE_HEARTBEAT_DATA, json, TAG);
+
+//            NetworkUtils.post(context, JsonDataType.TYPE_HEARTBEAT_DATA.getUrl(), json, hblogger);
         } catch (JSONException e) {
             Log.e(TAG, "error sending heartbeat", e);
         }
