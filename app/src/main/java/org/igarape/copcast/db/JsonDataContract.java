@@ -11,7 +11,6 @@ public class JsonDataContract {
 
     public static abstract class JsonDataEntry implements BaseColumns {
         public static final String TABLE_NAME = "jsondata";
-        public static final String COLUMN_ID = "id";
         public static final String COLUMN_USER = "user";
         public static final String COLUMN_TYPE = "jsontype";
         public static final String COLUMN_DATA = "jsondata";
