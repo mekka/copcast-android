@@ -28,8 +28,9 @@ android {
         applicationId "br.org.igarape.copcast"
         minSdkVersion 18
         targetSdkVersion 22
-        versionCode 7
+        versionCode 14
         versionName "2.2.0"
+        versionCode 13
         // Enabling multidex support.
         multiDexEnabled true
         signingConfig signingConfigs.config
@@ -50,6 +51,7 @@ android {
             resValue "string", "AUTOMATIC_UPLOAD_DEFAULT", "true"
             resValue "string", "ORIENTATION_DEFAULT", "\"RIGHT\""
             resValue "string", "VERSION_NAME", android.defaultConfig.versionName
+            buildConfigField "String", "EMAIL", "\"desenvolvedor@igarape.org.br\""
             buildConfigField "boolean", "HAS_INCIDENT_FORM", "false"
             buildConfigField "int", "RECORDING_QUALITY", "android.media.CamcorderProfile.QUALITY_QVGA"
             buildConfigField "int", "RECORDING_BITRATE", "250000"
@@ -66,6 +68,7 @@ android {
             resValue "string", "AUTOMATIC_UPLOAD_DEFAULT", "true"
             resValue "string", "ORIENTATION_DEFAULT", "\"TOP\""
             resValue "string", "VERSION_NAME", android.defaultConfig.versionName
+            buildConfigField "String", "EMAIL", "\"desenvolvedor@igarape.org.br\""
             buildConfigField "boolean", "HAS_INCIDENT_FORM", "true"
             buildConfigField "int", "RECORDING_QUALITY", "android.media.CamcorderProfile.QUALITY_QVGA"
             buildConfigField "int", "RECORDING_BITRATE", "250000"
@@ -81,11 +84,12 @@ android {
             resValue "string", "AUTOMATIC_UPLOAD_DEFAULT", "true"
             resValue "string", "ORIENTATION_DEFAULT", "\"TOP\""
             resValue "string", "VERSION_NAME", android.defaultConfig.versionName
+            buildConfigField "String", "EMAIL", "\"desenvolvedor@igarape.org.br\""
             buildConfigField "boolean", "HAS_INCIDENT_FORM", "true"
             // The video quality values for Rwanda MUST NOT be changed.
             // You have been warned...
             buildConfigField "int", "RECORDING_QUALITY", "android.media.CamcorderProfile.QUALITY_720P"
-            buildConfigField "int", "RECORDING_BITRATE", "4000000"
+            buildConfigField "int", "RECORDING_BITRATE", "2000000"
             buildConfigField "int", "RECORDING_FRAMERATE", "30"
             buildConfigField "int", "STREAMING_QUALITY", "android.media.CamcorderProfile.QUALITY_QVGA"
             buildConfigField "int", "STREAMING_BITRATE", "250000"
@@ -98,6 +102,7 @@ android {
             resValue "string", "AUTOMATIC_UPLOAD_DEFAULT", "true"
             resValue "string", "ORIENTATION_DEFAULT", "\"TOP\""
             resValue "string", "VERSION_NAME", android.defaultConfig.versionName
+            buildConfigField "String", "EMAIL", "\"desenvolvedor@igarape.org.br\""
             buildConfigField "boolean", "HAS_INCIDENT_FORM", "true"
             buildConfigField "int", "RECORDING_QUALITY", "android.media.CamcorderProfile.QUALITY_QVGA"
             buildConfigField "int", "RECORDING_BITRATE", "250000"
