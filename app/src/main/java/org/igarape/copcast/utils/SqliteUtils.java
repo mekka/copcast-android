@@ -29,7 +29,7 @@ public class SqliteUtils {
         return dbHelper.getWritableDatabase();
     }
 
-    public static void storeToDb(Context context, String user, JsonDataType type, String value) throws SqliteDbException {
+    public static long storeToDb(Context context, String user, JsonDataType type, String value) throws SqliteDbException {
 
         if (user == null)
             throw new SqliteDbException(TAG, "Invalid user: null");
@@ -53,10 +53,11 @@ public class SqliteUtils {
 
         Log.d(TAG, "INSERTED "+value+" OF TYPE "+type.getType()+" FOR USER "+user+" WITH ID "+newRowId);
         db.close();
+        return newRowId;
     }
 
-    public static void storeToDb(Context context, String user, JsonDataType type, JSONObject obj) throws SqliteDbException {
-        storeToDb(context, user, type, obj.toString());
+    public static long storeToDb(Context context, String user, JsonDataType type, JSONObject obj) throws SqliteDbException {
+        return storeToDb(context, user, type, obj.toString());
     }
 
     public static void clearByType(Context context, String user, JsonDataType jsonDataType) {
@@ -65,6 +66,18 @@ public class SqliteUtils {
         int r = db.delete(JsonDataEntry.TABLE_NAME, JsonDataEntry.COLUMN_TYPE+"=? AND "+JsonDataEntry.COLUMN_USER+"=?", new String[] {jsonDataType.getType(), user});
 
         Log.d(TAG, "Number of " + jsonDataType + " entries removed: " + r);
+        db.close();
+    }
+
+    public static void clearById(Context context, long id) {
+        SQLiteDatabase db = SqliteUtils.getWriteDb(context);
+
+        try {
+            int r = db.delete(JsonDataEntry.TABLE_NAME, JsonDataEntry._ID + "=?", new String[]{String.valueOf(id)});
+            Log.v(TAG, "Entry ID [" + id + "] removed: " + r);
+        } catch (Exception e) {
+            Log.e(TAG, "Error deleting entry with id: " + id, e);
+        }
         db.close();
     }
 
