@@ -43,6 +43,7 @@ public class Globals {
     private static final String REQUIRE_WIFI_ONLY = "upload_wifi_only";
     private static final String AUTOMATIC_UPLOAD = "automatic_upload";
     private static final String DEVICE_ORIENTATION = "device_orientation";
+    private static final String CODEC_NAME = "codec_name";
     private static String accessToken = null;
     private static String userLogin = null;
     private static String userName = null;
@@ -56,6 +57,7 @@ public class Globals {
     public static int appCamcoderProfile = CamcorderProfile.QUALITY_QVGA;
     private static String imei;
     private static String simid;
+    private static String codecName;
     private static UUID sessionId;
     private static StateManager stateManager;
     private static Integer userId;
@@ -350,5 +352,21 @@ public class Globals {
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putBoolean(HAS_VIDEO_PLAYBACK, showVideosScreen);
         editor.apply();
+    }
+
+    public static void setCodecName( String codecName) {
+//        SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
+//        SharedPreferences.Editor editor = sharedPrefs.edit();
+//        editor.putString(CODEC_NAME, codecName);
+//        editor.apply();
+        Globals.codecName = codecName;
+    }
+
+    public static String getCodecName() {
+//        if (codecName == null) {
+//            SharedPreferences sharedPrefs = context.getSharedPreferences(DATA, Context.MODE_PRIVATE);
+//            codecName = sharedPrefs.getString(CODEC_NAME, null);
+//        }
+        return codecName;
     }
 }
