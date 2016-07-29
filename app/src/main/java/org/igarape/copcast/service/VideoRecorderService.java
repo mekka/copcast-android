@@ -22,7 +22,6 @@ import android.view.WindowManager;
 import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
 import org.igarape.copcast.promises.Promise;
-import org.igarape.copcast.promises.PromiseError;
 import org.igarape.copcast.state.IncidentFlagState;
 import org.igarape.copcast.state.State;
 import org.igarape.copcast.utils.FileUtils;
