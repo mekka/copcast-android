@@ -36,6 +36,7 @@ import android.widget.Toast;
 
 import org.igarape.copcast.BuildConfig;
 import org.igarape.copcast.R;
+import org.igarape.copcast.exceptions.UncaughtException;
 import org.igarape.copcast.promises.HttpPromiseError;
 import org.igarape.copcast.promises.Promise;
 import org.igarape.copcast.promises.PromiseError;
@@ -126,6 +127,8 @@ public class MainActivity extends Activity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Thread.setDefaultUncaughtExceptionHandler(new UncaughtException(MainActivity.this));
 
         NetworkUtils.get(getApplicationContext(), "/users/me", new Promise() {
 
@@ -242,16 +245,17 @@ public class MainActivity extends Activity {
                         });
                     }
                 } else if (intent.getAction().equals(VideoRecorderService.STARTED_STREAMING)) {
-                    livestreamBtn.setBackgroundColor(GREEN_STREAM_COLOR);
-                    livestreamBtn.setText(R.string.livestream_cancel);
-                    Globals.getStateManager().setStateOrDie(MainActivity.this, State.STREAMING);
+                    if (Globals.getStateManager().canChangeToState(State.STREAMING)) {
+                        livestreamBtn.setBackgroundColor(GREEN_STREAM_COLOR);
+                        livestreamBtn.setText(R.string.livestream_cancel);
+                        Globals.getStateManager().setStateOrDie(MainActivity.this, State.STREAMING);
+                    }
                 } else if (intent.getAction().equals(VideoRecorderService.STOPPED_STREAMING)) {
                     livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
                     livestreamBtn.setText(R.string.livestream_request);
                     StateManager.setStateOrDie(MainActivity.this, State.RECORDING);
                 } else if (intent.getAction().equals(VideoRecorderService.MISSION_STARTED)) {
-                    mEndMissionButton.setEnabled(true);
-                    mPauseRecordingButton.setEnabled(true);
+                    missionButtonsSetEnabled(true);
                 }
             }
         };
@@ -354,8 +358,7 @@ public class MainActivity extends Activity {
             }
 
             private void startMission() {
-                mEndMissionButton.setEnabled(false);
-                mPauseRecordingButton.setEnabled(false);
+                missionButtonsSetEnabled(false);
                 mStartMissionButton.setVisibility(View.GONE);
 
                 vibrate(200);
@@ -391,7 +394,7 @@ public class MainActivity extends Activity {
                                                  @Override
                                                  public void onClick(View view) {
 
-                                                     mEndMissionButton.setEnabled(false);
+                                                     missionButtonsSetEnabled(false);
 
                                                      final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
                                                      progressDialog.setTitle(getString(R.string.please_hold));
@@ -568,6 +571,12 @@ public class MainActivity extends Activity {
         //mStreamSwitch.setOnCheckedChangeListener(mStreamListener);
 
 
+    }
+
+    private void missionButtonsSetEnabled(boolean enabled) {
+        mEndMissionButton.setEnabled(enabled);
+        mPauseRecordingButton.setEnabled(enabled);
+        livestreamBtn.setEnabled(enabled);
     }
 
     private void startCheckingForHighAccuracyLocation() {

@@ -86,9 +86,9 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             opts.forceNew = true;
             opts.query = query;
             opts.reconnection = true;
-            opts.reconnectionDelay=1000;
-            opts.reconnectionDelayMax=1000;
-            opts.timeout = 4000;
+            opts.reconnectionDelay=5000;
+            opts.reconnectionDelayMax=10000;
+            opts.timeout = 20000;
             opts.upgrade = true;
             opts.transports = new String[] {"websocket"};
             ws = IO.socket(Globals.getServerUrl(this), opts);
@@ -99,16 +99,18 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
         ws.on("startStreaming", new Emitter.Listener() {
             @Override
-            public void call(Object... args) {
+            public  void call(Object... args) {
+                startStreaming();
+            }
+
+            private synchronized void startStreaming() {
                 if (Globals.getStateManager().canChangeToState(State.STREAMING)) {
                     webRecorder.startBroadcasting();
                     VideoRecorderService.this.sendBroadcast(VideoRecorderService.STARTED_STREAMING);
                     ws.emit("streamStarted");
                     VibrateUtils.vibrate(getApplicationContext(), 200);
                     Log.e(TAG, "Start Stream!!!");
-                } else if (Globals.getStateManager().isCurrent(State.STREAMING)) {
-                    // we are already streaming...
-                } else {
+                } else if (!Globals.getStateManager().isCurrent(State.STREAMING)) {
                     ws.emit("streamDenied");
                 }
             }
@@ -297,6 +299,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         // mId allows you to update the notification later on.
         mNotificationManager.notify(mId, mNotification.build());
         if (webRecorder != null)
+            webRecorder.stopBroadcasting();
             webRecorder.stop(null);
         ws.emit("missionPaused");
     }
