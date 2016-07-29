@@ -6,6 +6,7 @@ import android.util.Log;
 import org.igarape.copcast.db.JsonDataType;
 import org.igarape.copcast.exceptions.HistoryException;
 import org.igarape.copcast.state.State;
+import org.igarape.copcast.state.State;
 import org.json.JSONException;
 import org.json.JSONObject;
 
