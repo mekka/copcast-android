@@ -29,5 +29,9 @@
             android:key="version_name"
             android:summary="@string/VERSION_NAME">
         </PreferenceScreen>
+        <Preference android:title="@string/feedback" >
+            <intent android:action="android.intent.action.VIEW"
+                android:data="https://docs.google.com/forms/d/e/1FAIpQLSe-i7CEoqSxKXu5_6OYt1QuYXBK53GKy3UcKdGA5r3zUKenAQ/viewform" />
+        </Preference>
     </PreferenceCategory>
 </PreferenceScreen>
