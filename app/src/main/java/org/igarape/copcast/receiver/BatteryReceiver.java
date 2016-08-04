@@ -24,8 +24,10 @@ public class BatteryReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (Intent.ACTION_BATTERY_LOW.equalsIgnoreCase(intent.getAction())){
-            broadcastBatteryStatus(context, BATTERY_LOW_MESSAGE);
             BatteryUtils.updateValues(intent);
+            if (BatteryUtils.getBatteryPercentage() <= 3){
+                broadcastBatteryStatus(context, BATTERY_LOW_MESSAGE);
+            }
         } else if (Intent.ACTION_BATTERY_OKAY.equalsIgnoreCase(intent.getAction())){
             broadcastBatteryStatus(context, BATTERY_OKAY_MESSAGE);
             BatteryUtils.updateValues(intent);
