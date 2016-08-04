@@ -36,6 +36,7 @@ public class Globals {
     private static final String PREF_USER_LOGIN = "PREF_USER_LOGIN";
     private static final String PREF_IMEI = "PREF_IMEI";
     private static final String HAS_VIDEO_PLAYBACK = "HAS_VIDEO_PLAYBACK";
+    private static final String SHOW_FEEDBACK = "SHOW_FEEDBACK";
     private static final String PREF_SIMID = "PREF_SIMID";
     public static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
@@ -62,6 +63,7 @@ public class Globals {
     private static StateManager stateManager;
     private static Integer userId;
     private static Boolean hasVideoPlayback;
+    private static Boolean showFeedback;
 
     public synchronized static String getAccessToken(Context context) {
         if (accessToken == null) {
@@ -190,6 +192,7 @@ public class Globals {
         userName = null;
         userImage = null;
         hasVideoPlayback = null;
+        showFeedback = null;
     }
 
     public static void setDirectorySize(Context context,Long directorySize) {
@@ -347,10 +350,10 @@ public class Globals {
         return hasVideoPlayback;
     }
 
-    public static void setHasVideoPlayback(Context context, boolean showVideosScreen) {
+    public static void setHasVideoPlayback(Context context, boolean hasVideoPlayback) {
         SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putBoolean(HAS_VIDEO_PLAYBACK, showVideosScreen);
+        editor.putBoolean(HAS_VIDEO_PLAYBACK, hasVideoPlayback);
         editor.apply();
     }
 
@@ -368,5 +371,21 @@ public class Globals {
 //            codecName = sharedPrefs.getString(CODEC_NAME, null);
 //        }
         return codecName;
+    }
+
+
+    public static Boolean showFeedback(Context context) {
+        if (showFeedback == null) {
+            SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
+            showFeedback = sharedPrefs.getBoolean(SHOW_FEEDBACK, false);
+        }
+        return showFeedback;
+    }
+
+    public static void setShowFeedback(Context context, boolean showVideosScreen) {
+        SharedPreferences sharedPrefs = context.getSharedPreferences(AUTH, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.putBoolean(SHOW_FEEDBACK, showVideosScreen);
+        editor.apply();
     }
 }

@@ -136,6 +136,6 @@
     <string name="report_crash">Report...</string>
     <string name="message_crash">Copcast has crashed</string>
     <string name="title_crash">Sorry...!</string>
-    <string name="feedback">Send us your feedback</string>
+    <string name="feedback">Send feedback</string>
 
 </resources>
