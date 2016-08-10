@@ -129,5 +129,6 @@
     <string name="report_crash">Enviar...</string>
     <string name="message_crash">Ocorreu um erro no Copcast</string>
     <string name="title_crash">Desculpe-nos...!</string>
+    <string name="feedback">Nos dê sua opinião</string>
 
 </resources>

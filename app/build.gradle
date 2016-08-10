@@ -58,6 +58,7 @@ android {
             buildConfigField "int", "STREAMING_QUALITY", "android.media.CamcorderProfile.QUALITY_QVGA"
             buildConfigField "int", "STREAMING_BITRATE", "250000"
             buildConfigField "int", "STREAMING_FRAMERATE", "5"
+            buildConfigField "int", "STOP_STREAMING_TIMEOUT", "60000"
             signingConfig signingConfigs.config
         }
 
@@ -75,6 +76,7 @@ android {
             buildConfigField "int", "STREAMING_QUALITY", "android.media.CamcorderProfile.QUALITY_QVGA"
             buildConfigField "int", "STREAMING_BITRATE", "250000"
             buildConfigField "int", "STREAMING_FRAMERATE", "20"
+            buildConfigField "int", "STOP_STREAMING_TIMEOUT", "60000"
         }
 
         rwanda {
@@ -93,6 +95,7 @@ android {
             buildConfigField "int", "STREAMING_QUALITY", "android.media.CamcorderProfile.QUALITY_QVGA"
             buildConfigField "int", "STREAMING_BITRATE", "250000"
             buildConfigField "int", "STREAMING_FRAMERATE", "10"
+            buildConfigField "int", "STOP_STREAMING_TIMEOUT", "60000"
         }
 
         dev {
@@ -109,6 +112,7 @@ android {
             buildConfigField "int", "STREAMING_QUALITY", "android.media.CamcorderProfile.QUALITY_QVGA"
             buildConfigField "int", "STREAMING_BITRATE", "250000"
             buildConfigField "int", "STREAMING_FRAMERATE", "5"
+            buildConfigField "int", "STOP_STREAMING_TIMEOUT", "60000"
         }
     }
 

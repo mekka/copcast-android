@@ -143,6 +143,7 @@ public class LoginActivity extends Activity {
                             Globals.setUserName(getApplicationContext(), response.getString("userName"));
                             Globals.setUserId(getApplicationContext(), response.getInt("userId"));
                             Globals.setHasVideoPlayback(getApplicationContext(), response.getBoolean("hasVideoPlayback"));
+                            Globals.setShowFeedback(getApplicationContext(), response.getBoolean("showFeedback"));
                         } catch (JSONException e) {
                             OkDialog.displayAndTerminate(LoginActivity.this, getString(R.string.warning), getString(R.string.internal_error));
                             Log.e(TAG, "error on login", e);

@@ -221,7 +221,11 @@ public class MainActivity extends Activity {
                 Log.d(TAG, "received generic");
 
                 if (intent.getAction().equals(BatteryReceiver.BATTERY_LOW_MESSAGE)) {
-                    stopUploading();
+                    if (Globals.getStateManager().getState() == State.UPLOADING) {
+                        stopUploading();
+                    } else if (Globals.getStateManager().getState() == State.STREAMING) {
+                        stopMission();
+                    }
                 } else if (intent.getAction().equals(BatteryReceiver.POWER_UNPLUGGED)) {
 
                     if (Globals.getStateManager().isState(State.UPLOADING)) {
@@ -394,66 +398,10 @@ public class MainActivity extends Activity {
                                                  @Override
                                                  public void onClick(View view) {
 
-                                                     missionButtonsSetEnabled(false);
-
-                                                     final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
-                                                     progressDialog.setTitle(getString(R.string.please_hold));
-                                                     progressDialog.setMessage(getString(R.string.storing_video));
-                                                     progressDialog.show();
-                                                     vibrate(100);
-
-                                                     videoRecorderService.stop(new Promise<WebRecorderPromiseError>() {
-                                                         @Override
-                                                         public void success() {
-
-                                                             runOnUiThread(new Runnable() {
-                                                                 @Override
-                                                                 public void run() {
-
-                                                                     StateManager.setStateOrDie(MainActivity.this, State.IDLE);
-
-                                                                     mStartMissionButton.setVisibility(View.VISIBLE);
-                                                                     mPauseCounter.setVisibility(View.GONE);
-                                                                     findViewById(R.id.pauseRecordingButton).setVisibility(View.VISIBLE);
-                                                                     findViewById(R.id.pausedLayout).setVisibility(View.GONE);
-                                                                     findViewById(R.id.resumeMissionButton).setVisibility(View.GONE);
-                                                                     findViewById(R.id.settingsLayout).setVisibility(View.GONE);
-                                                                     ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.welcome));
-                                                                     ((TextView) findViewById(R.id.welcomeDesc)).setText(getString(R.string.welcome_desc));
-
-                                                                     findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
-                                                                     findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
-                                                                     findViewById(R.id.streamLayout).setVisibility(View.GONE);
-                                                                     findViewById(R.id.recBall).setVisibility(View.INVISIBLE);
-
-                                                                     livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
-                                                                     livestreamBtn.setText(R.string.livestream_request);
-
-                                                                     Intent intent = new Intent(MainActivity.this, LocationService.class);
-                                                                     stopService(intent);
-
-                                                                     mCountDownTenPaused.cancel();
-                                                                     mCountDownThirtyPaused.cancel();
-                                                                     mPauseCounter.setText("");
-
-                                                                     stopCheckingForHighAccuracyLocation();
-
-                                                                     //reset upload values
-                                                                     resetStatusUpload();
-                                                                     missionCompleted();
-                                                                     Log.d(TAG, "dismissing!!!");
-                                                                     progressDialog.dismiss();
-                                                                 }
-                                                             });
-                                                         }
-
-                                                         @Override
-                                                         public void error(PromiseError exception) {
-                                                             Log.e(TAG, "webrecorder stop error: " + exception.toString());
-                                                             this.success();
-                                                         }
-                                                     });
+                                                     stopMission();
                                                  }
+
+
                                              }
 
 
@@ -594,6 +542,67 @@ public class MainActivity extends Activity {
 
     private void stopCheckingForHighAccuracyLocation() {
         mCheckForHighAccuracyLocationTimer.cancel();
+    }
+    private void stopMission() {
+        missionButtonsSetEnabled(false);
+
+        final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
+        progressDialog.setTitle(getString(R.string.please_hold));
+        progressDialog.setMessage(getString(R.string.storing_video));
+        progressDialog.show();
+        vibrate(100);
+
+        videoRecorderService.stop(new Promise<WebRecorderPromiseError>() {
+            @Override
+            public void success() {
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        StateManager.setStateOrDie(MainActivity.this, State.IDLE);
+
+                        mStartMissionButton.setVisibility(View.VISIBLE);
+                        mPauseCounter.setVisibility(View.GONE);
+                        findViewById(R.id.pauseRecordingButton).setVisibility(View.VISIBLE);
+                        findViewById(R.id.pausedLayout).setVisibility(View.GONE);
+                        findViewById(R.id.resumeMissionButton).setVisibility(View.GONE);
+                        findViewById(R.id.settingsLayout).setVisibility(View.GONE);
+                        ((TextView) findViewById(R.id.welcome)).setText(getString(R.string.welcome));
+                        ((TextView) findViewById(R.id.welcomeDesc)).setText(getString(R.string.welcome_desc));
+
+                        findViewById(R.id.uploadLayout).setVisibility(View.VISIBLE);
+                        findViewById(R.id.uploadingLayout).setVisibility(View.GONE);
+                        findViewById(R.id.streamLayout).setVisibility(View.GONE);
+                        findViewById(R.id.recBall).setVisibility(View.INVISIBLE);
+
+                        livestreamBtn.setBackgroundColor(GRAY_STREAM_COLOR);
+                        livestreamBtn.setText(R.string.livestream_request);
+
+                        Intent intent = new Intent(MainActivity.this, LocationService.class);
+                        stopService(intent);
+
+                        mCountDownTenPaused.cancel();
+                        mCountDownThirtyPaused.cancel();
+                        mPauseCounter.setText("");
+
+                        stopCheckingForHighAccuracyLocation();
+
+                        //reset upload values
+                        resetStatusUpload();
+                        missionCompleted();
+                        Log.d(TAG, "dismissing!!!");
+                        progressDialog.dismiss();
+                    }
+                });
+            }
+
+            @Override
+            public void error(PromiseError exception) {
+                Log.e(TAG, "webrecorder stop error: " + exception.toString());
+                this.success();
+            }
+        });
     }
 
     private void resetStatusUpload() {
